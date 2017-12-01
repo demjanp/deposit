@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="32"
+   height="32"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.92.1 r15371"
+   sodipodi:docname="object.svg"
+   inkscape:export-filename="C:\documents\deposit_1_1\_res\dep_cube_48px.png"
+   inkscape:export-xdpi="135"
+   inkscape:export-ydpi="135">
+  <defs
+     id="defs4">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="-184.98217 : 134.99922 : 1"
+       inkscape:vp_y="0 : 1137.778 : 0"
+       inkscape:vp_z="217.72741 : 133.73499 : 1"
+       inkscape:persp3d-origin="5.9602913 : 6.6606441 : 1"
+       id="perspective3029" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="16"
+     inkscape:cx="17.170353"
+     inkscape:cy="18.345291"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:snap-bbox="true"
+     inkscape:bbox-nodes="true"
+     inkscape:bbox-paths="true"
+     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:snap-bbox-midpoints="true"
+     inkscape:snap-global="true"
+     inkscape:window-width="1385"
+     inkscape:window-height="1191"
+     inkscape:window-x="75"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:object-paths="true"
+     inkscape:snap-intersection-paths="true"
+     inkscape:snap-smooth-nodes="true"
+     inkscape:snap-midpoints="true"
+     inkscape:object-nodes="true"
+     inkscape:snap-center="false"
+     inkscape:snap-object-midpoints="true">
+    <sodipodi:guide
+       orientation="0,1"
+       position="69.866667,134.93333"
+       id="guide3143"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-1090.5196)">
+    <g
+       id="g4500"
+       transform="matrix(0.93749982,0,0,0.93749982,3.087625e-6,70.16108)">
+      <path
+         inkscape:connector-curvature="0"
+         id="path4050"
+         d="m 17.066667,1118.2456 -11.7333337,-6.265 v -12.7943 L 17.066667,1092.653 28.8,1099.1863 v 12.7959 z"
+         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06666672px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path3944"
+         d="M 17.066667,1105.453 5.3333333,1099.1863 17.066667,1092.653 28.8,1099.1863 Z"
+         style="fill:#00bbd6;fill-opacity:1;stroke:none;stroke-width:1.06666672" />
+      <path
+         sodipodi:nodetypes="ccccc"
+         inkscape:connector-curvature="0"
+         id="path3985"
+         d="m 17.066667,1118.2455 v -12.7941 L 28.8,1099.1863 v 12.7959 z"
+         style="opacity:0.67699998;fill:#00bbd6;fill-opacity:1;stroke:none;stroke-width:1.06666672" />
+      <path
+         sodipodi:nodetypes="ccccc"
+         style="opacity:0.32000002;fill:#00bbd6;fill-opacity:1;stroke:none;stroke-width:1.06666672"
+         d="m 17.066667,1118.2455 v -12.7957 l -11.7333337,-6.2651 v 12.7959 z"
+         id="path3998"
+         inkscape:connector-curvature="0" />
+      <g
+         transform="matrix(-1,0,0,1,78.933333,34.536241)"
+         id="g3992-1" />
+    </g>
+  </g>
+</svg>
