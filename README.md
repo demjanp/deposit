@@ -4,7 +4,7 @@ Graph-based data storage and exchange
 
 ## Prerequisites
 
-'''
+```
 python 3.5
 PyQt5
 PyQt3D
@@ -16,13 +16,13 @@ psycopg2
 Pillow - Python Imaging Library (Fork) 3.4.1 (http://python-pillow.org)
 flask 0.12.2 (http://flask.pocoo.org/)
 natsort 5.1.1 (https://pypi.org/project/natsort/)
-'''
+```
 
 ## Deposit (DEP) RDF Schema
 
 ### Deposit classes
 
-'''
+```
 dep:Node - Node of a graph.
 dep:Edge - Edge of a graph.
 dep:Object - Unlabeled Node. Represents the analytical unit.
@@ -36,11 +36,11 @@ dep:CheckedOutDeleted - rdf:Bag. List of Nodes and Edges checked out from a pare
 dep:CheckOutSource - rdfs:Resource. IRI of the source Deposit graph from which the current graph has been checked out.
 dep:Changed - rdfs:Literal. Time of last change of a Deposit graph.
 dep:Images - rdf:Bag. List of resources which are images.
-'''
+```
 
 ### Deposit properties
 
-'''
+```
 dep:label - Label of a Node or Edge. Can be numeric, string, resource or geometry.
 dep:geotag - Geometric information (wkt) further specifying a resource representing the label of an Edge. Coordinates represent pixels of the raster, [0,0] being the bottom-left corner.
 dep:source - Indicates the source Node of an Edge.
@@ -64,11 +64,11 @@ Geometry is specified by WKT and optionally EPSG code(s) in GeoSPARQL format sto
 		e.g.: "<http://www.opengis.net/def/crs/EPSG/0/[horizontal srid]> <http://www.opengis.net/def/crs/EPSG/0/[vertical srid]> Point(-83.1 34.4)"
 
 Time stamp of last change of the Deposit graph is stored in a Literal
-'''
+```
 
 ### RDFLib definitions
 
-'''
+```
 The Deposit RDF Schema IRI (Internationalized Resource Identifier):
 dep = http://future_url/2017/04/deposit-schema#
 
@@ -80,11 +80,11 @@ local graph (stored in a file system):
 
 The GeoSPARQL schema IRI:
 ogc = http://www.opengis.net/ont/geosparql#
-'''
+```
 
 ### Deposit graph RDF definitions
 
-'''
+```
 Object:
 	gra:[id_obj] rdf:type dep:Object
 	
@@ -193,7 +193,7 @@ Locally stored file (served by a Deposit server):
 	URIRef([local name].[ext]) rdfs:label Literal([name].[ext])
 	
 	the original name of localy stored file [local name].[ext] is [name].[ext]
-'''
+```
 
 ## Authors
 
