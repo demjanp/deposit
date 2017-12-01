@@ -5,7 +5,7 @@ Graph-based data storage and exchange
 ## Prerequisites
 
 ```
-python 3.5
+Python 3.5
 PyQt5
 PyQt3D
 numpy 1.11.0
