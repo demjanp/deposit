@@ -195,7 +195,7 @@ Locally stored file (served by a Deposit server):
 	the original name of localy stored file [local name].[ext] is [name].[ext]
 ```
 
-## Authors
+## Author
 
 * **Peter Demján** - [peter.demjan@gmail.com](mailto:peter.demjan@gmail.com)
 
