@@ -352,6 +352,7 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 		for key in self._key_order:
 			self.clear_control(key)
 			self.set_item_value(key, [])
+		self._edit_sender = None
 		self._edited = []
 		self._obj_lookup.clear()
 		self.submitButton.setEnabled(False)
