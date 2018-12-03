@@ -349,11 +349,11 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 	
 	def reset_controls(self):
 		
-		self._edited = []
-		self._obj_lookup.clear()
 		for key in self._key_order:
 			self.clear_control(key)
 			self.set_item_value(key, [])
+		self._edited = []
+		self._obj_lookup.clear()
 		self.submitButton.setEnabled(False)
 	
 	def validate(self):
