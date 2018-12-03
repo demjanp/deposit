@@ -455,7 +455,7 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 	
 	def on_edit(self):
 		
-		self._edit_timer.start(500)
+		self._edit_timer.start(1000)
 		self._edit_sender = self.sender()
 	
 	def on_edit_timer(self):
