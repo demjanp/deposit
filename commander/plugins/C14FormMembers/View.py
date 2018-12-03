@@ -370,7 +370,6 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 		for key in self._groups:
 			if key not in done:
 				self.set_item_value(key, [])
-		self.adjustSize()
 	
 	def reset_controls(self):
 		
