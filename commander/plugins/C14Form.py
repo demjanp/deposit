@@ -18,7 +18,6 @@ class C14Form(Plugin):
 	
 	def on_activate(self):
 
-		self.set_up()
 		if not self.view.isVisible():
 			self.view.show()
 		self.view.on_activate()
