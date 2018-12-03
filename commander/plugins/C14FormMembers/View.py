@@ -220,7 +220,9 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 			frame.layout().insertRow(0, label, field)
 			frame.adjustSize()
 			return field
-		
+
+		print("SET", key, key in self._edited)
+
 		if key in self._edited:
 			return
 		cls, descr1, _, _, _ = self._queries[key][0]
