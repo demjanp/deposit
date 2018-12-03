@@ -171,6 +171,21 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 				if ret_frame:
 					ret.append(ret_frame)
 			return ret[::-1]
+
+		def is_last_frame_empty(group_ctrl):
+
+			frame_nr = -1
+			ret_frame = None
+			for frame in group_ctrl.findChildren(QtWidgets.QFrame):
+				ret_frame = {}
+				for ctrl in frame.findChildren(QtWidgets.QWidget):
+					if hasattr(ctrl, "_new") and ctrl._new:
+						value = self.get_control_value(ctrl)
+						ret_frame[ctrl._descr] = value
+						frame_nr = ctrl._frame_nr
+			if ret_frame == None:
+				return False, frame_nr
+			return (len(ret_frame) > 0) and (False not in [(ret_frame[descr] == "") for descr in ret_frame]), frame_nr
 		
 		def set_control(ctrl, value, cls, descr, default = ""):
 			
@@ -221,12 +236,20 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 			frame.adjustSize()
 			return field
 
-		print("SET", key, key in self._edited)
+		ctrl = self.__dict__[key]
+		if key in self._groups:
+			is_empty, frame_nr = is_last_frame_empty(ctrl)
+			if not is_empty:
+				frame = add_group_frame(ctrl)
+				cls = self._queries[key][0][0]
+				for label, field_class, descr2, unique in self._groups[key]:
+					field = add_group_frame_row(frame, label, field_class, frame_nr, self._queries[key], descr2, unique)
+					field._new = True
+					set_control(field, "", cls, descr2)
 
 		if key in self._edited:
 			return
 		cls, descr1, _, _, _ = self._queries[key][0]
-		ctrl = self.__dict__[key]
 		if key in self._groups:
 			new_values = get_new_values(ctrl) # {descr: value, ...}
 			self.clear_control(ctrl)
