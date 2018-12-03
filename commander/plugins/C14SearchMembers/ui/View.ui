@@ -7,16 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>508</width>
-    <height>250</height>
+    <height>304</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <property name="styleSheet">
-    <string notr="true">font-size: 10pt;</string>
-   </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QFrame" name="formFrame">
