@@ -1,120 +1,111 @@
 <?xml version="1.0"?>
 <!--
-	RDF Schema declaration for Deposit (DEP) 1.0
-	<http://future_url/2017/04/deposit-schema#>
+	RDF Schema declaration for Deposit (DEP) 1.1
+	<http://future_url/2018/07/deposit-schema#>
 	Peter Demján <peter.demjan@gmail.com>
-	09-10-2017
+	25-09-2018
 -->
 <rdf:RDF
 	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-	xmlns:dep="http://future_url/2017/04/deposit-schema#">
-	
+
 	<rdfs:Class rdf:ID="Node" rdfs:label="Node" rdfs:comment="Node of a graph."/>
-	
+
 	<rdfs:Class rdf:ID="Edge" rdfs:label="Edge" rdfs:comment="Edge of a graph."/>
-	
+
 	<rdfs:Class rdf:ID="Object" rdfs:label="Object" rdfs:comment="Unlabeled Node. Represents the analytical unit.">
 		<rdfs:subClassOf rdf:resource="#Node"/>
 	</rdfs:Class>
-	
+
 	<rdfs:Class rdf:ID="Class" rdfs:label="Class" rdfs:comment="Labeled Node. Generalization (synthetical) unit. Only one Class with a specific label can exist.">
 		<rdfs:subClassOf rdf:resource="#Node"/>
 	</rdfs:Class>
-	
+
 	<rdfs:Class rdf:ID="Member" rdfs:label="Member" rdfs:comment="Unlabeled Edge. Membership of an Object or Class in a Class.">
 		<rdfs:subClassOf rdf:resource="#Edge"/>
 	</rdfs:Class>
-	
-	<rdfs:Class rdf:ID="Relation" rdfs:label="Relation" rdfs:comment="Labeled Edge. Connection between an Object and a Class or between Objects. Only one Relation between specific Nodes and with a specific label can exist.">
+
+	<rdfs:Class rdf:ID="Relation" rdfs:label="Relation" rdfs:comment="Labeled Edge. Connection between an Object and a Class, two Objects or two Classes. Only one Relation between specific Nodes and with a specific label can exist.">
 		<rdfs:subClassOf rdf:resource="#Edge"/>
 	</rdfs:Class>
-	
+
+	<rdfs:Class rdf:ID="Descriptor" rdfs:label="Descriptor" rdfs:comment="Labeled Edge. Connection between two Classes. The source Class is a Descriptor of the target Class.">
+		<rdfs:subClassOf rdf:resource="#Edge"/>
+	</rdfs:Class>
+
 	<rdfs:Class rdf:ID="Order" rdfs:label="Order" rdfs:comment="Ordering of Nodes as specified by their position in a container of this class.">
 		<rdfs:subClassOf rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq"/>
 	</rdfs:Class>
-	
-	<rdfs:Class rdf:ID="CheckedOut" rdfs:label="CheckedOut" rdfs:comment="List of Nodes and Edges checked out from a parent Deposit graph.">
-		<rdfs:subClassOf rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag"/>
-	</rdfs:Class>
-	
-	<rdfs:Class rdf:ID="CheckedOutUpdated" rdfs:label="CheckedOutUpdated" rdfs:comment="List of Nodes and Edges checked out from a parent Deposit graph which have been updated.">
-		<rdfs:subClassOf rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag"/>
-	</rdfs:Class>
-	
-	<rdfs:Class rdf:ID="CheckedOutDeleted" rdfs:label="CheckedOutDeleted" rdfs:comment="List of Nodes and Edges checked out from a parent Deposit graph which have been deleted.">
-		<rdfs:subClassOf rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag"/>
-	</rdfs:Class>
-	
-	<rdfs:Class rdf:ID="CheckOutSource" rdfs:label="CheckOutSource" rdfs:comment="IRI of the source Deposit graph from which the current graph has been checked out.">
-		<rdfs:subClassOf rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
-	</rdfs:Class>
-	
+
 	<rdfs:Class rdf:ID="Changed" rdfs:label="Changed" rdfs:comment="Time of last change of a Deposit graph.">
 		<rdfs:subClassOf rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
 	</rdfs:Class>
-	
+
+	<rdfs:Class rdf:ID="LocalFolder" rdfs:label="LocalFolder" rdfs:comment="IRI of the local folder to store resources.">
+		<rdfs:subClassOf rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+	</rdfs:Class>
+
 	<rdfs:Class rdf:ID="Images" rdfs:label="Images" rdfs:comment="List of resources which are images.">
 		<rdfs:subClassOf rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag"/>
 	</rdfs:Class>
-	
+
 	<rdf:Property rdf:ID="label" rdfs:label="label" rdfs:comment="Label of a Node or Edge. Can be numeric, string, resource or geometry.">
 		<rdfs:domain rdf:resource="#Class"/>
 		<rdfs:domain rdf:resource="#Relation"/>
 		<rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
 	</rdf:Property>
-	
+
 	<rdf:Property rdf:ID="geotag" rdfs:label="geotag" rdfs:comment="Geometric information (wkt) further specifying a resource representing the label of an Edge. Coordinates represent pixels of the raster, [0,0] being the bottom-left corner.">
 		<rdfs:domain rdf:resource="#Relation"/>
 		<rdfs:range rdf:resource="http://www.opengis.net/ont/geosparql#wktLiteral"/>
 	</rdf:Property>
-	
+
 	<rdf:Property rdf:ID="source" rdfs:label="source" rdfs:comment="Indicates the source Node of an Edge">
 		<rdfs:domain rdf:resource="#Edge"/>
 		<rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
 	</rdf:Property>
-	
+
 	<rdf:Property rdf:ID="target" rdfs:label="target" rdfs:comment="Indicates the target Node of an Edge">
 		<rdfs:domain rdf:resource="#Edge"/>
 		<rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
 	</rdf:Property>
-	
+
 	<rdf:Property rdf:ID="description" rdfs:label="description" rdfs:comment="Additional description of a Class, Property or Relation.">
 		<rdfs:domain rdf:resource="#Class"/>
 		<rdfs:domain rdf:resource="#Relation"/>
 		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
 	</rdf:Property>
-	
-	<rdf:Property rdf:ID="projection" rdfs:label="projection" rdfs:comment="Geographic projection as wkt in OGC or ESRI format of a resource representing the label of an Edge.">
-		<rdfs:domain rdf:resource="#Relation"/>
+
+	<rdf:Property rdf:ID="projection" rdfs:label="projection" rdfs:comment="Geographic projection as wkt in OGC or ESRI format.">
+		<rdfs:domain rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
 		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
 	</rdf:Property>
-	
+
 	<rdf:Property rdf:ID="worldfile_A" rdfs:label="worldfile_A" rdfs:comment="ESRI world file parameter A (line 1): pixel size in the x-direction in map units/pixel.">
 		<rdfs:domain rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
 		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
 	</rdf:Property>
-	
+
 	<rdf:Property rdf:ID="worldfile_D" rdfs:label="worldfile_D" rdfs:comment="ESRI world file parameter D (line 2): rotation about y-axis.">
 		<rdfs:domain rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
 		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
 	</rdf:Property>
-	
+
 	<rdf:Property rdf:ID="worldfile_B" rdfs:label="worldfile_B" rdfs:comment="ESRI world file parameter B (line 3): rotation about x-axis.">
 		<rdfs:domain rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
 		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
 	</rdf:Property>
-	
+
 	<rdf:Property rdf:ID="worldfile_E" rdfs:label="worldfile_E" rdfs:comment="ESRI world file parameter E (line 4): pixel size in the y-direction in map units.">
 		<rdfs:domain rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
 		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
 	</rdf:Property>
-	
+
 	<rdf:Property rdf:ID="worldfile_C" rdfs:label="worldfile_C" rdfs:comment="ESRI world file parameter C (line 5): x-coordinate of the center of the upper left pixel.">
 		<rdfs:domain rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
 		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
 	</rdf:Property>
-	
+
 	<rdf:Property rdf:ID="worldfile_F" rdfs:label="worldfile_F" rdfs:comment="ESRI world file parameter F (line 6): y-coordinate of the center of the upper left pixel.">
 		<rdfs:domain rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
 		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>

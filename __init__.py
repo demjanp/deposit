@@ -3,22 +3,11 @@
 	--------------------------
 	Graph-based data storage and exchange
 
-	Created on 10. 4. 2017
+	Created on 29. 4. 2013
 
 	@author: Peter Demjan <peter.demjan@gmail.com>
 
 	Required modules:
-		python 3.5
-		PyQt5
-		PyQt3D
-		numpy 1.11.0
-		pyshp 1.2.11 (https://github.com/GeospatialPython/pyshp)
-		openpyxl 2.4.7 (https://openpyxl.readthedocs.io)
-		rdflib 4.2.1 (https://github.com/RDFLib/rdflib)
-		psycopg2
-		Pillow - Python Imaging Library (Fork) 3.4.1 (http://python-pillow.org)
-		flask 0.12.2 (http://flask.pocoo.org/)
-		natsort 5.1.1 (https://pypi.org/project/natsort/)
 	
 	Deposit (DEP) RDF Schema:
 	
@@ -28,13 +17,11 @@
 	dep:Object - Unlabeled Node. Represents the analytical unit.
 	dep:Class - Labeled Node. Generalization (synthetical) unit. Only one Class with a specific label can exist.
 	dep:Member - Unlabeled Edge. Membership of an Object or Class in a Class.
-	dep:Relation - Labeled Edge. Connection between a Class and an Object or between Objects. Only one Relation between specific Nodes and with a specific label can exist.
+	dep:Relation - Labeled Edge. Connection between an Object and a Class, two Objects or two Classes. Only one Relation between specific Nodes and with a specific label can exist.
+	dep:Descriptor - Labeled Edge. Relation between two Classes. The source Class is a Descriptor of the target Class.
 	dep:Order - rdf:Seq. Ordering of Nodes as specified by their position in a container of this class.
-	dep:CheckedOut - rdf:Bag. List of Nodes and Edges checked out from a parent Deposit graph.
-	dep:CheckedOutUpdated - rdf:Bag. List of Nodes and Edges checked out from a parent Deposit graph which have been updated.
-	dep:CheckedOutDeleted - rdf:Bag. List of Nodes and Edges checked out from a parent Deposit graph which have been deleted.
-	dep:CheckOutSource - rdfs:Resource. IRI of the source Deposit graph from which the current graph has been checked out.
 	dep:Changed - rdfs:Literal. Time of last change of a Deposit graph.
+	dep:LocalFolder - rdfs:Resource. IRI of the local folder to store resources.
 	dep:Images - rdf:Bag. List of resources which are images.
 	
 	Deposit properties:
@@ -43,7 +30,7 @@
 	dep:source - Indicates the source Node of an Edge.
 	dep:target - Indicates the target Node of an Edge.
 	dep:description - Additional description of a Class, Property or Relation.
-	dep:projection - Geographic projection as wkt in OGC or ESRI format of a resource representing the label of an Edge.
+	dep:projection - Geographic projection as wkt in OGC or ESRI format.
 	dep:worldfile_A..F - ESRI world file parameters used for georeferencing raster image resources.
 	
 	Subclass: A Class which is a Member of another Class.
@@ -89,7 +76,7 @@
 		gra:[id_cls] dep:label Literal(label)
 		
 		id_cls is a Class named label
-		id_cls: cls_1, cls_2, ...
+		id_cls: cls_0, cls_1, cls_2, ...
 	
 	Member:
 		gra:[id_mem] rdf:type dep:Member
@@ -97,19 +84,28 @@
 		gra:[id_mem] dep:target gra:[id_obj / id_cls2]
 		
 		Class id_cls1 has a member Object id_obj or Class id_cls2
-		id_mem: mem_1, mem_2, ...
+		id_mem: mem_0, mem_1, mem_2, ...
 	
 	Relation:
 		gra:[id_rel] rdf:type dep:Relation
 		gra:[id_rel] dep:label Literal(label) / URIRef(label) / wktLiteral(label)
 		gra:[id_rel] dep:source gra:[id_obj1 / id_cls1]
-		gra:[id_rel] dep:target gra:[id_obj2]
+		gra:[id_rel] dep:target gra:[id_obj2 / id_cls2]
 		
 		id_rel is a Relation named label
-		Object id_obj1 or Class id_cls1 is connected to Object id_obj2 by Relation id_rel
-		label can be of type URIRef or wktLiteral only for relations between two Objects
-		id_rel: rel_1, rel_2, ...
-	
+		Object id_obj1 or Class id_cls1 is connected to Object id_obj2 or Class id_cls2 by Relation id_rel
+		label can be of type URIRef or wktLiteral only for relations between two Objects or two Classes
+		a Relation between two Classes is virtual, representing a Relation between Objects of those Classes
+		id_rel: rel_0, rel_1, rel_2, ...
+
+	Descriptor:
+		gra:[id_dsc] rdf:type dep:Descriptor
+		gra:[id_dsc] dep:source gra:[id_cls1]
+		gra:[id_dsc] dep:target gra:[id_cls2]
+
+		Class id_cls1 is a Descriptor of Class id_cls2
+		id_dsc: dsc_0, dsc_1, dsc_2, ...
+
 	geotag:
 		gra:[id_rel] dep:geotag wktLiteral(wkt)
 		
@@ -121,34 +117,16 @@
 		
 		Node id_node is at the n-th position in Ordering
 	
-	CheckedOut:
-		gra:checked_out rdf:type dep:CheckedOut
-		gra:checked_out rdf:_n gra:[id_node]
-		
-		Node id_node is checked out
-	
-	CheckedOutUpdated:
-		gra:checked_out_updated rdf:type dep:CheckedOutUpdated
-		gra:checked_out_updated rdf:_n gra:[id_node]
-		
-		Node id_node is checked out and was updated
-	
-	CheckedOutDeleted:
-		gra:checked_out_deleted rdf:type dep:CheckedOutDeleted
-		gra:checked_out_deleted rdf:_n gra:[id_node]
-		
-		Node id_node is checked out and was deleted
-	
-	CheckOutSource:
-		URIRef(IRI) rdf:type dep:CheckOutSource
-		
-		IRI of the source Deposit graph from which the current graph has been checked out.
-	
 	Changed:
 		gra:changed rdf:type dep:Changed
 		gra:changed rdf:value Literal(timestamp)
 		
 		The graph was last changed at time timestamp
+	
+	LocalFolder:
+		URIRef(IRI) rdf:type dep:LocalFolder
+		
+		IRI of the local folder to store resources.
 	
 	Images:
 		gra:images rdf:type dep:Images
@@ -160,9 +138,9 @@
 		d is a description of Class or Relation id
 	
 	projection:
-		gra:[id_rel] dep:projection Literal(wkt)
+		URIRef(uri) dep:projection Literal(wkt)
 		
-		geographic projection as wkt in OGC or ESRI format (alternative to specifying a SRID) for data associated with the Relation id_rel
+		geographic projection as wkt in OGC or ESRI format of a local or remote raster image resource
 	
 	worldfile_A..F:
 		URIRef(uri) dep:worldfile_A Literal(v)
@@ -182,22 +160,15 @@
 		C (line 5): x-coordinate of the center of the upper left pixel.
 		F (line 6): y-coordinate of the center of the upper left pixel.
 	
-	Locally stored file (served by a Deposit server):
+	Locally stored file:
 		URIRef([local name].[ext]) rdfs:label Literal([name].[ext])
 		
 		the original name of localy stored file [local name].[ext] is [name].[ext]
 
 '''
 
-from deposit.DB import DB
-from deposit.File import File
-from deposit.Store import Store
-from deposit.Query import Query
-from deposit.DLabel import (DLabel, DString, DResource, DGeometry)
-from deposit.Commander import Commander
-from deposit.Server import Server
+INVALID_CHARACTERS_NAME = "#@"  # invalid characters for Class and Relation labels
 
-DEP_OBJECT = 1
-DEP_CLASS = 2
-DEP_MEMBER = 3
-DEP_RELATION = 4
+from deposit.store.Store import (Store)
+from deposit.commander.Commander import (Commander)
+

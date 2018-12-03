@@ -1,228 +1,118 @@
-from deposit.commander.PrototypeFrame import PrototypeFrame
-from deposit.commander.DropActions import DropActions
+from deposit import Broadcasts
+from deposit.commander.ViewChild import (ViewChild)
+
 from PyQt5 import (QtWidgets, QtCore, QtGui)
-import json
-import os
-from urllib.parse import urlparse
+from importlib import import_module
 
-class MdiDrag(QtWidgets.QMdiSubWindow):
-	
-	def __init__(self, parent_view, icon, tooltip):
-		
-		self._parent_view = parent_view
-		
-		super(MdiDrag, self).__init__()
-		
-		self.label = QtWidgets.QLabel()
-		self.label.setPixmap(QtGui.QPixmap(icon))
-		self.label.setToolTip(tooltip)
-		self.label.setCursor(QtCore.Qt.OpenHandCursor)
-		self.setWidget(self.label)
-		self.setStyleSheet("background-color:transparent;")
-	
-	def mousePressEvent(self, event):
-		
-		mimeData = QtCore.QMimeData()
-		mimeData.setData("application/deposit", bytes(json.dumps(dict(parent = self.__class__.__name__, data = [{}])), "utf-8"))
-		
-		drag = QtGui.QDrag(self)
-		drag.setMimeData(mimeData)
-		drag.setPixmap(self.label.pixmap())
-		drag.setHotSpot(event.pos() - self.label.pos())
-		dropAction = drag.exec(QtCore.Qt.CopyAction, QtCore.Qt.CopyAction)
-	
-	def eventFilter(self, watched, event):
-		if event.type() == QtCore.QEvent.Enter:
-			self._parent_view.on_action_hovered(self.label)
-		return super(MdiDrag, self).eventFilter(watched, event)
+class MdiSubWindow(ViewChild, QtWidgets.QMdiSubWindow):
 
-class MdiObject(MdiDrag):
-	
-	pass
+	def __init__(self, model, view, parent):
 
-class MdiClass(MdiDrag):
-	
-	pass
+		self.parent = parent
 
-class MdiTrash(PrototypeFrame, QtWidgets.QMdiSubWindow):
-	
-	def __init__(self, parent_view):
+		ViewChild.__init__(self, model, view)
+		QtWidgets.QMdiSubWindow.__init__(self, flags = QtCore.Qt.SubWindow)
 		
-		super(MdiTrash, self).__init__(parent_view)
-		
-		self.setAcceptDrops(True)
-		
-		self.label = QtWidgets.QLabel()
-		self.label.setPixmap(QtGui.QPixmap(":/res/res/trash_closed.svg"))
-		self.label.setToolTip("Drop items here to delete")
-		self.setWidget(self.label)
-		self.setStyleSheet("background-color:transparent;")
-	
-	def get_drop_action(self, src_parent, src_data, tgt_data):
-		
-		if src_parent == "ClassList":
-			if "parent_class" in src_data:
-				if not "#" in src_data["parent_class"]:
-					return DropActions.DELETE_CLASS_MEMBER
-			return DropActions.DELETE_CLASS
-		if src_parent == "ClassLabel":
-			if not "#" in src_data["cls_id"]:
-				return DropActions.DELETE_CLASS_MEMBER
-		if src_parent == "ObjectLabel":
-			if not "#" in src_data["obj_id"]:
-				return DropActions.DELETE_OBJECT
-		if src_parent == "QueryLstView":
-			if "obj_id2" in src_data:
-				if not "cls_id" in src_data:
-					return DropActions.DELETE_RELATION
-				return None
-			if "cls_id" in src_data:
-				if not "#" in src_data["cls_id"]:
-					return DropActions.DELETE_DESCRIPTOR
-			if not "#" in src_data["obj_id"]:
-				return DropActions.DELETE_OBJECT
-		if src_parent in ["QueryImgView", "QueryObjView"]:
-			if not "#" in src_data["rel_id"]:
-				return DropActions.DELETE_DESCRIPTOR
-		return None
-	
-	def on_drag_move(self, source, target, event):
-		
-		self.label.setPixmap(QtGui.QPixmap(":/res/res/trash_open.svg"))
-	
-	def on_drag_leave(self, event):
-		
-		self.label.setPixmap(QtGui.QPixmap(":/res/res/trash_closed.svg"))
-	
-	def on_drop(self, event):
-		
-		self.label.setPixmap(QtGui.QPixmap(":/res/res/trash_closed.svg"))
-	
-	def eventFilter(self, watched, event):
-		if event.type() == QtCore.QEvent.Enter:
-			self._parent_view.on_action_hovered(self.label)
-		return super(MdiTrash, self).eventFilter(watched, event)
-	
-class MdiSubWindow(QtWidgets.QMdiSubWindow):
-	
-	def __init__(self, *args, **kwargs):
-		
-		super(MdiSubWindow, self).__init__(*args, **kwargs)
-		
+		self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+
 		self.windowStateChanged.connect(self.on_state_changed)
-	
-	def on_state_changed(self, old_state, new_state):
-		
-		if new_state == QtCore.Qt.WindowActive:
-			widget = self.widget()
-			found = []
-			for key in widget.__dict__:
-				child = widget.__dict__[key]
-				if (isinstance(child, QtWidgets.QAbstractItemView) or isinstance(child, QtWidgets.QGraphicsView)) and child.isVisible():
-					found.append(child)
-					if child.selected():
-						child.setFocus()
-						return
-			if found:
-				found[0].setFocus()
-			if (isinstance(widget, QtWidgets.QAbstractItemView) or isinstance(widget, QtWidgets.QGraphicsView)):
-				widget.setFocus()
-				return
-		
-class MdiArea(PrototypeFrame, QtWidgets.QMdiArea):
-	
-	def __init__(self, parent_view):
-		
-		super(MdiArea, self).__init__(parent_view)
-		
-		self.setAcceptDrops(True)
-		self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
-		self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
-		self._populate()
-		self.verticalScrollBar().valueChanged.connect(self.on_scroll)
-		self.horizontalScrollBar().valueChanged.connect(self.on_scroll)
-	
-	def _populate(self):
-		
-		self.objectDrag = MdiObject(self._parent_view, ":/res/res/object.svg", "Drag & Drop to create new Object")
-		self.objectDrag.setGeometry(10, 10, 32, 32)
-		self.addSubWindow(self.objectDrag, QtCore.Qt.FramelessWindowHint)
-		
-		self.classDrag = MdiClass(self._parent_view, ":/res/res/class.svg", "Drag & Drop to create new Class")
-		self.classDrag.setGeometry(48, 10, 32, 32)
-		self.addSubWindow(self.classDrag, QtCore.Qt.FramelessWindowHint)
-		
-		self.trash = MdiTrash(self._parent_view)
-		self.trash.setGeometry(48, 10, 32, 32)
-		self.addSubWindow(self.trash, QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
-		
-		self.subWindowActivated.connect(self._parent_view.on_subwindow_activated)
-		
-		self.update_drags()
-	
-	def get_drop_action(self, src_parent, src_data, tgt_data):
-		# TODO use MdiAreaModel to access model functions
 
-		if src_parent == "external":
-			scheme = urlparse(src_data["value"]).scheme
-			if (scheme in ["http", "https"]) or (os.path.splitext(src_data["value"])[1].lower() == ".rdf"):
-				return DropActions.OPEN_DATABASE
-		if not self._parent_view._model.has_store():
-			return None
-		if src_parent in ["QueryImgView", "QueryObjView", "ObjectLabel", "MdiObject"]:
-			return DropActions.OPEN_OBJECT
-		if src_parent in ["ClassList", "ClassLabel", "MdiClass"]:
-			return DropActions.OPEN_CLASS
-		if src_parent == "external":
-			if self._parent_view._model.store.file.shapefiles.is_shapefile(src_data["value"]) or self._parent_view._model.store.file.xlsx.is_xlsx(src_data["value"]):
-				return DropActions.OPEN_EXTERNAL
-			return None
-		if src_parent == "QueryLstView":
-			if ("cls_id" in src_data) and ((("image" in src_data) and src_data["image"]) or (("geometry" in src_data) and src_data["geometry"])):
-				return DropActions.OPEN_DESCRIPTOR
-			return DropActions.OPEN_OBJECT
+	def on_state_changed(self, old_state, new_state):
+
+		self.broadcast(Broadcasts.VIEW_ACTION)
+
+	def closeEvent(self, event):
+
+		self.widget().set_closed()
+		self.broadcast(Broadcasts.VIEW_ACTION)
+
+class MdiArea(ViewChild, QtWidgets.QMdiArea):
+	
+	def __init__(self, model, view):
+
+		self.background_text = "" # [text line, ...]
+		self.descriptor_windows = []
+
+		ViewChild.__init__(self, model, view)
+		QtWidgets.QMdiArea.__init__(self, view)
+
+		self.set_up()
+	
+	def set_up(self):
+		
+		self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn	)
+		self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn	)
+		
+		self.subWindowActivated.connect(self.on_activated)
+		self.connect_broadcast(Broadcasts.STORE_LOADED, self.on_loaded)
+	
+	def create(self, frame_name, *args):
+		
+		window = MdiSubWindow(self.model, self.view, self)
+		frame = getattr(import_module("deposit.commander.frames.%s" % (frame_name)), frame_name)(self.model, self.view, window, *args)
+		window.setWidget(frame)
+		window.setWindowTitle(frame.name())
+		window.setWindowIcon(self.view.get_icon(frame.icon()))
+		self.addSubWindow(window)
+		window.show()
+		
+		self.broadcast(Broadcasts.VIEW_ACTION)
+	
+	def create_descriptor(self, *args):
+		# create Descriptor frame outside of MdiArea
+		
+		window = getattr(import_module("deposit.commander.frames.Descriptor"), "Descriptor")(self.model, self.view, self.view, *args)
+		window.show()
+		self.descriptor_windows.append(window)
+	
+	def close_all(self):
+		
+		for window in self.descriptor_windows:
+			if not window.closed():
+				window.hide()
+		self.descriptor_windows = []
+		self.closeAllSubWindows()
+	
+	def set_background_text(self, text):
+		
+		self.background_text = text
+		self.hide()
+		self.show()
+	
+	def get_current(self):
+
+		current = self.currentSubWindow()
+		if current:
+			current = current.widget()
+			if hasattr(current, "get_current"):
+				return current.get_current()
+			return current
 		return None
 	
-	def set_object_drag_enabled(self, state):
-		
-		self.objectDrag.setEnabled(state)
+	def paintEvent(self, event):
+
+		QtWidgets.QMdiArea.paintEvent(self, event)
+
+		if self.background_text:
+			painter = QtGui.QPainter()
+			td = QtGui.QTextDocument()
+			
+			painter.begin(self.viewport())
+			painter.translate(QtCore.QPointF(30, 30))
+			
+			font = td.defaultFont()
+			font.setPointSize(10)
+			td.setDefaultFont(font)
+			td.setHtml(self.background_text)
+			td.drawContents(painter)
+			
+			painter.end()
 	
-	def set_class_drag_enabled(self, state):
-		
-		self.classDrag.setEnabled(state)
+	def on_activated(self):
+
+		self.broadcast(Broadcasts.VIEW_ACTION)
 	
-	def set_trash_enabled(self, state):
+	def on_loaded(self, args):
 		
-		self.trash.setEnabled(state)
+		self.close_all()
 	
-	def add_window(self, widget):
-		
-		sub = MdiSubWindow(flags = QtCore.Qt.SubWindow)
-		sub.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-		sub.setWidget(widget)
-		self.addSubWindow(sub)
-		pos = sub.pos()
-		pos.setX(pos.x() + 100) # move from under dockWidget
-		sub.move(pos)
-		sub.show()
-	
-	def update_drags(self):
-		
-		self.objectDrag.move(10, 10)
-		self.classDrag.move(48, 10)
-		self.trash.move(self.rect().width() - 70, self.rect().height() - 70)
-	
-	def on_drop(self, event):
-		
-		if self.objectDrag.geometry().contains(event.pos()) or self.classDrag.geometry().contains(event.pos()):
-			return
-		if (event.source() in [self.objectDrag, self.classDrag]) and self.trash.geometry().contains(event.pos()):
-			return
-	
-	def on_scroll(self):
-		
-		self.update_drags()
-	
-	def resizeEvent(self, event):
-		
-		self.update_drags()
