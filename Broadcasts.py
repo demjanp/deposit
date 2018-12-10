@@ -44,7 +44,7 @@ class BroadcastHook(object):
 			if [broadcaster, args] not in self._broadcasts[signal]:
 				self._broadcasts[signal].append([broadcaster, args])
 				if self._on_broadcast is not None:
-					self._on_broadcast()
+					self._on_broadcast(list(self._broadcasts.keys()))
 
 	def connect(self, dmodule, signal, func, args):
 		# args: list of additional arguments passed to function
@@ -98,6 +98,6 @@ class BroadcastHook(object):
 			if self._on_broadcast is None:
 				self.broadcast()
 			else:
-				self._on_broadcast()
+				self._on_broadcast(list(self._broadcasts.keys()))
 
 _BROADCAST_HOOK = BroadcastHook()

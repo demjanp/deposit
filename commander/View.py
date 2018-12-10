@@ -160,10 +160,12 @@ class View(DModule, QtWidgets.QMainWindow):
 		print("Saving failed!")
 		self.statusbar.message("Saving failed!")
 
-	def on_broadcast(self):
+	def on_broadcast(self, signals):
 
-		self.process_broadcasts()  # DEBUG
-		# self._broadcast_timer.start(100)
+		if (Broadcasts.STORE_SAVED in signals) or (Broadcasts.STORE_SAVE_FAILED in signals):
+			self.process_broadcasts()
+		else:
+			self._broadcast_timer.start(100)
 
 	def on_broadcast_timer(self):
 
@@ -187,4 +189,3 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.mdiarea.close_all()
 		self.plugins.close_all()
 		self.model.on_close()
-	
