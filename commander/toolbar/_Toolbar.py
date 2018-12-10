@@ -48,6 +48,8 @@ class Toolbar(CmdDict, ViewChild):
 		self.connect_broadcast(Broadcasts.VIEW_ACTION, self.on_view_action)
 		self.connect_broadcast(Broadcasts.STORE_LOADED, self.on_loaded)
 		self.connect_broadcast(Broadcasts.STORE_DATA_SOURCE_CHANGED, self.on_view_action)
+		self.connect_broadcast(Broadcasts.STORE_DATA_CHANGED, self.on_store_changed)
+		self.connect_broadcast(Broadcasts.STORE_SAVED, self.on_saved)
 
 		self.update_tools()
 	
@@ -107,6 +109,14 @@ class Toolbar(CmdDict, ViewChild):
 		self.view.statusbar.message(self.view.sender().toolTip())
 
 	def on_view_action(self, args):
+
+		self.update_tools()
+
+	def on_store_changed(self, args):
+
+		self.update_tools()
+
+	def on_saved(self, *args):
 
 		self.update_tools()
 

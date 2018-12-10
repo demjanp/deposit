@@ -98,7 +98,7 @@ class View(DModule, QtWidgets.QMainWindow):
 
 	def set_title(self, name = None):
 
-		title = "Deposit_dev"
+		title = "Deposit"
 		if name is None:
 			self.setWindowTitle(title)
 		else:
@@ -118,7 +118,34 @@ class View(DModule, QtWidgets.QMainWindow):
 			self.mdiarea.set_background_text("".join([("<p>%s</p>" % text) for text in texts]))
 		else:
 			self.mdiarea.set_background_text("")
-	
+
+	def save(self):
+
+		if self.model.data_source is None:
+
+			directory = ""
+			if not self.model.local_folder is None:
+				directory = as_url(self.model.local_folder)
+			url, format = QtWidgets.QFileDialog.getSaveFileUrl(self, caption="Save Database As",
+															   filter="JSON (*.json);;Resource Description Framework (*.rdf)",
+															   directory=directory)
+			url = url.toString()
+			if url:
+				ds = None
+				if format == "Resource Description Framework (*.rdf)":
+					ds = self.model.datasources.RDFGraph(url=url)
+				elif format == "JSON (*.json)":
+					ds = self.model.datasources.JSON(url=url)
+				if (not ds is None) and ds.save():
+					self.model.set_datasource(ds)
+					self.menu.add_recent_url(url)
+
+		else:
+			if (self.model.data_source.name == "DB") and (not self.model.data_source.identifier):
+				self.dialogs.open("SetIdentifier", True)
+				return
+			self.model.save()
+
 	def on_data_source_changed(self, args):
 		
 		self.update_model_info()
@@ -135,7 +162,8 @@ class View(DModule, QtWidgets.QMainWindow):
 
 	def on_broadcast(self):
 
-		self._broadcast_timer.start(100)
+		self.process_broadcasts()  # DEBUG
+		# self._broadcast_timer.start(100)
 
 	def on_broadcast_timer(self):
 
@@ -143,6 +171,15 @@ class View(DModule, QtWidgets.QMainWindow):
 
 	def closeEvent(self, event):
 		
+		if not self.model.is_saved():
+			reply = QtWidgets.QMessageBox.question(self, "Exit", "Save changes to database?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
+			if reply == QtWidgets.QMessageBox.Yes:
+				self.save()
+			elif reply == QtWidgets.QMessageBox.No:
+				pass
+			else:
+				event.ignore()
+
 		if not self.populate_thread is None:
 			self.populate_thread.terminate()
 			self.populate_thread.wait()

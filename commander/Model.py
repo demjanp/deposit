@@ -1,3 +1,4 @@
+from deposit import Broadcasts
 from deposit import (Store)
 
 from PyQt5 import (QtCore)
@@ -14,12 +15,27 @@ class Model(Store):
 	def set_up(self):
 		
 		self.save_thread = SaveThread(self)
-	
+		self._last_changed = -1
+		self.connect_broadcast(Broadcasts.STORE_LOADED, self.on_loaded)
+		self.connect_broadcast(Broadcasts.STORE_SAVED, self.on_saved)
+
 	def save(self):
-		
+
 		self.save_thread.wait()
 		self.save_thread.start()
-	
+
+	def is_saved(self):
+
+		return self._last_changed == self.changed
+
+	def on_loaded(self, *args):
+
+		self._last_changed = self.changed
+
+	def on_saved(self, *args):
+
+		self._last_changed = self.changed
+
 	def on_close(self):
 		
 		self.save_thread.wait()

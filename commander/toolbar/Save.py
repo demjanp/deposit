@@ -29,30 +29,9 @@ class Save(Tool):
 
 	def enabled(self):
 
-		return True
+		return not self.model.is_saved()
 
 	def triggered(self, state):
 		
-		if self.model.data_source is None:
-			
-			directory = ""
-			if not self.model.local_folder is None:
-				directory = as_url(self.model.local_folder)
-			url, format = QtWidgets.QFileDialog.getSaveFileUrl(self.view, caption = "Save Database As", filter = "JSON (*.json);;Resource Description Framework (*.rdf)", directory = directory)
-			url = url.toString()
-			if url:
-				ds = None
-				if format == "Resource Description Framework (*.rdf)":
-					ds = self.model.datasources.RDFGraph(url = url)
-				elif format == "JSON (*.json)":
-					ds = self.model.datasources.JSON(url = url)
-				if (not ds is None) and ds.save():
-					self.model.set_datasource(ds)
-					self.view.menu.add_recent_url(url)
-			
-		else:
-			if (self.model.data_source.name == "DB") and (not self.model.data_source.identifier):
-				self.view.dialogs.open("SetIdentifier", True)
-				return
-			self.model.save()
+		self.view.save()
 
