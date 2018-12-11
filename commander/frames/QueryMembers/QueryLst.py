@@ -183,6 +183,9 @@ class QueryLst(Frame, PrototypeDragView, QtWidgets.QTableView):
 		self.activated.connect(self.on_activated)
 
 		self._selection = QuerySelection(self.model, self.view, self.selectionModel().selectedIndexes())
+		header = self.horizontalHeader()
+		for i in range(header.count()):
+			header.resizeSection(i, header.sectionSizeHint(i))
 	
 	def set_query(self, query):
 		
