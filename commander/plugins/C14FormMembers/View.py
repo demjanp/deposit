@@ -173,19 +173,23 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 			return ret[::-1]
 
 		def is_last_frame_empty(group_ctrl):
-
+			
 			frame_nr = -1
-			ret_frame = None
-			for frame in group_ctrl.findChildren(QtWidgets.QFrame):
-				ret_frame = {}
-				for ctrl in frame.findChildren(QtWidgets.QWidget):
-					if hasattr(ctrl, "_new") and ctrl._new:
+			filled_frames = 0
+			frames_n = 0
+			for frame in group_ctrl.findChildren(QtWidgets.QFrame, options = QtCore.Qt.FindDirectChildrenOnly):
+				if frame.__class__ != QtWidgets.QFrame:
+					continue
+				filled_frame = 0
+				frames_n += 1
+				for ctrl in frame.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
+					if hasattr(ctrl, "_descr"):
 						value = self.get_control_value(ctrl)
-						ret_frame[ctrl._descr] = value
+						if value != "":
+							filled_frame = 1
 						frame_nr = ctrl._frame_nr
-			if ret_frame == None:
-				return False, frame_nr
-			return (len(ret_frame) > 0) and (False not in [(ret_frame[descr] == "") for descr in ret_frame]), frame_nr
+				filled_frames += filled_frame
+			return filled_frames < frames_n, frame_nr
 		
 		def set_control(ctrl, value, cls, descr, default = ""):
 			
@@ -371,6 +375,11 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 			if key not in done:
 				self.set_item_value(key, [])
 	
+	def update_groups(self):
+		
+		for key in self._groups:
+			self.set_item_value(key, [])
+	
 	def reset_controls(self):
 		
 		for key in self._key_order:
@@ -481,12 +490,13 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 	
 	def on_edit(self):
 		
-		self._edit_timer.start(1000)
+		self._edit_timer.start(500)
 		self._edit_sender = self.sender()
 	
 	def on_edit_timer(self):
 		
-		self.update_controls()
+#		self.update_controls()
+		self.update_groups()
 		self.validate()
 	
 	@QtCore.pyqtSlot()

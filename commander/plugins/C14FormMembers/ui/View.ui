@@ -24,9 +24,9 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>-101</y>
+         <y>0</y>
          <width>979</width>
-         <height>748</height>
+         <height>777</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -944,14 +944,14 @@
                    <property name="bottomMargin">
                     <number>0</number>
                    </property>
-                   <item row="1" column="0">
+                   <item row="2" column="0">
                     <widget class="QLabel" name="label_19">
                      <property name="text">
                       <string>URI:</string>
                      </property>
                     </widget>
                    </item>
-                   <item row="1" column="1">
+                   <item row="2" column="1">
                     <widget class="QLineEdit" name="lineSourceURI">
                      <property name="text">
                       <string>URI</string>
@@ -975,6 +975,20 @@
                        <string>Description {unique}</string>
                       </property>
                      </item>
+                    </widget>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="label_26">
+                     <property name="text">
+                      <string>Reference:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="1">
+                    <widget class="QLineEdit" name="lineSourceReference">
+                     <property name="text">
+                      <string>Reference</string>
+                     </property>
                     </widget>
                    </item>
                   </layout>
