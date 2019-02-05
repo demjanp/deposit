@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1029</width>
-    <height>806</height>
+    <width>1002</width>
+    <height>834</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,8 +25,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1009</width>
-         <height>735</height>
+         <width>982</width>
+         <height>763</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -525,10 +525,19 @@
            </property>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_7">
+             <property name="spacing">
+              <number>0</number>
+             </property>
              <property name="leftMargin">
               <number>0</number>
              </property>
              <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
@@ -869,14 +878,14 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="3" column="0">
+                   <item row="4" column="0">
                     <widget class="QLabel" name="label_23">
                      <property name="text">
                       <string>δ 13C per mil.</string>
                      </property>
                     </widget>
                    </item>
-                   <item row="4" column="0">
+                   <item row="5" column="0">
                     <widget class="QLabel" name="label_24">
                      <property name="text">
                       <string>δ 13C uncert.</string>
@@ -897,14 +906,14 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="3" column="1">
+                   <item row="4" column="1">
                     <widget class="QLineEdit" name="line13CValue">
                      <property name="text">
                       <string>C_14_Analysis.Delta_C_13_per_mil</string>
                      </property>
                     </widget>
                    </item>
-                   <item row="4" column="1">
+                   <item row="5" column="1">
                     <widget class="QLineEdit" name="line13CUncert">
                      <property name="text">
                       <string>C_14_Analysis.Delta_C_13_Uncertainty_1Sig</string>
@@ -923,14 +932,14 @@
                      </item>
                     </widget>
                    </item>
-                   <item row="5" column="0">
+                   <item row="7" column="0">
                     <widget class="QLabel" name="label_25">
                      <property name="text">
                       <string>Note:</string>
                      </property>
                     </widget>
                    </item>
-                   <item row="5" column="1">
+                   <item row="7" column="1">
                     <widget class="QPlainTextEdit" name="plainTextEdit">
                      <property name="maximumSize">
                       <size>
@@ -941,6 +950,44 @@
                      <property name="plainText">
                       <string>C_14_Analysis.Note</string>
                      </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="0">
+                    <widget class="QLabel" name="label_19">
+                     <property name="text">
+                      <string>14C method</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="1">
+                    <widget class="QComboBox" name="comboBox">
+                     <property name="editable">
+                      <bool>true</bool>
+                     </property>
+                     <item>
+                      <property name="text">
+                       <string>C_14_Method.Name</string>
+                      </property>
+                     </item>
+                    </widget>
+                   </item>
+                   <item row="6" column="0">
+                    <widget class="QLabel" name="label_20">
+                     <property name="text">
+                      <string>13C method</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="6" column="1">
+                    <widget class="QComboBox" name="comboBox_2">
+                     <property name="editable">
+                      <bool>true</bool>
+                     </property>
+                     <item>
+                      <property name="text">
+                       <string>C_13_Method.Name</string>
+                      </property>
+                     </item>
                     </widget>
                    </item>
                   </layout>
