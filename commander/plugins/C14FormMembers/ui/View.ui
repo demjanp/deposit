@@ -146,7 +146,7 @@
              <item>
               <widget class="QGroupBox" name="groupBox">
                <property name="styleSheet">
-                <string notr="true">font-weight: bold;</string>
+                <string notr="true">QGroupBox { font-weight: bold; }</string>
                </property>
                <property name="title">
                 <string>Site:</string>
@@ -250,7 +250,7 @@
              <item>
               <widget class="QGroupBox" name="groupBox_2">
                <property name="styleSheet">
-                <string notr="true">font-weight: bold;</string>
+                <string notr="true">QGroupBox { font-weight: bold; }</string>
                </property>
                <property name="title">
                 <string>Context:</string>
@@ -360,7 +360,7 @@
              <item>
               <widget class="QGroupBox" name="groupRelativeDating">
                <property name="styleSheet">
-                <string notr="true">font-weight: bold;</string>
+                <string notr="true">QGroupBox { font-weight: bold; }</string>
                </property>
                <property name="title">
                 <string>Relative dating:</string>
@@ -543,7 +543,7 @@
              <item>
               <widget class="QGroupBox" name="groupBox_4">
                <property name="styleSheet">
-                <string notr="true">font-weight: bold;</string>
+                <string notr="true">QGroupBox { font-weight: bold; }</string>
                </property>
                <property name="title">
                 <string>Sample:</string>
@@ -653,7 +653,7 @@
              <item>
               <widget class="QGroupBox" name="groupBox_5">
                <property name="styleSheet">
-                <string notr="true">font-weight: bold;</string>
+                <string notr="true">QGroupBox { font-weight: bold; }</string>
                </property>
                <property name="title">
                 <string>Material:</string>
@@ -737,7 +737,7 @@
              <item>
               <widget class="QGroupBox" name="groupBox_6">
                <property name="styleSheet">
-                <string notr="true">font-weight: bold;</string>
+                <string notr="true">QGroupBox { font-weight: bold; }</string>
                </property>
                <property name="title">
                 <string>Fraction:</string>
@@ -818,7 +818,7 @@
              <item>
               <widget class="QGroupBox" name="groupBox_7">
                <property name="styleSheet">
-                <string notr="true">font-weight: bold;</string>
+                <string notr="true">QGroupBox { font-weight: bold; }</string>
                </property>
                <property name="title">
                 <string>14C Analysis:</string>
@@ -999,7 +999,7 @@
              <item>
               <widget class="QGroupBox" name="groupSource">
                <property name="styleSheet">
-                <string notr="true">font-weight: bold;</string>
+                <string notr="true">QGroupBox { font-weight: bold; }</string>
                </property>
                <property name="title">
                 <string>Source:</string>
