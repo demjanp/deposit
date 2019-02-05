@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1024</width>
-    <height>730</height>
+    <width>1029</width>
+    <height>806</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,8 +25,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>979</width>
-         <height>777</height>
+         <width>1009</width>
+         <height>735</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -114,7 +114,7 @@
                  </property>
                  <item>
                   <property name="text">
-                   <string>Country.Name contains.Cadastre {unique}</string>
+                   <string>Country.Name</string>
                   </property>
                  </item>
                 </widget>
@@ -136,7 +136,7 @@
                  </property>
                  <item>
                   <property name="text">
-                   <string>Cadastre.Name contains.Site {unique}</string>
+                   <string>Cadastre.Name</string>
                   </property>
                  </item>
                 </widget>
@@ -202,7 +202,7 @@
                      </property>
                      <item>
                       <property name="text">
-                       <string>Site.Name contains.Context {unique}</string>
+                       <string>Site.Name</string>
                       </property>
                      </item>
                     </widget>
@@ -217,7 +217,7 @@
                    <item row="1" column="1">
                     <widget class="QLineEdit" name="lineCoordinates">
                      <property name="text">
-                      <string>Site.Coordinates contains.Context</string>
+                      <string>Site.Location</string>
                      </property>
                     </widget>
                    </item>
@@ -240,7 +240,7 @@
                    <string notr="true">font-weight: normal;</string>
                   </property>
                   <property name="plainText">
-                   <string>Site.Note contains.Context</string>
+                   <string>Site.Note</string>
                   </property>
                  </widget>
                 </item>
@@ -306,7 +306,7 @@
                      </property>
                      <item>
                       <property name="text">
-                       <string>Context.Name contains.Sample {unique}</string>
+                       <string>Context.Name</string>
                       </property>
                      </item>
                     </widget>
@@ -321,7 +321,7 @@
                    <item row="1" column="1">
                     <widget class="QLineEdit" name="lineContextDescription">
                      <property name="text">
-                      <string>Context.Description contains.Sample</string>
+                      <string>Context.Description</string>
                      </property>
                     </widget>
                    </item>
@@ -350,7 +350,7 @@
                    <string notr="true">font-weight: normal;</string>
                   </property>
                   <property name="plainText">
-                   <string>Context.Note contains.Sample</string>
+                   <string>Context.Note</string>
                   </property>
                  </widget>
                 </item>
@@ -358,12 +358,12 @@
               </widget>
              </item>
              <item>
-              <widget class="QGroupBox" name="groupBox_3">
+              <widget class="QGroupBox" name="groupRelativeDating">
                <property name="styleSheet">
                 <string notr="true">font-weight: bold;</string>
                </property>
                <property name="title">
-                <string>Relative dating:@Relative_Dating dates.Context</string>
+                <string>Relative dating:</string>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_6">
                 <property name="leftMargin">
@@ -416,7 +416,7 @@
                      </property>
                      <item>
                       <property name="text">
-                       <string>Name {unique}</string>
+                       <string>Relative_Dating.Name</string>
                       </property>
                      </item>
                     </widget>
@@ -431,7 +431,54 @@
                    <item row="1" column="1">
                     <widget class="QLineEdit" name="lineRelDatingNote">
                      <property name="text">
-                      <string>Note</string>
+                      <string>Relative_Dating.Note</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QFrame" name="frame">
+                  <property name="frameShape">
+                   <enum>QFrame::StyledPanel</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_3">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <spacer name="horizontalSpacer_2">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="pushButton">
+                     <property name="text">
+                      <string>Add Entry</string>
                      </property>
                     </widget>
                    </item>
@@ -543,7 +590,7 @@
                      </property>
                      <item>
                       <property name="text">
-                       <string>Sample.Number contains.Fraction; Sample.Number ~analyses.C_14_Analysis {unique}</string>
+                       <string>Sample.Number</string>
                       </property>
                      </item>
                     </widget>
@@ -556,9 +603,9 @@
                     </widget>
                    </item>
                    <item row="1" column="1">
-                    <widget class="QLineEdit" name="lineSampleDescr">
+                    <widget class="QLineEdit" name="lineSampleDescription">
                      <property name="text">
-                      <string>Sample.Description contains.Fraction; Sample.Description ~analyses.C_14_Analysis</string>
+                      <string>Sample.Description</string>
                      </property>
                     </widget>
                    </item>
@@ -587,7 +634,7 @@
                    <string notr="true">font-weight: normal;</string>
                   </property>
                   <property name="plainText">
-                   <string>Sample.Note contains.Fraction; Sample.Note ~analyses.C_14_Analysis</string>
+                   <string>Sample.Note</string>
                   </property>
                  </widget>
                 </item>
@@ -653,7 +700,7 @@
                      </property>
                      <item>
                       <property name="text">
-                       <string>Material.Name ~descr.Sample {unique}</string>
+                       <string>Material.Name</string>
                       </property>
                      </item>
                     </widget>
@@ -668,7 +715,7 @@
                    <item row="1" column="1">
                     <widget class="QLineEdit" name="lineMaterialNote">
                      <property name="text">
-                      <string>Material.Note ~descr.Sample</string>
+                      <string>Material.Note</string>
                      </property>
                     </widget>
                    </item>
@@ -734,7 +781,7 @@
                      </property>
                      <item>
                       <property name="text">
-                       <string>Fraction.Name ~analyses.C_14_Analysis {unique}</string>
+                       <string>Fraction.Name</string>
                       </property>
                      </item>
                     </widget>
@@ -749,7 +796,7 @@
                    <item row="1" column="1">
                     <widget class="QLineEdit" name="lineFractionNote">
                      <property name="text">
-                      <string>Fraction.Note ~analyses.C_14_Analysis</string>
+                      <string>Fraction.Note</string>
                      </property>
                     </widget>
                    </item>
@@ -839,28 +886,28 @@
                    <item row="1" column="1">
                     <widget class="QLineEdit" name="line14CValue">
                      <property name="text">
-                      <string>C_14_Analysis.C_14_Activity_BP {primary}</string>
+                      <string>C_14_Analysis.C_14_Activity_BP</string>
                      </property>
                     </widget>
                    </item>
                    <item row="2" column="1">
                     <widget class="QLineEdit" name="line14CUncert">
                      <property name="text">
-                      <string>C_14_Analysis.C_14_Uncertainty_1Sig {primary}</string>
+                      <string>C_14_Analysis.C_14_Uncertainty_1Sig</string>
                      </property>
                     </widget>
                    </item>
                    <item row="3" column="1">
                     <widget class="QLineEdit" name="line13CValue">
                      <property name="text">
-                      <string>C_14_Analysis.Delta_C_13_per_mil {primary}</string>
+                      <string>C_14_Analysis.Delta_C_13_per_mil</string>
                      </property>
                     </widget>
                    </item>
                    <item row="4" column="1">
                     <widget class="QLineEdit" name="line13CUncert">
                      <property name="text">
-                      <string>C_14_Analysis.Delta_C_13_Uncertainty_1Sig {primary}</string>
+                      <string>C_14_Analysis.Delta_C_13_Uncertainty_1Sig</string>
                      </property>
                     </widget>
                    </item>
@@ -871,7 +918,7 @@
                      </property>
                      <item>
                       <property name="text">
-                       <string>C_14_Analysis.Lab_Code {primary} {unique}</string>
+                       <string>C_14_Analysis.Lab_Code</string>
                       </property>
                      </item>
                     </widget>
@@ -892,7 +939,7 @@
                       </size>
                      </property>
                      <property name="plainText">
-                      <string>C_14_Analysis.Note {primary}</string>
+                      <string>C_14_Analysis.Note</string>
                      </property>
                     </widget>
                    </item>
@@ -903,12 +950,12 @@
               </widget>
              </item>
              <item>
-              <widget class="QGroupBox" name="groupBox_8">
+              <widget class="QGroupBox" name="groupSource">
                <property name="styleSheet">
                 <string notr="true">font-weight: bold;</string>
                </property>
                <property name="title">
-                <string>Source:@Source describes.C_14_Analysis</string>
+                <string>Source:</string>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_12">
                 <property name="leftMargin">
@@ -945,7 +992,7 @@
                     <number>0</number>
                    </property>
                    <item row="2" column="0">
-                    <widget class="QLabel" name="label_19">
+                    <widget class="QLabel" name="label_193">
                      <property name="text">
                       <string>URI:</string>
                      </property>
@@ -954,31 +1001,31 @@
                    <item row="2" column="1">
                     <widget class="QLineEdit" name="lineSourceURI">
                      <property name="text">
-                      <string>URI</string>
+                      <string>Source.URI</string>
                      </property>
                     </widget>
                    </item>
                    <item row="0" column="0">
-                    <widget class="QLabel" name="label_20">
+                    <widget class="QLabel" name="label_191">
                      <property name="text">
                       <string>Description:</string>
                      </property>
                     </widget>
                    </item>
                    <item row="0" column="1">
-                    <widget class="QComboBox" name="comboSourceDescr">
+                    <widget class="QComboBox" name="comboSourceDescription">
                      <property name="editable">
                       <bool>true</bool>
                      </property>
                      <item>
                       <property name="text">
-                       <string>Description {unique}</string>
+                       <string>Source.Description</string>
                       </property>
                      </item>
                     </widget>
                    </item>
                    <item row="1" column="0">
-                    <widget class="QLabel" name="label_26">
+                    <widget class="QLabel" name="label_192">
                      <property name="text">
                       <string>Reference:</string>
                      </property>
@@ -987,7 +1034,54 @@
                    <item row="1" column="1">
                     <widget class="QLineEdit" name="lineSourceReference">
                      <property name="text">
-                      <string>Reference</string>
+                      <string>Source.Reference</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QFrame" name="frame_2">
+                  <property name="frameShape">
+                   <enum>QFrame::StyledPanel</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_4">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <spacer name="horizontalSpacer_3">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="pushButton_2">
+                     <property name="text">
+                      <string>Add Entry</string>
                      </property>
                     </widget>
                    </item>
