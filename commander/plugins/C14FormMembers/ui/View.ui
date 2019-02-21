@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1002</width>
-    <height>834</height>
+    <width>1097</width>
+    <height>852</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,8 +25,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>982</width>
-         <height>763</height>
+         <width>1052</width>
+         <height>844</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -236,6 +236,12 @@
                 </item>
                 <item>
                  <widget class="QPlainTextEdit" name="plainTextSiteNote">
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>128</height>
+                   </size>
+                  </property>
                   <property name="styleSheet">
                    <string notr="true">font-weight: normal;</string>
                   </property>
@@ -344,6 +350,12 @@
                    <size>
                     <width>0</width>
                     <height>52</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>128</height>
                    </size>
                   </property>
                   <property name="styleSheet">
@@ -489,6 +501,19 @@
               </widget>
              </item>
             </layout>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
            </item>
           </layout>
          </widget>
@@ -1140,6 +1165,19 @@
              </item>
             </layout>
            </item>
+           <item>
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
           </layout>
          </widget>
         </item>
@@ -1171,6 +1209,12 @@
        </item>
        <item>
         <widget class="QPushButton" name="submitButton">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="text">
           <string>Submit</string>
          </property>

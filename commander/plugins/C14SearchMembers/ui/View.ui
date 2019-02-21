@@ -146,16 +146,22 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="resetButton">
+        <widget class="QPushButton" name="searchButton">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="text">
-          <string>Reset</string>
+          <string>Search</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="searchButton">
+        <widget class="QPushButton" name="resetButton">
          <property name="text">
-          <string>Search</string>
+          <string>Reset</string>
          </property>
         </widget>
        </item>
