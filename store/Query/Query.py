@@ -1,79 +1,57 @@
 '''
 	Query string:
-
-	SELECT [select1], [select2] WHERE [chain1] and/or/+/-/... [chain2] QUANTIFY [chain1] and/or/+/-/... [chain2] SUM [class].[descriptor] AS [alias]
-
-	alternatives:
-
-	SELECT [select]
-	SELECT [select] WHERE [chain]
-	SELECT [select] QUANTIFY [chain] AS [alias]
-	SELECT [select] QUANTIFY [chain] SUM [class].[descriptor] AS [alias]
-	SELECT [select] WHERE [chain] QUANTIFY [chain] AS [alias]
-	SELECT [select] WHERE [chain] QUANTIFY [chain] SUM [class].[descriptor] AS [alias]
-	SELECT [select] QUANTIFY [chain] AS [alias] QUANTIFY [chain] AS [alias] ...
-
+	
+	SELECT [select1], [select2] RELATED [relation1], [relation2] WHERE [conditions] COUNT [conditions] AS [alias] SUM [select] AS [alias]
+	RELATED, WHERE, COUNT AS, SUM AS are optional
+	
 	[select]:
-		1. class
-		2. class.descriptor
+		1. [class]
+		2. [class].[descriptor]
 		
 		* instead of class / descriptor means any class / descriptor
-
-	[chain]:
-		1. class.descriptor	(or obj(id).descriptor)
-		2. class.relation.[1. or 2.]	(or obj(id).relation.[1. or 2.])
+		!* instead of class means classless objects
+		![class] means all classes except [class]
+		
+		E.g.:
+			cls1.descr1
+			cls1.*
+			*.descr1
+			*.*
+			!*.descr1
+			!cls1.descr1
+	
+	[relation]:
+		[class1].[relation].[class2]
 		
 		* instead of class / descriptor / relation means any class / descriptor / relation
-		!* instead of class / decriptor means no class / descriptor
+		!* instead of class / decriptor / relation means no class / descriptor / relation
 		!class / !descriptor / !relation means all except class / descriptor / relation
-
+		E.g.:
+			cls1.rel1.cls2
+				all objects which are members of cls1, related by rel1 to members of cls2
+			*.rel1.cls2
+				all objects related by rel1 to members of cls2
+			cls1.*.cls2
+			!cls1.rel1.cls2
+			cls1.!rel1.cls2
+			cls1.!*.cls2
+			!*.rel1.cls2
+	
+	[conditions]:
+		a python expression, where specific strings can be used as variables:
+		[class].[descriptor] as a variable e.g. "WHERE Class1.Descr1 == 8"
+		id([class]) as the ID of the Object belonging to the class e.g. "WHERE id(Class1) == 2"
+		weight([class1].[relation].[class2]) as weight of the relation e.g. "WHERE weight(Class1.relation.Class2) > 0.5"
+	
 	[alias]:
 		column name under which to display the quantity
 		if an alias has the same name as a regular column or another alias, an underscore will be added to it
 
-	Parts of the query string can be quoted to allow class names with a dot (e.g. 'Cls.1', "Class.One") or to denote string constants (e.g. cls1.descr1 == "one")
-
-	-------------------------------------------------------
+	Parts of the query string can be quoted using single quotes to allow class names with a dot (e.g. 'Cls.1', 'Class.One') or to denote string constants (e.g. cls1.descr1 == 'one')
 	
-	Examples of [chain]:
+	If no relations are specified but relations between the specified classes exist, they are automatically added to the query.
+	E.g. "SELECT Class1.Descr1, Class2.Descr2" would be equivalent to "SELECT Class1.Descr1, Class2.Descr2 RELATED Class1.relation1.Class2" if relation1 between Class1 and Class2 exists
 	
-	cls1
-		all objects which are members of cls1
-		
-	cls1.rel1
-		all members of cls1, related by rel1 to any other object
-
-	cls1.rel1.cls2.descr1
-		all members of cls1, related by rel1 to members of cls2, to which descr1 is related by any label
-
-	cls1.rel1.cls2.descr1 > 3
-		all members of cls1, related by rel1 to members of cls2, to which descr1 is related by a label >3
-
-	obj(id)
-		object with id
-
-	cls1.rel1.obj(id)
-		all members of cls1, related by rel1 to object(id)
-
-	obj(id).rel1.cls1
-		all members of cls1, to which object(id) is related to by rel1
-	
-	-------------------------------------------------------
-	
-	Examples of [select]
-	
-	SELECT cls1
-		-> all members of cls1
-	SELECT cls1.*
-		-> all members of cls1 with all their descriptors
-	SELECT cls1, cls2
-		-> cartesian product of members of cls1 and cls2
-	SELECT cls1.descr1, cls2.descr1
-		-> cartesian product of members of cls1 with descriptor descr1 and cls2 with descriptor descr2
-	SELECT cls1.descr1, cls2.descr1 WHERE cls1.descr1 == 3
-		-> cartesian product of members of cls1 with descriptor descr1 and cls2 with descriptor descr2 == 3
-	SELECT cls1.descr1, cls2.descr1 WHERE cls1.rel1.cls2.rel2.cls3
-		-> all combinantions of members of cls1 and cls2 where a member of cls1 is related by rel1 to a member of cls2 which is related by rel2 to a member of cls3
 
 '''
 
@@ -129,7 +107,7 @@ class Query(object):
 	def check_conditions(self, objects):
 		
 		for condition in self.parse.conditions:
-			if not condition.check(objects):
+			if not condition.eval(objects):
 				return False
 		return True
 	
@@ -162,53 +140,69 @@ class Query(object):
 		for select in self.parse.selects:
 			if (select.classstr, select.index) not in classstr_index_selects:
 				classstr_index_selects.add((select.classstr, select.index))
-		classstr_index_all = classstr_index_related.union(classstr_index_selects)
 		classstr_index_selects_only = classstr_index_selects.difference(classstr_index_related)  # set((classstr, index), ...); present only in selects (not in relations)
 		
-		def related_is_relevant(classstr1, index1, classstr2, index2, chain):
+		def related_not_in_chain(classstr1, index1, classstr2, index2, chain):
 			
 			return (classstr1 in chain) and (index1 in chain[classstr1]) and ((classstr2 not in chain) or (index2 not in chain[classstr2]))
 		
-		def get_chains(chain, chains):
-			# recursively fill chain and if full, append it to chains
+		def in_chains(chain, done):
+			
+			ids = []
+			for classstr in chain:
+				for index in chain[classstr]:
+					ids.append(chain[classstr][index].id)
+			ids = set(ids)
+			for ids2 in done:
+				if ids.issubset(ids2):
+					return True
+			done.add(tuple(ids))
+			return False
+		
+		def get_chains(chain, chains, done):
+			# recursively fill chain and if full, append it to chains if conditions are met
 			# chain = {classstr: {index: DObject, ...}, ...}
 			
 			for related in self.parse.relations:
-				if related_is_relevant(related.classstr1, related.index1, related.classstr2, related.index2, chain):
+				
+				if related_not_in_chain(related.classstr1, related.index1, related.classstr2, related.index2, chain):
 					obj1 = chain[related.classstr1][related.index1]
-					for obj2 in objects[related.classstr2][related.index2]:
-						if related.check(obj1, obj2):
-							get_chains(dict(chain, **{related.classstr2: {related.index2: obj2}}), chains)
-				if related_is_relevant(related.classstr2, related.index2, related.classstr1, related.index1, chain):
+					for obj2 in related.get_objects2(obj1, reversed = False):
+						get_chains(dict(chain, **{related.classstr2: {related.index2: obj2}}), chains, done)
+				
+				if related_not_in_chain(related.classstr2, related.index2, related.classstr1, related.index1, chain):
 					obj1 = chain[related.classstr2][related.index2]
-					for obj2 in objects[related.classstr1][related.index1]:
-						if related.check(obj1, obj2):
-							get_chains(dict(chain, **{related.classstr1: {related.index1: obj2}}), chains)
+					for obj2 in related.get_objects2(obj1, reversed = True):
+						get_chains(dict(chain, **{related.classstr1: {related.index1: obj2}}), chains, done)
+			
 			for classstr, index in classstr_index_selects_only:
 				if (classstr not in chain) or (index not in chain[classstr]):
-					for obj2 in objects[classstr, index]:
-						get_chains(dict(chain, **{classstr: {index: obj2}}), chains)
-			chains.append(chain)
+					for obj2 in objects[classstr][index]:
+						get_chains(dict(chain, **{classstr: {index: obj2}}), chains, done)
+			
+			if self.check_conditions(chain) and (not in_chains(chain, done)):
+				chains.append(chain)
 		
 		# collect object chains
 		chains = []  # [{classstr: {index: DObject, ...}, ...}, ...]
+		done = set() # to avoid duplicates
 		classstr0 = self.parse.selects[0].classstr
 		index0 = self.parse.selects[0].index		
 		for obj0 in objects[classstr0][index0]:
-			get_chains({classstr0: {index0: obj0}}, chains)
+			get_chains({classstr0: {index0: obj0}}, chains, done)
 		
 		# apply conditions, aliases & sums
 		done = set() # to avoid duplicates
 		for chain in chains:
-			if not self.check_conditions(chain):
-				continue
 			# create row
 			row = QueryRow(self, chain[classstr0][index0])
 			# add descriptor values based on selects
 			for select in self.parse.selects:
 				obj = select.get_object(chain)
+				if obj is None:
+					continue
 				classes = []
-				if "!*" in select.classes:
+				if select.classes == {"!*"}:
 					classes = [DClass(self.store.classes, "[no class]")]
 				for cls in select.classes:
 					if cls != "!*":
@@ -217,11 +211,10 @@ class Query(object):
 					for cls in classes:
 						row.add(obj, cls)
 				for descr in select.descriptors:
+					if not descr in obj.descriptors:
+						continue
 					for cls in classes:
-						if obj is None:
-							row.add(obj, cls, DDescriptor(None, self.store.classes[descr], DNone()))
-						else:
-							row.add(obj, cls, obj.descriptors[descr])
+						row.add(obj, cls, obj.descriptors[descr])
 			
 			if len(row) and (row.hash not in done):
 				self.add(row)
@@ -232,7 +225,7 @@ class Query(object):
 			for row in self._rows:
 				cnt = 0
 				for chain in chains:
-					if (chain[classstr0][index0].id == row.object.id) and count_.check(chain):
+					if (chain[classstr0][index0].id == row.object.id) and count_.eval(chain):
 						cnt += 1
 				row.add_alias(count_.alias, cnt)
 		

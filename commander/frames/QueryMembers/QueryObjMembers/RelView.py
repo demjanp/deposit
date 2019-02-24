@@ -110,7 +110,7 @@ class RelView(Frame, QtWidgets.QWidget):
 					cls0 = "!*"
 				else:
 					cls0 = cls0[0]
-				querystr = "SELECT %s.* RELATED %s.%s.%s WHERE id(%s) == %d" % (cls, cls, self.model.reverse_relation(rel), cls0, cls0, obj.id)
+				querystr = "SELECT %s.* WHERE id(%s) == %d" % (cls, cls0, obj.id)
 				query = self.model.query(querystr)
 				if len(query):
 					found = True

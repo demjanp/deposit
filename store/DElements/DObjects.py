@@ -148,7 +148,14 @@ class DObject(DElement):
 			self._classes.set_on_added(self.on_class_added)
 			self._classes.set_on_deleted(self.on_class_deleted)
 		return self._classes
-
+	
+	def first_class(self):
+		
+		classes = list(self.classes.keys())
+		if not classes:
+			return "!*"
+		return classes[0]
+	
 	def on_class_added(self, dclass):
 
 		dclass.objects[self.id] = self

@@ -284,7 +284,8 @@ class QueryLst(Frame, PrototypeDragView, QtWidgets.QTableView):
 		item = index.data(QtCore.Qt.UserRole)
 		if item.element.__class__.__name__ == "DObject":
 			if self.relation:
-				self.view.mdiarea.create("Query", "SELECT *.* WHERE id(*) == %d" % (item.element.id))
+				cls = item.element.first_class()
+				self.view.mdiarea.create("Query", "SELECT %s.* WHERE id(%s) == %d" % (cls, cls, item.element.id))
 				return
 			self.broadcast(Broadcasts.VIEW_OBJECT_ACTIVATED)
 			return
