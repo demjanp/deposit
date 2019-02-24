@@ -112,3 +112,18 @@ def as_path(url):
 		return path
 	return None
 
+def to_unique(values):
+	
+	if not values:
+		return []
+	if len(values) == 1:
+		return values
+	values = sorted(values)
+	if values[0] == values[-1]:
+		return [values[0]]
+	out = [values[i] for i in range(len(values) - 1) if values[i] != values[i+1]]
+	if not out:
+		return []
+	if out[-1] != values[-1]:
+		out.append(values[-1])
+	return out

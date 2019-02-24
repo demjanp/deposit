@@ -106,7 +106,6 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 		
 		if queries:
 			query = "SELECT C_14_Analysis.Lab_Code, C_14_Analysis.C_14_Activity_BP, Material.Name, Context.Name, Country.Name, Relative_Dating.Name WHERE %s" % (" and ".join(queries))
-			print(query)  # DEBUG
 			self.parent.parent.view.mdiarea.create("Query", query)
 	
 	def on_activate(self):
@@ -132,7 +131,7 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 				values_context = []
 				values_relative_dating = []
 				values_material = []
-				for row in self.store.query("SELECT Material.Name WHERE id(Country) == %d" % id1):
+				for row in self.store.query("SELECT Material.Name WHERE Material.~descr.Sample.~contains.Context.~contains.Site.~contains.Cadastre.~contains.obj(%d)" % id1):
 					value = row["Material.Name"].descriptor.label.value
 					if value not in values_material:
 						values_material.append(value)
@@ -167,7 +166,7 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 				values_material = self.get_all_values("Material", "Name")
 			else:
 				values_material = []
-				for row in self.store.query("SELECT Material.Name WHERE id(Cadastre) == %d" % id1):
+				for row in self.store.query("SELECT Material.Name WHERE Material.~descr.Sample.~contains.Context.~contains.Site.~contains.obj(%d)" % id1):
 					value = row["Material.Name"].descriptor.label.value
 					if value not in values_material:
 						values_material.append(value)
@@ -204,7 +203,7 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 				values_material = self.get_all_values("Material", "Name")
 			else:
 				values_material = []
-				for row in self.store.query("SELECT Material.Name WHERE id(Site) == %d" % id1):
+				for row in self.store.query("SELECT Material.Name WHERE Material.~descr.Sample.~contains.Context.~contains.obj(%d)" % id1):
 					value = row["Material.Name"].descriptor.label.value
 					if value not in values_material:
 						values_material.append(value)
@@ -239,7 +238,7 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 				values_material = self.get_all_values("Material", "Name")
 			else:
 				values_material = []
-				for row in self.store.query("SELECT Material.Name WHERE id(Context) == %d" % id1):
+				for row in self.store.query("SELECT Material.Name WHERE Material.~descr.Sample.~contains.obj(%d)" % id1):
 					value = row["Material.Name"].descriptor.label.value
 					if value not in values_material:
 						values_material.append(value)

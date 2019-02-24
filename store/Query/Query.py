@@ -82,169 +82,440 @@ from deposit.store.DLabel.DString import (DString)
 from deposit.store.DElements.DClasses import (DClass)
 from deposit.store.DElements.DDescriptors import (DDescriptor)
 from deposit.store.Query.Parse import (Parse)
+from deposit.store.Query.EvalLabel import (EvalLabel)
+from deposit.store.Conversions import (to_unique)
 
-from collections import defaultdict
+from itertools import product
 
 class Query(object):
-	
-	def __init__(self, store, querystr):
-		
+
+	def __init__(self, store, querystr, quantify_row = None):
+
 		self.store = store
 		self.querystr = querystr
-		
+		self.quantify_row = quantify_row
+
 		self._rows = []
 		self._columns = []
 		self._classes = []
-		
+
 		self.parse = None
-		
+
 		self.hash = [] # hash of the query rows (to quickly check whether query has changed)
-		
-		self.process()
-	
+
+		self._process()
+
 	def add(self, row):
-	
+
 		self._rows.append(row)
 		for name in row:
 			if not name in self._columns:
 				self._columns.append(name)
-	
-	def get_objects_by_classes(self, classes):
-		
-		def get_object_ids_by_class(cls):
-			
-			if cls == "!*":
-				ids = set()
-				for id in self.store.objects:
-					if len(self.store.objects[id].classes) == 0:
-						ids.add(id)
-				return ids
-			return self.store.classes[cls].objects.keys()
-		
-		ids = set()
-		for cls in classes:
-			ids.update(get_object_ids_by_class(cls))
-		return [self.store.objects[id] for id in ids]
-	
-	def check_conditions(self, objects):
-		
-		for condition in self.parse.conditions:
-			if not condition.check(objects):
-				return False
-		return True
-	
-	def process(self):
-		
+
+	def _process(self):
+
 		self.parse = Parse(self.store, self.querystr)
+
+		# print() # DEBUG
+		# print("QRY:", self.querystr)
+		# print("EVAL:", self.parse.eval_str)
+		# print("SEL:", self.parse.selects)
+		# print("CHAINS:", self.parse.chains)
+		# print("QUANTIFIERS:", self.parse.quantifiers)
+		# print() # DEBUG
+
 		if not self.parse.selects:
 			return
-		
-		# collect objects for all combinations of classstr and index based on selects and relations
-		objects = defaultdict(dict)  # {classstr: {index: [DObject, ...], ...}, ...}
-		for select in self.parse.selects:
-			if select.index in objects[select.classstr]:
-				continue
-			objects[select.classstr][select.index] = self.get_objects_by_classes(select.classes)
-		for related in self.parse.relations:
-			if related.index1 not in objects[related.classstr1]:
-				objects[related.classstr1][related.index1] = self.get_objects_by_classes(related.classes1)
-			if related.index2 not in objects[related.classstr2]:
-				objects[related.classstr2][related.index2] = self.get_objects_by_classes(related.classes2)
-		
-		# collect all possible rows according to selects and relations
-		classstr_index_related = set()  # set((classstr, index), ...); present in relations
-		classstr_index_selects = set()  # set((classstr, index), ...); present in selects
-		for related in self.parse.relations:
-			if (related.classstr1, related.index1) not in classstr_index_related:
-				classstr_index_related.add((related.classstr1, related.index1))
-			if (related.classstr2, related.index2) not in classstr_index_related:
-				classstr_index_related.add((related.classstr2, related.index2))
-		for select in self.parse.selects:
-			if (select.classstr, select.index) not in classstr_index_selects:
-				classstr_index_selects.add((select.classstr, select.index))
-		classstr_index_all = classstr_index_related.union(classstr_index_selects)
-		classstr_index_selects_only = classstr_index_selects.difference(classstr_index_related)  # set((classstr, index), ...); present only in selects (not in relations)
-		
-		def related_is_relevant(classstr1, index1, classstr2, index2, chain):
+
+		selects = [(select if (len(select) == 2) else (select[0], None)) for select in self.parse.selects]  # [[cls, descr], ...]
+
+		def process_chains(selects):
+			# return rows, where_classes
+			# rows = [[id, ...], ...]
+			# where_classes = [name, ...]
 			
-			return (classstr1 in chain) and (index1 in chain[classstr1]) and ((classstr2 not in chain) or (index2 not in chain[classstr2]))
-		
-		def get_chains(chain, chains):
-			# recursively fill chain and if full, append it to chains
-			# chain = {classstr: {index: DObject, ...}, ...}
+			def get_chain_classes(chain):
+				
+				collect = []
+				for i in range(0, len(chain), 2):
+					cls = chain[i]
+					if cls == "*":
+						return list(self.store.classes.keys())
+					elif cls.startswith("obj("):
+						id = int(cls[4:-1])
+						if id in self.store.objects:
+							for cls2 in self.store.objects[id].classes:
+								if cls2 not in collect:
+									collect.append(cls2)
+					elif cls in self.store.classes:
+						if cls not in collect:
+							collect.append(cls)
+				return collect
 			
-			for related in self.parse.relations:
-				if related_is_relevant(related.classstr1, related.index1, related.classstr2, related.index2, chain):
-					obj1 = chain[related.classstr1][related.index1]
-					for obj2 in objects[related.classstr2][related.index2]:
-						if related.check(obj1, obj2):
-							get_chains(dict(chain, **{related.classstr2: {related.index2: obj2}}), chains)
-				if related_is_relevant(related.classstr2, related.index2, related.classstr1, related.index1, chain):
-					obj1 = chain[related.classstr2][related.index2]
-					for obj2 in objects[related.classstr1][related.index1]:
-						if related.check(obj1, obj2):
-							get_chains(dict(chain, **{related.classstr1: {related.index1: obj2}}), chains)
-			for classstr, index in classstr_index_selects_only:
-				if (classstr not in chain) or (index not in chain[classstr]):
-					for obj2 in objects[classstr, index]:
-						get_chains(dict(chain, **{classstr: {index: obj2}}), chains)
-			chains.append(chain)
+			def get_class_objects(cls):
+				# cls = "*" / "!*" / "[class name]" / "![class name]" / "obj([id])"
+
+				if cls == "*":
+					return list(self.store.objects.keys())
+				
+				if cls == "!*":
+					return [id for id in self.store.objects if not len(self.store.objects[id].classes)]
+				
+				if cls.startswith("!"):
+					cls = cls[1:]
+					return [id for id in self.store.objects if cls not in self.store.objects[id].classes]
+				
+				if cls.startswith("obj("):
+					id = int(cls[4:-1])
+					if id in self.store.objects:
+						return [id]
+					return []
+				
+				if cls in self.store.classes:
+					return [id for id in self.store.classes[cls].objects]
+				
+				return []
+
+			def get_obj_descr(id, descr):
+				# descr = "*" / "!*" / "[descr name]" / "![descr name]"
+				# returns [value, ...] / [] / value
+				
+				if descr == "*":
+					return [self.store.objects[id].descriptors[name].label.value for name in self.store.objects[id].descriptors]
+				
+				if descr == "!*":
+					return (len(self.store.objects[id].descriptors) == 0)
+				
+				if descr.startswith("!"):
+					descr = descr[1:]
+					return [self.store.objects[id].descriptors[name].label.value for name in self.store.objects[id].descriptors if name != descr]
+				
+				if descr:
+					if descr in self.store.objects[id].descriptors:
+						return self.store.objects[id].descriptors[descr].label.value
+					return False
+				
+				return False
+
+			def get_obj_related(id, rel, cls):
+				# rel = "*" / "!*" / "[relation name]" / "![relation name]"
+				# returns [id, ...] / [] / True / False
+				
+				def check_class(obj_id, cls):
+					
+					if cls == "*":
+						return True
+					
+					if cls == "!*":
+						return (len(self.store.objects[obj_id].classes) == 0)
+					
+					if cls.startswith("!"):
+						return (obj_id not in self.store.objects[obj_id].classes)
+					
+					if cls.startswith("obj("):
+						return (obj_id == int(cls[4:-1]))
+					
+					if cls in self.store.objects[obj_id].classes:
+						return True
+					
+					return False
+				
+				if rel == "*":
+					collect = []
+					for rel in self.store.objects[id].relations:
+						for id2 in list(self.store.objects[id].relations[rel].keys()):
+							if check_class(id2, cls):
+								collect.append(id2)
+					return collect
+				
+				if rel == "!*":
+					return (len(self.store.objects[id].relations) == 0)
+				
+				if rel.startswith("!"):
+					rel = rel[1:]
+					collect = []
+					for rel2 in self.store.objects[id].relations:
+						if rel2 != rel:
+							for id2 in list(self.store.objects[id].relations[rel2].keys()):
+								if check_class(id2, cls):
+									collect.append(id2)
+					return collect
+				
+				if rel:
+					collect = []
+					for id2 in list(self.store.objects[id].relations[rel].keys()):
+						if check_class(id2, cls):
+							collect.append(id2)
+					return collect
+				
+				return []
+
+			def get_chain_rows(chain, cls0, id0):
+				# returns [id, ..., value]
+				
+				chain = chain.copy()
+				
+				if len(chain) == 1: # c
+					cls = chain[0]
+					if cls == cls0:
+						ids = [id0]
+					else:
+						ids = get_class_objects(cls)
+					return [[id, True] for id in ids]
+
+				if len(chain) == 2: # c.d
+					cls, descr = chain
+					if cls == cls0:
+						ids = [id0]
+					else:
+						ids = get_class_objects(cls)
+					collect = []
+					for id in ids:
+						values = get_obj_descr(id, descr) # [value, ...] / [] / value
+						if values:
+							if isinstance(values, list):
+								for value in values:
+									collect.append([id, value])
+							else:
+								collect.append([id, values])
+					return collect
+				
+				if chain: # c.r.c / c.r...c.d
+					descr = None
+					if len(chain) % 2 == 0: # c.r...c.d
+						descr = chain.pop()
+					cls = chain.pop(0)
+					if cls == cls0:
+						id_rows = [[id0]]
+					else:
+						id_rows = [[id] for id in get_class_objects(cls)]
+					while chain and id_rows:
+						rel = chain.pop(0)
+						cls = chain.pop(0)
+						collect = []
+						for id_row in id_rows:
+							ids = get_obj_related(id_row[-1], rel, cls) # [id, ...] / [] / True / False
+							if isinstance(ids, list):
+								for id in ids:
+									collect.append(id_row + [id])
+							elif ids == True:
+								collect.append(id_row)
+						id_rows = collect
+						if rel == "!*":
+							break
+					if descr is None:
+						id_rows = [id_row + [True] for id_row in id_rows]
+					else:
+						collect = []
+						for id_row in id_rows:
+							values = get_obj_descr(id_row[-1], descr)
+							if values:
+								if isinstance(values, list):
+									for value in values:
+										collect.append(id_row + [value])
+								else:
+									collect.append(id_row + [values])
+						id_rows = collect
+					return id_rows
+				
+				return []
+
+			def eval_row(chains_rows, idxs):
+
+				vars = []
+				values = {}
+				n = 0
+				for i in range(len(self.parse.chains)):
+					n += 1
+					while ("_v" + str(n)) in self.parse.eval_str:
+						n += 1
+					vars.append("_v" + str(n))
+					values[vars[-1]] = EvalLabel(chains_rows[i][idxs[i]][-1])
+				return eval(self.parse.eval_str % (tuple(vars)), values)
+
+			where_classes = []
+			for chain in self.parse.chains:
+				for cls in get_chain_classes(chain):
+					if cls not in where_classes:
+						where_classes.append(cls)
+
+			rows = []
+			cls_id_row = None
+			if where_classes:
+
+				chain_classes_lookup = {}  # {chain_idx: {cls: idx, ...}, ...}
+				for chain_idx, chain in enumerate(self.parse.chains):
+					chain_classes_lookup[chain_idx] = {}
+					for idx, cls in enumerate([chain[j] for j in range(0, len(chain), 2)]):
+						chain_classes_lookup[chain_idx][cls] = idx
+
+				cls0s = self.parse.chains[0][0]
+				if cls0s == "*":
+					cls0s = list(self.store.classes.keys())
+				else:
+					cls0s = [cls0s]
+				if not cls0s:
+					cls0s = ["!*"]
+				if selects[0][0] in self.store.classes:
+					cls_id_row = selects[0][0]
+				for cls0 in cls0s:
+					id0s = get_class_objects(cls0)
+					for id0 in id0s:
+						id_row = id0
+						chains_rows = [get_chain_rows(chain, cls0, id0) for chain in self.parse.chains] # [[id, ..., value], ...]; in order of chains
+						for idxs in product(*[range(len(chains_rows[j])) for j in range(len(chains_rows))]):
+							if eval_row(chains_rows, idxs):
+								row = []
+								for k in range(len(self.parse.chains)):
+									ids = chains_rows[k][idxs[k]][:-1]
+									if ids:
+										row += ids
+										if (cls_id_row is not None) and (cls_id_row in chain_classes_lookup[k]):
+											id_row = ids[chain_classes_lookup[k][cls_id_row]]
+									else:
+										row = []
+										break
+								if row:
+									rows.append([id_row] + sorted(to_unique(row)))
+
+			return rows, where_classes
 		
-		# collect object chains
-		chains = []  # [{classstr: {index: DObject, ...}, ...}, ...]
-		classstr0 = self.parse.selects[0].classstr
-		index0 = self.parse.selects[0].index		
-		for obj0 in objects[classstr0][index0]:
-			get_chains({classstr0: {index0: obj0}}, chains)
+		rows, where_classes = process_chains(selects)
 		
-		# apply conditions, aliases & sums
-		done = set() # to avoid duplicates
-		for chain in chains:
-			if not self.check_conditions(chain):
-				continue
-			# create row
-			row = QueryRow(self, chain[classstr0][index0])
-			# add descriptor values based on selects
-			for select in self.parse.selects:
-				obj = select.get_object(chain)
-				classes = []
-				if "!*" in select.classes:
-					classes = [DClass(self.store.classes, "[no class]")]
-				for cls in select.classes:
-					if cls != "!*":
-						classes.append(self.store.classes[cls])
-				if len(select.descriptors) == 0:
-					for cls in classes:
-						row.add(obj, cls)
-				for descr in select.descriptors:
-					for cls in classes:
+		self._classes = list(set([cls for cls, _ in selects] + where_classes))
+
+		def update_rows(rows, selects, where_classes):
+			# check if any of the select classes are missing in where_classes
+			# if yes add their ids to rows as cartesian product
+			#
+			# rows = [[id, ...], ...]
+			# selects = [[cls, descr], ...]
+			# where_classes = [name, ...]
+
+			done = []
+			for cls, descr in selects:
+				if cls in done:
+					continue
+				ids = None
+				if (cls == "*" and not where_classes):
+					ids = list(self.store.objects.keys())
+				elif (cls != "*") and (not cls in where_classes):
+					if cls == "!*":
+						ids = [id for id in self.store.objects if not self.store.objects[id].classes]
+					else:
+						ids = [id for id in self.store.classes[cls].objects]
+				done.append(cls)
+				if ids:
+					collect = []
+					if rows:
+						for row in rows:
+							for id in ids:
+								collect.append(row + [id])
+					else:
+						collect = [[id, id] for id in ids]
+					rows = collect
+
+			return rows
+
+		rows = update_rows(rows, selects, where_classes) # check if any of the select classes are missing in where_classes, if yes add their ids to rows as cartesian product
+
+		def add_query_rows(rows, selects):
+			# generate query rows from rows according to selects
+			# rows = [[id, ...], ...]
+			# selects = [[cls, descr], ...]
+
+			cls_descrs = []  # [[cls, descr], ...]
+			for cls, descr in selects:
+				if (cls == "*") and (descr == "*"):
+					for row in rows:
+						obj = self.store.objects[row[0]]
+						classes = list(obj.classes.keys())
+						descriptors = list(obj.descriptors.keys())
+						for cls2 in classes:
+							for descr2 in descriptors:
+								if [cls2, descr2] not in cls_descrs:
+									cls_descrs.append([cls2, descr2])
+				elif (cls == "!*") and (descr == "*"):
+					for row in rows:
+						obj = self.store.objects[row[0]]
+						if not len(obj.classes.keys()):
+							for descr2 in obj.descriptors:
+								if ["!*", descr2] not in cls_descrs:
+									cls_descrs.append(["!*", descr2])
+				elif cls == "*":  # *.[descriptor]
+					for row in rows:
+						obj = self.store.objects[row[0]]
+						classes = list(obj.classes.keys())
+						if classes:
+							for cls2 in classes:
+								if [cls2, descr] not in cls_descrs:
+									cls_descrs.append([cls2, descr])
+						elif ["!*", descr] not in cls_descrs:
+							cls_descrs.append(["!*", descr])
+				elif (not "*" in cls) and (descr == "*"):  # [class].*
+					for descr in self.store.classes[cls].descriptors:
+						if [cls, descr] not in cls_descrs:
+							cls_descrs.append([cls, descr])
+				else:  # !*.[descriptor] or [class].[descriptor]
+					if [cls, descr] not in cls_descrs:
+						cls_descrs.append([cls, descr])
+
+			done = []
+			for row in rows:
+				qry_row = QueryRow(self, self.store.objects[row[0]])
+				for cls, descr in cls_descrs:
+					descriptor = None
+					obj = None
+					for id in row[1:]:
+						obj = self.store.objects[id]
+						if (cls in obj.classes) or ((cls == "!*") and (len(self.store.objects[id].classes) == 0)):
+							if descr is None:
+								break
+							if descr in obj.descriptors:
+								descriptor = obj.descriptors[descr]
+								break
+					if descriptor is None:
 						if obj is None:
-							row.add(obj, cls, DDescriptor(None, self.store.classes[descr], DNone()))
-						else:
-							row.add(obj, cls, obj.descriptors[descr])
-			
-			if len(row) and (row.hash not in done):
-				self.add(row)
-				done.add(row.hash)
-		
-		# add counts as aliases
-		for count_ in self.parse.counts:
-			for row in self._rows:
-				cnt = 0
-				for chain in chains:
-					if (chain[classstr0][index0].id == row.object.id) and count_.check(chain):
-						cnt += 1
-				row.add_alias(count_.alias, cnt)
-		
-		# add sums as aliases
-		for sum_ in self.parse.sums:
-			for row in self._rows:
-				summed = 0
-				for chain in chains:
-					if (chain[classstr0][index0].id == row.object.id):
-						summed += sum_.value(chain)
-				row.add_alias(sum_.alias, summed)
-		
+							obj = self.store.objects[row[0]]
+						if descr is not None:
+							descriptor = DDescriptor(obj, self.store.classes[descr], DNone())
+					if cls == "!*":
+						cls = DClass(obj.classes, "[no class]")
+					else:
+						cls = self.store.classes[cls]
+					qry_row.add(obj, cls, descriptor)
+
+				if self.parse.chains and len(qry_row):
+					if qry_row.hash in done:
+						continue
+					else:
+						done.append(qry_row.hash)
+
+				for alias in self.parse.quantifiers:
+					query = Query(self.store, "SELECT %s WHERE %s" % tuple(self.parse.quantifiers[alias]), row)
+					select = self.parse.quantifiers[alias][0]
+					if select == "*":
+						quantity = len(query)
+					else:
+						quantity = 0
+						for row in query:
+							val = row[select].descriptor
+							if val is None:
+								continue
+							try:
+								quantity += float(val.label.value)
+							except:
+								continue
+
+					if quantity - int(quantity) == 0:
+						quantity = int(quantity)
+
+					qry_row.add_alias(alias, quantity)
+
+				self.add(qry_row)
+
+		add_query_rows(rows, selects) # generate query rows from rows according to selects
+
 		self.hash = self.columns + [row.hash for row in self._rows]
 
 	@property
@@ -403,7 +674,7 @@ class QueryRow(object):
 	def __str__(self):
 
 		self._populate()
-		return "id %d, %s" % (self.object.id, ", ".join([("%s: id %d" % (name, self[name].object.id) if (self[name].descriptor is None) else "%s: %s" % (name, str(self[name].descriptor.label))) for name in self]))
+		return "obj(%d) %s" % (self.object.id, ", ".join([("%s: obj(%d)" % (name, self[name].object.id) if (self[name].descriptor is None) else "%s: %s" % (name, str(self[name].descriptor.label))) for name in self]))
 
 	def __repr__(self):
 
@@ -428,4 +699,3 @@ class QueryItem(object):
 		self.object = object
 		self.dclass = dclass
 		self.descriptor = descriptor
-

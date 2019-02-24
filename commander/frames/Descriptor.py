@@ -106,7 +106,7 @@ class Descriptor(Frame, QtWidgets.QMainWindow):
 	
 	def on_object(self):
 		
-		self.view.mdiarea.create("Query", "SELECT *.* WHERE id(*) == %d" % (self.descriptor.target.id))
+		self.view.mdiarea.create("Query", "SELECT *.* WHERE obj(%d)" % (self.descriptor.target.id))
 	
 	def on_polygon(self):
 		

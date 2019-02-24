@@ -10,7 +10,7 @@ from deposit.store.Query.Query import (Query)
 from deposit.store.datasources._DataSources import (DataSources)
 from deposit.store.datasources._DataSource import (DataSource)
 from deposit.store.externalsources._ExternalSources import (ExternalSources)
-from deposit.store.Conversions import (as_url)
+from deposit.store.Conversions import (as_url, to_unique)
 
 from importlib import import_module
 import time
@@ -93,7 +93,7 @@ class Store(DModule):
 	@property
 	def class_names(self):
 
-		return list(self.classes.keys())
+		return self.classes.keys()
 
 	@property
 	def relation_names(self):
