@@ -84,25 +84,17 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 		
 		queries = []
 		if value_context:
-			queries.append("(C_14_Analysis.analyses.Sample.~contains.Context.Name == \"%s\") and (C_14_Analysis.analyses.Sample.~contains.Context.~contains.Site.~contains.Cadastre.~contains.Country)" % value_context)
-		elif value_site:
-			queries.append("(C_14_Analysis.analyses.Sample.~contains.Context.~contains.Site.Name == \"%s\") and (C_14_Analysis.analyses.Sample.~contains.Context.~contains.Site.~contains.Cadastre.~contains.Country)" % value_site)
-		elif value_cadastre:
-			queries.append("(C_14_Analysis.analyses.Sample.~contains.Context.~contains.Site.~contains.Cadastre.Name == \"%s\") and (C_14_Analysis.analyses.Sample.~contains.Context.~contains.Site.~contains.Cadastre.~contains.Country)" % value_cadastre)
-		elif value_country:
-			queries.append("(C_14_Analysis.analyses.Sample.~contains.Context.~contains.Site.~contains.Cadastre.~contains.Country.Name == \"%s\")" % value_country)
-		else:
-			queries.append("C_14_Analysis.analyses.Sample.~contains.Context.~contains.Site.~contains.Cadastre.~contains.Country")
-		
+			queries.append("(Context.Name == '%s')" % value_context)
+		if value_site:
+			queries.append("(Site.Name == '%s')" % value_site)
+		if value_cadastre:
+			queries.append("(Cadastre.Name == '%s')" % value_cadastre)
+		if value_country:
+			queries.append("(Country.Name == '%s')" % value_country)
 		if value_dating:
-			queries.append("(C_14_Analysis.analyses.Sample.~contains.Context.~dates.Relative_Dating.Name == \"%s\")" % value_dating)
-		else:
-			queries.append("(C_14_Analysis.analyses.Sample.~contains.Context.~dates.Relative_Dating)")
-		
+			queries.append("(Relative_Dating.Name == '%s')" % value_dating)
 		if value_material:
-			queries.append("(C_14_Analysis.analyses.Sample.descr.Material.Name == \"%s\")" % value_material)
-		else:
-			queries.append("(C_14_Analysis.analyses.Sample.descr.Material)")
+			queries.append("(Material.Name == '%s')" % value_material)
 		
 		if queries:
 			query = "SELECT C_14_Analysis.Lab_Code, C_14_Analysis.C_14_Activity_BP, Material.Name, Context.Name, Country.Name, Relative_Dating.Name WHERE %s" % (" and ".join(queries))
