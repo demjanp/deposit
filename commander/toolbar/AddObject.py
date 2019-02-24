@@ -18,14 +18,14 @@ class AddObject(Tool):
 
 		current = self.view.mdiarea.get_current()
 		if current.__class__.__name__ == "QueryLst":
-			if (not current.query.parse.chains) and (len(current.query.parse.selects) == 1) and (current.query.parse.selects[0][0] != "*"):
+			if (len(current.query.parse.selects[0].classes) == 1):
 				return True
 		return False
 	
 	def triggered(self, state):
 		
 		current = self.view.mdiarea.get_current()
-		cls = current.query.parse.selects[0][0]
+		cls = current.query.parse.selects[0].classes[0]
 		if cls == "!*":
 			self.model.objects.add()
 		else:

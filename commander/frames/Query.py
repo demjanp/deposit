@@ -179,7 +179,7 @@ class Query(Frame, QtWidgets.QWidget):
 		
 		self.footer.set_count(self.get_current().get_row_count())
 
-		state = ((index in [0,3]) and (not self.query.parse.chains) and (len(self.query.parse.selects) == 1) and (self.query.parse.selects[0][0] != "*"))
+		state = ((index in [0,3]) and (len(self.query.parse.selects) == 1) and (len(self.query.parse.selects[0].classes) == 1))
 		self.footer.set_add_object_enabled(state)
 
 		self.update_tabs_enabled()
@@ -213,7 +213,7 @@ class Query(Frame, QtWidgets.QWidget):
 
 	def on_add_object(self):
 
-		cls = self.query.parse.selects[0][0]
+		cls = self.query.parse.selects[0].classes[0]
 		if cls == "!*":
 			self.model.objects.add()
 		else:

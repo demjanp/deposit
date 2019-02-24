@@ -35,7 +35,12 @@ class DRelation(DElement):
 			self._objects.set_on_deleted(self.on_object_deleted)
 
 		return self._objects
-
+	
+	def weight(self, target):
+		
+		# TODO
+		return 0
+	
 	def on_object_added(self, obj):
 
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self.source)

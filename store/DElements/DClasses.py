@@ -161,7 +161,7 @@ class DClasses(DElements):
 			name = str(cls)
 		if not name in self.store.classes:
 			# add to store
-
+			
 			for char in INVALID_CHARACTERS_NAME:
 				if char in name:
 					raise Exception("Invalid character (%s) in Class name" % (char))

@@ -105,7 +105,12 @@ class RelView(Frame, QtWidgets.QWidget):
 			visible = self.visible_widgets["%s_%s" % (rel, cls)]
 			found = False
 			if rel in obj.relations:
-				querystr = "SELECT %s.* WHERE %s.%s.obj(%d)" % (cls, cls, self.model.reverse_relation(rel), obj.id)
+				cls0 = list(obj.classes.keys())
+				if len(cls0) == 0:
+					cls0 = "!*"
+				else:
+					cls0 = cls0[0]
+				querystr = "SELECT %s.* RELATED %s.%s.%s WHERE id(%s) == %d" % (cls, cls, self.model.reverse_relation(rel), cls0, cls0, obj.id)
 				query = self.model.query(querystr)
 				if len(query):
 					found = True
