@@ -1,4 +1,4 @@
-# Deposit-dev
+# Deposit
 Graph-based data storage and exchange
 
 Created on 29. 4. 2013
