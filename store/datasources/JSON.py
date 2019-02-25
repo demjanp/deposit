@@ -87,7 +87,7 @@ class JSON(DataSource):
 			changed = self.store.changed,
 			local_folder = self.store.local_folder,
 		)
-
+		
 		parsed = urlparse(self.url)
 		path = os.path.normpath(os.path.abspath(parsed.path.strip("//")))
 		

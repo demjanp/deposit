@@ -55,13 +55,13 @@
 
 '''
 
-from deposit.store.DLabel.DNone import (DNone)
 from deposit.store.DLabel.DString import (DString)
 from deposit.store.DElements.DClasses import (DClass)
 from deposit.store.DElements.DDescriptors import (DDescriptor)
 from deposit.store.Query.Parse import (Parse)
 
 from collections import defaultdict
+from itertools import product
 
 class Query(object):
 	
@@ -117,34 +117,67 @@ class Query(object):
 		if not self.parse.selects:
 			return
 		
-		# collect objects for all combinations of classstr and index based on selects and relations
 		objects = defaultdict(dict)  # {classstr: {index: [DObject, ...], ...}, ...}
-		for select in self.parse.selects:
-			if select.index in objects[select.classstr]:
-				continue
-			objects[select.classstr][select.index] = self.get_objects_by_classes(select.classes)
-		for related in self.parse.relations:
-			if related.index1 not in objects[related.classstr1]:
+		
+		# collect classstr, index and objects to initialize chains
+		classstr_index0s = []
+		# for first Select
+		classstr0, index0 = self.parse.selects[0].classstr, self.parse.selects[0].index
+		classstr_index0s.append((classstr0, index0))
+		objects[classstr_index0s[0][0]][classstr_index0s[0][1]] = self.get_objects_by_classes(self.parse.selects[0].classes)
+		# for first Related of each relation chain
+		for chain in self.parse.relations:
+			related = chain[0]
+			classstr_index1 = (related.classstr1, related.index1)
+			classstr_index2 = (related.classstr2, related.index2)
+			if (classstr_index1 not in classstr_index0s) and (classstr_index2 not in classstr_index0s):
+				classstr_index0s.append(classstr_index1)
 				objects[related.classstr1][related.index1] = self.get_objects_by_classes(related.classes1)
-			if related.index2 not in objects[related.classstr2]:
-				objects[related.classstr2][related.index2] = self.get_objects_by_classes(related.classes2)
 		
-		# collect all possible rows according to selects and relations
-		classstr_index_related = set()  # set((classstr, index), ...); present in relations
-		classstr_index_selects = set()  # set((classstr, index), ...); present in selects
-		for related in self.parse.relations:
-			if (related.classstr1, related.index1) not in classstr_index_related:
-				classstr_index_related.add((related.classstr1, related.index1))
-			if (related.classstr2, related.index2) not in classstr_index_related:
-				classstr_index_related.add((related.classstr2, related.index2))
-		for select in self.parse.selects:
-			if (select.classstr, select.index) not in classstr_index_selects:
-				classstr_index_selects.add((select.classstr, select.index))
-		classstr_index_selects_only = classstr_index_selects.difference(classstr_index_related)  # set((classstr, index), ...); present only in selects (not in relations)
-		
-		def related_not_in_chain(classstr1, index1, classstr2, index2, chain):
+		# collect selects and objects which are not present in relations
+		def in_relations(select):
 			
-			return (classstr1 in chain) and (index1 in chain[classstr1]) and ((classstr2 not in chain) or (index2 not in chain[classstr2]))
+			for rel_chain in self.parse.relations:
+				for related in rel_chain:
+					if ((select.classstr == related.classstr1) and (select.index == related.index1)) or ((select.classstr == related.classstr2) and (select.index == related.index2)):
+						return True
+			return False
+		
+		classstr_index_selects_only = set()  # set((classstr, index), ...); present only in selects (not in relations)
+		for select in self.parse.selects:
+			if not in_relations(select):
+				objects[select.classstr][select.index] = self.get_objects_by_classes(select.classes)
+				classstr_index_selects_only.add((select.classstr, select.index))
+		
+		# collect object chains
+		def get_chains(chain, rel_chain, chains):
+			# recursively fill chain and append it to chains
+			
+			while rel_chain:
+				
+				related = rel_chain.pop(0)
+				
+				reversed = False
+				if (related.classstr1 in chain) and (related.index1 in chain[related.classstr1]):
+					obj1 = chain[related.classstr1][related.index1]
+				elif (related.classstr2 in chain) and (related.index2 in chain[related.classstr2]):
+					obj1 = chain[related.classstr2][related.index2]
+					reversed = True
+				else:
+					break
+				
+				if reversed:
+					objects2 = related.get_objects1(obj1)
+				else:
+					objects2 = related.get_objects2(obj1)
+				
+				for obj2 in objects2:
+					if reversed:
+						get_chains(dict(chain, **{related.classstr1: {related.index1: obj2}}), rel_chain, chains)
+					else:
+						get_chains(dict(chain, **{related.classstr2: {related.index2: obj2}}), rel_chain, chains)
+			
+			chains.append(chain)
 		
 		def in_chains(chain, done):
 			
@@ -159,37 +192,39 @@ class Query(object):
 			done.add(tuple(ids))
 			return False
 		
-		def get_chains(chain, chains, done):
-			# recursively fill chain and if full, append it to chains if conditions are met
-			# chain = {classstr: {index: DObject, ...}, ...}
-			
-			for related in self.parse.relations:
-				
-				if related_not_in_chain(related.classstr1, related.index1, related.classstr2, related.index2, chain):
-					obj1 = chain[related.classstr1][related.index1]
-					for obj2 in related.get_objects2(obj1, reversed = False):
-						get_chains(dict(chain, **{related.classstr2: {related.index2: obj2}}), chains, done)
-				
-				if related_not_in_chain(related.classstr2, related.index2, related.classstr1, related.index1, chain):
-					obj1 = chain[related.classstr2][related.index2]
-					for obj2 in related.get_objects2(obj1, reversed = True):
-						get_chains(dict(chain, **{related.classstr1: {related.index1: obj2}}), chains, done)
-			
-			for classstr, index in classstr_index_selects_only:
-				if (classstr not in chain) or (index not in chain[classstr]):
-					for obj2 in objects[classstr][index]:
-						get_chains(dict(chain, **{classstr: {index: obj2}}), chains, done)
-			
-			if self.check_conditions(chain) and (not in_chains(chain, done)):
-				chains.append(chain)
-		
-		# collect object chains
 		chains = []  # [{classstr: {index: DObject, ...}, ...}, ...]
-		done = set() # to avoid duplicates
-		classstr0 = self.parse.selects[0].classstr
-		index0 = self.parse.selects[0].index		
-		for obj0 in objects[classstr0][index0]:
-			get_chains({classstr0: {index0: obj0}}, chains, done)
+		for objects0 in product(*[objects[classstr][index] for classstr, index in classstr_index0s]):
+			chain = {}
+			for i, classstr_index in enumerate(classstr_index0s):
+				if classstr_index[0] not in chain:
+					chain[classstr_index[0]] = {}
+				chain[classstr_index[0]][classstr_index[1]] = objects0[i]
+			chains_obj0 = []
+			
+			# collect chains given by relations
+			for rel_chain in self.parse.relations:
+				chains_obj0.append([])
+				get_chains(chain, rel_chain.copy(), chains_obj0[-1])
+				done = set()
+				collect = []
+				for chain in chains_obj0[-1]:
+					if not in_chains(chain, done):
+						collect.append(chain)
+				chains_obj0[-1] = collect
+			
+			# collect chains given by selects only
+			for classstr, index in classstr_index_selects_only:
+				chains_obj0.append([])
+				for obj in objects[classstr][index]:
+					chains_obj0[-1].append({classstr: {index: obj}})
+			
+			# combine chains and check conditions
+			for chains_rel in product(*[chains_obj for chains_obj in chains_obj0]):
+				chain = {}
+				for chain_rel in chains_rel:
+					chain.update(chain_rel)
+				if self.check_conditions(chain):
+					chains.append(chain)
 		
 		# apply conditions, aliases & sums
 		done = set() # to avoid duplicates

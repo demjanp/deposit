@@ -96,9 +96,10 @@ class View(*uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "View.u
 		if value_material:
 			queries.append("(Material.Name == '%s')" % value_material)
 		
+		query = "SELECT C_14_Analysis.Lab_Code, C_14_Analysis.C_14_Activity_BP, Material.Name, Context.Name, Country.Name, Relative_Dating.Name"
 		if queries:
-			query = "SELECT C_14_Analysis.Lab_Code, C_14_Analysis.C_14_Activity_BP, Material.Name, Context.Name, Country.Name, Relative_Dating.Name WHERE %s" % (" and ".join(queries))
-			self.parent.parent.view.mdiarea.create("Query", query)
+			query += " WHERE %s" % (" and ".join(queries))
+		self.parent.parent.view.mdiarea.create("Query", query)
 	
 	def on_activate(self):
 		

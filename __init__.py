@@ -26,9 +26,10 @@
 	
 	Deposit properties:
 	dep:label - Label of a Node or Edge. Can be numeric, string, resource or geometry.
-	dep:geotag - Geometric information (wkt) further specifying a resource representing the label of an Edge. Coordinates represent pixels of the raster, [0,0] being the bottom-left corner.
 	dep:source - Indicates the source Node of an Edge.
 	dep:target - Indicates the target Node of an Edge.
+	dep:geotag - Geometric information (wkt) further specifying a resource representing the label of an Edge. Coordinates represent pixels of the raster, [0,0] being the bottom-left corner.
+	dep:weight - Weight of a Relation.
 	dep:description - Additional description of a Class, Property or Relation.
 	dep:projection - Geographic projection as wkt in OGC or ESRI format.
 	dep:worldfile_A..F - ESRI world file parameters used for georeferencing raster image resources.
@@ -110,6 +111,11 @@
 		gra:[id_rel] dep:geotag wktLiteral(wkt)
 		
 		geometric information wkt further specifies the Relation id_rel
+	
+	weight:
+		gra:[id_rel] dep:weight Literal(label)
+		
+		weight of the Relation id_rel
 	
 	Order:
 		gra:order rdf:type dep:Order
