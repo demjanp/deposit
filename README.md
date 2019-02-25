@@ -8,7 +8,7 @@ Peter Demján (peter.demjan@gmail.com)
 
 ## Deposit (DEP) RDF Schema:
 
-###Deposit classes:
+### Deposit classes:
 
 dep:Node - Node of a graph.
 
@@ -32,7 +32,7 @@ dep:LocalFolder - rdfs:Resource. IRI of the local folder to store resources.
 
 dep:Images - rdf:Bag. List of resources which are images.
 
-###Deposit properties:
+### Deposit properties:
 
 dep:label - Label of a Node or Edge. Can be numeric, string, resource or geometry.
 
@@ -50,7 +50,7 @@ dep:projection - Geographic projection as wkt in OGC or ESRI format.
 
 dep:worldfile_A..F - ESRI world file parameters used for georeferencing raster image resources.
 
-### Concepts:
+## Concepts:
 
 Subclass: A Class which is a Member of another Class.
 
