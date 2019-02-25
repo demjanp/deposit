@@ -1,4 +1,4 @@
-import numbers
+from numbers import Number
 
 def find_index(cls):
 	# returns class_name, index
@@ -24,31 +24,6 @@ def check_classes(obj, classes):
 	if len(set(obj.classes.keys()).intersection(classes)) > 0:
 		return True
 	return False
-
-def find_connection(store, cls1, cls2, connection = [], done = None):
-	# find relations forming shortest connection between classes cls1 and cls2 (if it exists)
-	
-	if done is None:
-		done = set()
-	if (cls1 in done) or (cls2 in done):
-		return []
-	if cls1 == cls2:
-		return []
-	done.add(cls1)
-	for rel in store.classes[cls1].relations:
-		if cls2 in store.classes[cls1].relations[rel]:
-			if rel.startswith("~"):
-				return connection + [[cls2, rel[1:], cls1]]
-			else:
-				return connection + [[cls1, rel, cls2]]
-		for cls3 in store.classes[cls1].relations[rel]:
-			if rel.startswith("~"):
-				found = find_connection(store, cls2, cls3, connection + [[cls3, rel[1:], cls1]], done)
-			else:
-				found = find_connection(store, cls2, cls3, connection + [[cls1, rel, cls3]], done)
-			if found:
-				return found
-	return []
 
 class Select(object):
 	
@@ -208,7 +183,7 @@ class Related(object):
 				cls12[i] = set([cls12[i]])
 		[self.classes1, self.classes2] = cls12
 	
-	def get_objects2(self, obj1, reversed = False):
+	def get_objects2(self, obj1):
 		
 		ids = set()
 		if self.relation[-1] == "*":
@@ -216,7 +191,7 @@ class Related(object):
 				ids.update(obj1.relations[rel].keys())
 			if self.relation[0] == "!":	
 				collect = set()
-				for cls in (self.classes1 if reversed else self.classes2):
+				for cls in self.classes1:
 					if cls == "!*":
 						collect.update([id for id in get_classless_object_ids(self.store) if not id in ids])
 					else:
@@ -224,15 +199,36 @@ class Related(object):
 				ids = collect
 		else:
 			rel = self.relation.strip("!")
-			if reversed:
-				rel = self.store.reverse_relation(rel)
 			if rel in obj1.relations:
 				ids = set(obj1.relations[rel].keys())
 				if self.relation[0] == "!":
 					ids = set([id for id in store.objects if id not in ids])
 		ids = [self.store.objects[id] for id in ids]
-		return [obj for obj in ids if check_classes(obj, self.classes1 if reversed else self.classes2)]
-	
+		return [obj for obj in ids if check_classes(obj, self.classes2)]
+		
+	def get_objects1(self, obj2):
+		
+		ids = set()
+		if self.relation[-1] == "*":
+			for rel in obj2.relations:
+				ids.update(obj2.relations[rel].keys())
+			if self.relation[0] == "!":	
+				collect = set()
+				for cls in self.classes2:
+					if cls == "!*":
+						collect.update([id for id in get_classless_object_ids(self.store) if not id in ids])
+					else:
+						collect.update([id for id in self.store.classes[cls] if id not in ids])
+				ids = collect
+		else:
+			rel = self.store.reverse_relation(self.relation.strip("!"))
+			if rel in obj2.relations:
+				ids = set(obj2.relations[rel].keys())
+				if self.relation[0] == "!":
+					ids = set([id for id in store.objects if id not in ids])
+		ids = [self.store.objects[id] for id in ids]
+		return [obj for obj in ids if check_classes(obj, self.classes1)]
+		
 class Weight(object):
 	
 	def __init__(self, store, weightstr, quotes):
@@ -464,11 +460,11 @@ class Sum(object):
 		if isinstance(value, str):
 			return 0
 		if isinstance(value, list):
-			value = [val for val in value if isinstance(val, numbers.Number)]
+			value = [val for val in value if isinstance(val, Number)]
 			if value:
 				return sum(value)
 			return 0
-		if isinstance(value, numbers.Number):
+		if isinstance(value, Number):
 			return value
 	
 class Parse(object):
@@ -593,6 +589,24 @@ class Parse(object):
 		self.sums = [sum_ for sum_ in self.sums if sum_.select]
 		
 		# attempt to find shortest relation between all classes (except within classes), if it is not explicitly specified in the RELATED segment
+		def find_connection(cls1, cls2, connection = [], done = None):
+			
+			if done is None:
+				done = set()
+			if cls1 == cls2:
+				return []
+			if (cls1, cls2) in done:
+				return []
+			done.add((cls1, cls2))
+			for rel in self.store.classes[cls1].relations:
+				for cls3 in self.store.classes[cls1].relations[rel]:
+					if cls3 == cls2:
+						return connection + [[cls1, rel, cls2]]
+			for rel in self.store.classes[cls1].relations:
+				for cls3 in self.store.classes[cls1].relations[rel]:
+					return find_connection(cls3, cls2, connection + [[cls1, rel, cls3]], done)
+			return []
+		
 		if (len(self.selects) > 1) or self.conditions or self.counts or self.sums:
 			relations_done = set()
 			for related in self.relations:
@@ -618,45 +632,75 @@ class Parse(object):
 						continue
 					if (cls1, cls2) in relations_done:
 						continue
-					connection = find_connection(self.store, cls1, cls2)
+					connection = find_connection(cls1, cls2)
 					for clsA, rel, clsB in connection:
+						if rel.startswith("~"):
+							clsA, rel, clsB = clsB, rel[1:], clsA
 						if (clsA, clsB) in relations_done:
 							continue
 						self.relations.append(Related(self.store, "%s.%s.%s" % (clsA, rel, clsB), {}))
 						relations_done.add((clsA, clsB))
 		
-		# sort relations
-		
-		def get_related_group(seed_related):
+		# sort relations into chains
+		def rel_connects(related1, related2):
+			# returns True if related1 and related2 connect
 			
-			collect = [seed_related]
-			while True:
-				found = False
-				for related in self.relations:
-					if related in collect:
-						continue
-					if (related.classstr1 == collect[-1].classstr2) and (related.index1 == collect[-1].index2):
-						collect.append(related)
-						found = True
-					if (related.classstr2 == collect[0].classstr1) and (related.index2 == collect[0].index1):
-						collect = [related] + collect
-						found = True
-				if not found:
-					break
-			return collect
+			return ((related1.classstr1, related1.index1) in ((related2.classstr1, related2.index1), (related2.classstr2, related2.index2))) or ((related1.classstr2, related1.index2) in ((related2.classstr1, related2.index1), (related2.classstr2, related2.index2)))
+		
+		def idx_in_selects(related):
+			# returns index of related in selects or len(selects) + 1 if not found
+			
+			for idx, select in enumerate(self.selects):
+				if (select.classstr, select.index) in ((related.classstr1, related.index1), (related.classstr2, related.index2)):
+					return idx
+			return len(self.selects) + 1
 		
 		if self.relations:
-			groups = []
+			
+			neighbours = {}
+			for i1, related1 in enumerate(self.relations):
+				neighbours[i1] = []
+				for i2, related2 in enumerate(self.relations):
+					if (i1 == i2) or rel_connects(related1, related2):
+						neighbours[i1].append(i2)
+			
+			chains = []  # [[Related, ...], ...]
 			done = set()
-			while len(done) < len(self.relations):
-				for related in self.relations:
-					if related not in done:
-						groups.append(get_related_group(related))
-						done.update(groups[-1])
-						break
-				if len(done) == len(self.relations):
-					break
-			self.relations = []
-			for group in groups:
-				self.relations += group
+			for i in neighbours:
+				if i not in done:
+					todo = [i]
+					chain = []
+					while todo:
+						i1 = todo.pop()
+						for i2 in neighbours[i1]:
+							if i2 not in done:
+								todo.append(i2)
+								done.add(i2)
+								chain.append(i2)
+					
+					if chain:
+						# order chain so the classstr mentioned first in selects is first and every relation is connected to one of the previous relations
+						i0 = -1
+						idx_min = len(self.selects) + 1
+						for i1 in chain:
+							idx = idx_in_selects(self.relations[chain[i1]])
+							if idx < idx_min:
+								idx_min = idx
+								i0 = i1
+						collect = [chain[i0]]
+						while len(collect) < len(chain):
+							found = False
+							for i1 in chain:
+								if i1 in collect:
+									continue
+								for i2 in collect:
+									if i1 in neighbours[i2]:
+										collect.append(i1)
+										found = True
+										break
+							if not found:
+								break
+						chains.append([self.relations[i1] for i1 in collect])
+			
+			self.relations = chains
 

@@ -3,6 +3,8 @@ from deposit import Broadcasts
 from deposit.store.DElements.DElements import (DElement, DElements)
 from deposit import (INVALID_CHARACTERS_NAME)
 
+from numbers import Number
+
 class DRelation(DElement):
 	
 	def __init__(self, parent, name):
@@ -11,6 +13,7 @@ class DRelation(DElement):
 		
 		self.name = name
 		self._objects = None
+		self._weights = {}  # {id: weight, ...}
 	
 	@property
 	def source(self):
@@ -35,7 +38,27 @@ class DRelation(DElement):
 			self._objects.set_on_deleted(self.on_object_deleted)
 
 		return self._objects
-
+	
+	def weight(self, target_id):
+		
+		if target_id.__class__.__name__ == "DObject":
+			target_id = target_id.id
+		if target_id in self._weights:
+			return self._weights[target_id]
+		return None
+	
+	def _set_weight(self, target_id, weight):
+		
+		if target_id.__class__.__name__ == "DObject":
+			target_id = target_id.id
+		self._weights[target_id] = weight
+		
+	
+	def set_weight(self, target_id, weight):
+		
+		self._set_weight(target_id, weight)
+		self.store.objects[target_id].relations[self.store.reverse_relation(self.name)]._set_weight(self.source.id, weight)
+	
 	def on_object_added(self, obj):
 
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self.source)
@@ -43,6 +66,8 @@ class DRelation(DElement):
 
 	def on_object_deleted(self, obj):
 
+		if obj.id in self._weights:
+			del self._weights[obj.id]
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self.source)
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, obj)
 
@@ -92,11 +117,13 @@ class DRelation(DElement):
 			delement = "DRelation",
 			name = self.name,
 			objects = self.objects._keys,
+			weights = self._weights.copy(),
 		)
 	
 	def from_dict(self, data):
 		
 		self._objects = data["objects"]
+		self._weights = data["weights"] if "weights" in data else {}  # DEBUG to ensure compatibility with previous version
 		return self
 
 class DRelations(DElements):
@@ -105,7 +132,7 @@ class DRelations(DElements):
 		
 		super(DRelations, self).__init__(parent)
 		
-	def _add(self, name, target):
+	def _add(self, name, target, weight):
 		# target = DObject or id
 		
 		if target.__class__.__name__ != "DObject":
@@ -119,19 +146,21 @@ class DRelations(DElements):
 				else:
 					self.store.classes[class_name1].add_relation(name, "!*")
 		self[name][target.id] = target
+		if isinstance(weight, Number):
+			self[name]._set_weight(target.id, weight)
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self.parent)
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, target)
 		return target
 	
-	def add(self, name, target):
+	def add(self, name, target, weight = None):
 		# target = DObject or id
 		# returns the created DRelation
 		
 		for char in INVALID_CHARACTERS_NAME:
 			if char in name:
 				raise Exception("Invalid character (%s) in Relation name" % (char))
-		target = self._add(name, target)
-		target.relations._add(self.store.reverse_relation(name), self.parent)
+		target = self._add(name, target, weight)
+		target.relations._add(self.store.reverse_relation(name), self.parent, weight)
 		return self[name]
 	
 	def _populate(self, key):
