@@ -28,6 +28,7 @@ class TableModel(DModule, PrototypeDragModel, QtCore.QAbstractTableModel):
 		self.view = view
 		self.query = query
 		self.relation = relation
+		self.class_name = None
 		
 		self.proxy_model = None
 
@@ -48,6 +49,9 @@ class TableModel(DModule, PrototypeDragModel, QtCore.QAbstractTableModel):
 			remote_image = self.view.get_icon("remote_image.svg"),
 			remote_georaster = self.view.get_icon("remote_georaster.svg"),
 		)
+		
+		if self.query.classes:
+			self.class_name = self.query.classes[0]
 		
 		self.proxy_model = ProxyModel()
 		self.proxy_model.setSourceModel(self)
@@ -92,7 +96,9 @@ class TableModel(DModule, PrototypeDragModel, QtCore.QAbstractTableModel):
 		if orientation == QtCore.Qt.Horizontal: # column headers
 			if role == QtCore.Qt.DisplayRole:
 				if section == 0:
-					return "id()"
+					if self.class_name is None:
+						return "id()"
+					return "id(%s)" % (self.class_name)
 				return self.query.columns[section - 1]
 		return QtCore.QVariant()
 	

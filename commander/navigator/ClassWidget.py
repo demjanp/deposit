@@ -43,6 +43,7 @@ class ClassWidget(Frame, QtWidgets.QWidget):
 		selected = self.get_selected()
 		enabled = (len(selected) == 1) and (selected[0] != "!*")
 		
+		self.footer.set_link_enabled(enabled)
 		self.footer.set_rename_enabled(enabled)
 		self.footer.set_order_up_enabled(enabled)
 		self.footer.set_order_down_enabled(enabled)
@@ -79,13 +80,17 @@ class ClassWidget(Frame, QtWidgets.QWidget):
 		
 		self.view.dialogs.open("AddClass")
 	
+	def link(self):
+		
+		self.view.mdiarea.create("Class", self.get_selected()[0])
+	
 	def rename(self):
 
-		self.view.dialogs.open("RenameClass", self.get_selected()[0])
+		self.view.dialogs.open("RenameClass", self.get_selected()[0], self.classlist.get_selected_parent())
 	
 	def remove(self):
 		
-		self.view.dialogs.open("RemoveClass", [name for name in self.get_selected() if name != "!*"])
+		self.view.dialogs.open("RemoveClass", [name for name in self.get_selected() if name != "!*"], self.classlist.get_selected_parent())
 	
 	def on_view_action(self, args):
 
@@ -132,6 +137,13 @@ class ClassFooter(DModule, QtWidgets.QFrame):
 		self.button_add.clicked.connect(self.on_add)
 		self.layout.addWidget(self.button_add)
 		
+		self.button_link = QtWidgets.QToolButton(self)
+		self.button_link.setIcon(self.parent.view.get_icon("link_class.svg"))
+		self.button_link.setIconSize(QtCore.QSize(32, 32))
+		self.button_link.setToolTip("Class Relations")
+		self.button_link.clicked.connect(self.on_link)
+		self.layout.addWidget(self.button_link)
+		
 		self.button_rename = QtWidgets.QToolButton(self)
 		self.button_rename.setIcon(self.parent.view.get_icon("edit_class.svg"))
 		self.button_rename.setIconSize(QtCore.QSize(32, 32))
@@ -154,6 +166,10 @@ class ClassFooter(DModule, QtWidgets.QFrame):
 		
 		self.button_down.setEnabled(state)
 	
+	def set_link_enabled(self, state):
+		
+		self.button_link.setEnabled(state)
+	
 	def set_rename_enabled(self, state):
 		
 		self.button_rename.setEnabled(state)
@@ -173,6 +189,10 @@ class ClassFooter(DModule, QtWidgets.QFrame):
 	def on_add(self, *args):
 		
 		self.parent.add()
+	
+	def on_link(self, *args):
+		
+		self.parent.link()
 	
 	def on_rename(self, *args):
 		

@@ -43,6 +43,7 @@ class AddRelation(Tool):
 					for item in row:
 						if (item.element.__class__.__name__ == "DObject") and (not item.element in objects):
 							objects.append(item.element)
+		
 		if objects:
 			self.view.dialogs.open("AddRelation", objects)
 		else:

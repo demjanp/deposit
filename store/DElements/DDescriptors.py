@@ -99,6 +99,19 @@ class DDescriptors(DElements):
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, cls)
 		return self[cls.name]
 	
+	def rename(self, old_name, new_name):
+		
+		if old_name.__class__.__name__ == "DClass":
+			old_name = old_name.name
+		if old_name not in self:
+			return
+		if new_name.__class__.__name__ == "DClass":
+			new_name = new_name.name
+		if new_name not in self.store.classes:
+			self.store.classes.add(new_name)
+		self.add(new_name, self[old_name].label)
+		del self[old_name]
+	
 	def _populate(self, key):
 		
 		descr = super(DDescriptors, self).__getitem__(key)

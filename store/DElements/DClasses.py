@@ -83,10 +83,22 @@ class DClass(DElement):
 			self.descriptors = sorted(self.descriptors, key=lambda name: self.store.classes[name].order)
 			self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
 
+	def rename_descriptor(self, old_name, new_name):
+		
+		self.descriptors.remove(old_name)
+		self.add_descriptor(new_name)
+		for id in self.objects:
+			self.objects[id].descriptors.rename(old_name, new_name)
+		self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
+		
 	def del_descriptor(self, name):
 
 		if not name in self.descriptors:
 			return
+		
+		# also delete descriptor from classes objects
+		for id in self.objects:
+			del self.objects[id].descriptors[name]
 
 		self.descriptors.remove(name)
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
@@ -105,7 +117,17 @@ class DClass(DElement):
 			if not len(self.relations[rel]):
 				del self.relations[rel]
 				self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
-
+			# also delete relation from classes objects
+			for id1 in self.objects:
+				if rel not in self.objects[id1].relations:
+					continue
+				to_del = []
+				for id2 in self.objects[id1].relations[rel]:
+					if class_name in self.store.objects[id2].classes:
+						to_del.append(id2)
+				for id2 in to_del:
+					del self.store.objects[id1].relations[rel][id2]
+	
 	def to_dict(self):
 		
 		return dict(

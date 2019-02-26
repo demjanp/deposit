@@ -35,6 +35,6 @@ class Navigator(ViewChild, QtWidgets.QToolBox):
 		self.addItem(self.databasewidget, self.view.get_icon("link_db.svg"), "Linked Databases")
 		
 		size = self.size()
-		size.setWidth(290)
+		size.setWidth(340)
 		self.resize(size)
 

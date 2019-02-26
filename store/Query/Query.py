@@ -134,6 +134,8 @@ class Query(object):
 				classstr_index0s.append(classstr_index1)
 				objects[related.classstr1][related.index1] = self.get_objects_by_classes(related.classes1)
 		
+		self._classes = list(self.parse.selects[0].classes)
+		
 		# collect selects and objects which are not present in relations
 		def in_relations(select):
 			
@@ -146,11 +148,26 @@ class Query(object):
 		classstr_index_selects_only = set()  # set((classstr, index), ...); present only in selects (not in relations)
 		for select in self.parse.selects:
 			if not in_relations(select):
+				if (select.classstr, select.index) == (classstr0, index0):
+					continue
 				objects[select.classstr][select.index] = self.get_objects_by_classes(select.classes)
 				classstr_index_selects_only.add((select.classstr, select.index))
 		
 		# collect object chains
-		def get_chains(chain, rel_chain, chains):
+		def in_chains(chain, done):
+			
+			ids = []
+			for classstr in chain:
+				for index in chain[classstr]:
+					ids.append(chain[classstr][index].id)
+			ids = set(ids)
+			for ids2 in done:
+				if ids.issubset(ids2):
+					return True
+			done.add(tuple(ids))
+			return False
+		
+		def get_chains(chain, rel_chain, chains, done):
 			# recursively fill chain and append it to chains
 			
 			while rel_chain:
@@ -173,24 +190,12 @@ class Query(object):
 				
 				for obj2 in objects2:
 					if reversed:
-						get_chains(dict(chain, **{related.classstr1: {related.index1: obj2}}), rel_chain, chains)
+						get_chains(dict(chain, **{related.classstr1: {related.index1: obj2}}), rel_chain, chains, done)
 					else:
-						get_chains(dict(chain, **{related.classstr2: {related.index2: obj2}}), rel_chain, chains)
+						get_chains(dict(chain, **{related.classstr2: {related.index2: obj2}}), rel_chain, chains, done)
 			
-			chains.append(chain)
-		
-		def in_chains(chain, done):
-			
-			ids = []
-			for classstr in chain:
-				for index in chain[classstr]:
-					ids.append(chain[classstr][index].id)
-			ids = set(ids)
-			for ids2 in done:
-				if ids.issubset(ids2):
-					return True
-			done.add(tuple(ids))
-			return False
+			if not in_chains(chain, done):
+				chains.append(chain)
 		
 		chains = []  # [{classstr: {index: DObject, ...}, ...}, ...]
 		for objects0 in product(*[objects[classstr][index] for classstr, index in classstr_index0s]):
@@ -204,13 +209,11 @@ class Query(object):
 			# collect chains given by relations
 			for rel_chain in self.parse.relations:
 				chains_obj0.append([])
-				get_chains(chain, rel_chain.copy(), chains_obj0[-1])
 				done = set()
-				collect = []
-				for chain in chains_obj0[-1]:
-					if not in_chains(chain, done):
-						collect.append(chain)
-				chains_obj0[-1] = collect
+				get_chains(chain, rel_chain.copy(), chains_obj0[-1], done)
+			
+			if not chains_obj0:
+				chains_obj0 = [[chain]]
 			
 			# collect chains given by selects only
 			for classstr, index in classstr_index_selects_only:
