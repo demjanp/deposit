@@ -413,14 +413,17 @@ class Condition(object):
 			key = "s%d" % i
 			vars[key], n = get_new_var(self.eval_str, n)
 			values[vars[key]] = select.value(objects)
+			n += 1
 		for i, object_id in enumerate(self.object_ids):
 			key = "o%d" % i
 			vars[key], n = get_new_var(self.eval_str, n)
 			values[vars[key]] = object_id.id(objects)
+			n += 1
 		for i, weight in enumerate(self.weights):
 			key = "w%d" % i
 			vars[key], n = get_new_var(self.eval_str, n)
 			values[vars[key]] = weight.value(objects)
+			n += 1
 		
 		return eval(self.eval_str % vars, values)
 	
