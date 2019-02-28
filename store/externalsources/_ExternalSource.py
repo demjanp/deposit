@@ -116,17 +116,17 @@ class ExternalSource(DModule):
 	def sheets(self):
 		# re-implement
 		
-		pass
+		return []
 	
 	def column_count(self, sheet):
 		# re-implement
 		
-		pass
+		return 0
 	
 	def row_count(self, sheet):
 		# re-implement
 		
-		pass
+		return 0
 	
 	def column_name(self, sheet, column_idx):
 		# re-implement
