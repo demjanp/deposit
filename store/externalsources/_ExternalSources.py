@@ -24,13 +24,13 @@ class ExternalSources(DModule):
 			file = file.split(".")[0]
 			self._classes[file] = getattr(import_module("deposit.store.externalsources.%s" % (file)), file)
 	
-	def __contains__(self, key):
+	def __getattr__(self, name):
 		
-		return key in self._classes
-	
-	def __getitem__(self, key):
+		def clsfunc(url):
+			
+			return self._classes[name](self.store, url)
 		
-		if key in self._classes:
-			return self._classes[key](self.store)
-		raise IndexError()
-	
+		if name in self._classes:
+			return clsfunc
+		return self.__getattribute__(name)
+

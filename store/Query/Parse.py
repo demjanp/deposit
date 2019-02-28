@@ -11,6 +11,52 @@ def find_index(cls):
 		return cls[:idx1], int(index)
 	return cls, -1
 
+def find_quotes(qry):
+	# returns eval_str, quotes
+	# eval_str = "[text] %(q0)s [text] %(q1)s [text]"
+	# quotes = {"q0": "[text]", "q1": "[text]", ...}
+	
+	evals = []
+	quotes = {}
+	q = 0
+	i0 = 0
+	to_find = None
+	for i in range(len(qry)):
+		if qry[i] == to_find:
+			quotes["q%d" % q] = qry[i0:i]
+			q += 1
+			i0 = i + 1
+			to_find = None
+		elif qry[i] == "\"":
+			evals.append(qry[i0:i])
+			i0 = i + 1
+			to_find = qry[i]
+		elif i == len(qry) - 1:
+			evals.append(qry[i0:])
+	
+	eval_str = ""
+	for i, ev in enumerate(evals):
+		eval_str += ev
+		if i < len(quotes):
+			eval_str += "%%(q%d)s" % i
+	
+	return eval_str, quotes
+
+def possible_cls_descr(word, descr):
+	# descr: True if looking for a Descriptor
+	
+	if len(word) < 1:
+		return False
+	for ch in word:
+		if ch in ["_","-","*","!"]:
+			continue
+		if (not descr) and (ch in ["[","]"]):
+			continue
+		if ch.isalnum():
+			continue
+		return False
+	return True
+
 def get_classless_object_ids(store):
 	
 	for id in store.objects:
@@ -44,11 +90,13 @@ class Select(object):
 			return
 		cls, self.index = find_index(fragments[0])
 		self.classstr = cls
-		if cls.strip("!") not in self.store.class_names + ["*"]:
+		if not possible_cls_descr(cls, False):
 			return
 		descr = None
 		if len(fragments) == 2:
 			descr = fragments[1]
+			if not possible_cls_descr(descr, True):
+				return
 		if [cls, descr] == ["*", None]:
 			self.classes = set(self.store.class_names)
 		elif [cls, descr] == ["*", "*"]:
@@ -485,37 +533,6 @@ class Parse(object):
 		self.sums = []  # [Sum, ...]
 		
 		self.process()
-		
-	def find_quotes(self, qry):
-		# returns eval_str, quotes
-		# eval_str = "[text] %(q0)s [text] %(q1)s [text]"
-		# quotes = {"q0": "[text]", "q1": "[text]", ...}
-		
-		evals = []
-		quotes = {}
-		q = 0
-		i0 = 0
-		to_find = None
-		for i in range(len(qry)):
-			if qry[i] == to_find:
-				quotes["q%d" % q] = qry[i0:i]
-				q += 1
-				i0 = i + 1
-				to_find = None
-			elif qry[i] == "\"":
-				evals.append(qry[i0:i])
-				i0 = i + 1
-				to_find = qry[i]
-			elif i == len(qry) - 1:
-				evals.append(qry[i0:])
-		
-		eval_str = ""
-		for i, ev in enumerate(evals):
-			eval_str += ev
-			if i < len(quotes):
-				eval_str += "%%(q%d)s" % i
-		
-		return eval_str, quotes
 	
 	def find_segments(self, qry):
 		# returns segments = [[reserved_word, text], ...]
@@ -547,7 +564,7 @@ class Parse(object):
 		qry = self.querystr.strip()
 		
 		# find quotes
-		qry, quotes = self.find_quotes(qry) # quotes = {"q0": "[text]", "q1": "[text]", ...}
+		qry, quotes = find_quotes(qry) # quotes = {"q0": "[text]", "q1": "[text]", ...}
 		
 		# find segments
 		segments = self.find_segments(qry) # [[reserved_word, text], ...]

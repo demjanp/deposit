@@ -101,14 +101,14 @@ def as_url(value):
 		return pathlib.Path(os.path.normpath(os.path.abspath(value))).as_uri()
 	return value
 
-def as_path(url):
+def as_path(url, check_if_exists = True):
 	# convert file url to path
 	
 	parsed = urlparse(url)
 	if parsed.scheme != "file":
 		return None
 	path = os.path.normpath(os.path.abspath(parsed.path.strip("/").strip("\\")))
-	if os.path.isfile(path):
+	if (not check_if_exists) or os.path.isfile(path):
 		return path
 	return None
 
