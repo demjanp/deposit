@@ -1,4 +1,4 @@
-# ![](commander/res/dep_cube.svg)Deposit
+# Deposit ![](commander/res/dep_cube.svg)
 Graph-based data storage and exchange
 
 Created on 29. 4. 2013
