@@ -2,6 +2,7 @@ from deposit.DModule import (DModule)
 from deposit.store.Query.Parse import (find_quotes, Select)
 
 from collections import defaultdict
+from itertools import product
 
 class ExternalSource(DModule):
 	
@@ -65,42 +66,47 @@ class ExternalSource(DModule):
 		for row_idx in range(self.row_count(sheet)):
 			
 			# collect labels by class & descriptor
-			labels = defaultdict(dict)  # {cls: {descr: label, ...}, ...}
+			labels = defaultdict(lambda: defaultdict(list))  # {cls: {descr: [label, ...], ...}, ...}
 			for column_idx in targets:
 				label = self.data(sheet, row_idx, column_idx)
 				if label is None:
 					continue
 				cls, descr = targets[column_idx]
-				labels[cls][descr] = label
+				labels[cls][descr].append(label)
 			
 			# find or add an object for each class
-			obj_row = {} # {cls: object_id, ...}
+			obj_row = defaultdict(list) # {cls: [object, ...] ...}
 			for cls in labels:
 				
-				# check if object with labels already exists
-				to_set = False
-				for id in self.store.classes[cls].objects:
-					obj = self.store.objects[id]
-					to_set = has_labels(obj, labels[cls])
-					if to_set:
-						break
+				for labels_row in product(*[labels[cls][descr] for descr in labels[cls]]):
+					labels_cls = dict([(descr, labels_row[i]) for i, descr in enumerate(labels[cls])])
 				
-				if to_set: # object found
-					obj_row[cls] = obj
-					if not isinstance(to_set, list):
-						to_set = []
-				else: # create object
-					obj_row[cls] = self.store.objects.add()
-					obj_row[cls].classes.add(cls)
-					to_set = list(labels[cls].keys())
-				
-				# set descriptors of object
-				for descr in to_set:
-					obj_row[cls].descriptors.add(descr, labels[cls][descr])
+					# check if object with labels already exists
+					to_set = False
+					for id in self.store.classes[cls].objects:
+						obj = self.store.objects[id]
+						to_set = has_labels(obj, labels_cls)
+						if to_set:
+							break
+					
+					if to_set: # object found
+						obj_row[cls].append(obj)
+						if not isinstance(to_set, list):
+							to_set = []
+					else: # create object
+						obj_row[cls].append(self.store.objects.add())
+						obj_row[cls][-1].classes.add(cls)
+						to_set = list(labels_cls.keys())
+					
+					# set descriptors of object
+					for descr in to_set:
+						obj_row[cls][-1].descriptors.add(descr, labels_cls[descr])
 			
 			# create relations
 			for cls1, rel, cls2 in relations:
-				obj_row[cls1].relations.add(rel, obj_row[cls2])
+				for obj1 in obj_row[cls1]:
+					for obj2 in obj_row[cls2]:
+						obj1.relations.add(rel, obj2)
 	
 	def load(self):
 		# re-implement
