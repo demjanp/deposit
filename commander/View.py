@@ -91,7 +91,7 @@ class View(DModule, QtWidgets.QMainWindow):
 	
 	def get_icon(self, name):
 
-		path = os.path.join(os.path.dirname(deposit.__file__), "commander", "res", name)
+		path = os.path.join(os.path.dirname(deposit.__file__), "res", name)
 		if os.path.isfile(path):
 			return QtGui.QIcon(path)
 		raise Exception("Could not load icon", name)

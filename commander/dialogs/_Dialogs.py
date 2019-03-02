@@ -1,6 +1,21 @@
 from deposit.commander.CmdDict import (CmdDict)
 from deposit.commander.ViewChild import (ViewChild)
 
+from deposit.commander.dialogs.AddClass import (AddClass)
+from deposit.commander.dialogs.AddDescriptor import (AddDescriptor)
+from deposit.commander.dialogs.AddRelation import (AddRelation)
+from deposit.commander.dialogs.Connect import (Connect)
+from deposit.commander.dialogs.LinkDB import (LinkDB)
+from deposit.commander.dialogs.LoadDB import (LoadDB)
+from deposit.commander.dialogs.RemoveClass import (RemoveClass)
+from deposit.commander.dialogs.RemoveObject import (RemoveObject)
+from deposit.commander.dialogs.RemoveObjectsFromClass import (RemoveObjectsFromClass)
+from deposit.commander.dialogs.RemoveRelation import (RemoveRelation)
+from deposit.commander.dialogs.RenameClass import (RenameClass)
+from deposit.commander.dialogs.SaveAsDB import (SaveAsDB)
+from deposit.commander.dialogs.SaveAsDBRel import (SaveAsDBRel)
+from deposit.commander.dialogs.SetIdentifier import (SetIdentifier)
+
 from PyQt5 import (QtWidgets, QtCore, QtGui)
 
 class Dialogs(CmdDict, ViewChild):
@@ -9,7 +24,7 @@ class Dialogs(CmdDict, ViewChild):
 		
 		self.dialogs_open = []
 
-		CmdDict.__init__(self)
+		CmdDict.__init__(self, AddClass, AddDescriptor, AddRelation, Connect, LinkDB, LoadDB, RemoveClass, RemoveObject, RemoveObjectsFromClass, RemoveRelation, RenameClass, SaveAsDB, SaveAsDBRel, SetIdentifier)
 		ViewChild.__init__(self, model, view)
 		
 		self.set_up()

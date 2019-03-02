@@ -1,8 +1,9 @@
 from deposit import Broadcasts
 from deposit.commander.ViewChild import (ViewChild)
 
+from deposit.commander.frames import FRAMES
+
 from PyQt5 import (QtWidgets, QtCore, QtGui)
-from importlib import import_module
 
 class MdiSubWindow(ViewChild, QtWidgets.QMdiSubWindow):
 
@@ -48,8 +49,10 @@ class MdiArea(ViewChild, QtWidgets.QMdiArea):
 	
 	def create(self, frame_name, *args):
 		
+		if frame_name not in FRAMES:
+			return
 		window = MdiSubWindow(self.model, self.view, self)
-		frame = getattr(import_module("deposit.commander.frames.%s" % (frame_name)), frame_name)(self.model, self.view, window, *args)
+		frame = FRAMES[frame_name](self.model, self.view, window, *args)
 		window.setWidget(frame)
 		window.setWindowTitle(frame.name())
 		window.setWindowIcon(self.view.get_icon(frame.icon()))
@@ -61,7 +64,7 @@ class MdiArea(ViewChild, QtWidgets.QMdiArea):
 	def create_descriptor(self, *args):
 		# create Descriptor frame outside of MdiArea
 		
-		window = getattr(import_module("deposit.commander.frames.Descriptor"), "Descriptor")(self.model, self.view, self.view, *args)
+		window = FRAMES["Descriptor"](self.model, self.view, self.view, *args)
 		window.show()
 		self.descriptor_windows.append(window)
 	

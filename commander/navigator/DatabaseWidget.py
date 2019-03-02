@@ -6,7 +6,6 @@ from deposit.store.Conversions import (as_url)
 from deposit.store.Store import (Store)
 
 from PyQt5 import (QtWidgets, QtCore, QtGui)
-import os
 
 class DatabaseWidget(Frame, QtWidgets.QWidget):
 	

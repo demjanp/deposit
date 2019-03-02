@@ -4,6 +4,9 @@ from deposit.DModule import (DModule)
 from deposit.commander.CmdDict import (CmdDict)
 from deposit.commander.plugins._ordering import (ordering)
 
+from deposit.commander.plugins.C14Form import (C14Form)
+from deposit.commander.plugins.C14Search import (C14Search)
+
 from PyQt5 import (QtWidgets, QtCore, QtGui)
 import os
 
@@ -17,7 +20,7 @@ class Plugins(DModule, CmdDict):
 		self.actions = {} # {name: QAction, ...}
 
 		DModule.__init__(self)
-		CmdDict.__init__(self)
+		CmdDict.__init__(self, C14Form, C14Search)
 		
 		self.set_up()
 	
@@ -55,8 +58,8 @@ class Plugins(DModule, CmdDict):
 		self.update_tools()
 	
 	def get_plugin_icon(self, name):
-	
-		path = os.path.join(os.path.dirname(deposit.__file__), "commander", "plugins")
+		
+		path = os.path.join(os.path.dirname(deposit.__file__), "res", "plugin_icons")
 		for ext in self.model.images.IMAGE_EXTENSIONS:
 			for ext2 in [ext, ext.upper()]:
 				icon_path = os.path.join(path, "%s.%s" % (name, ext2))

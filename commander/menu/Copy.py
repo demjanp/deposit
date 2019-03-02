@@ -1,7 +1,6 @@
 from deposit.commander.toolbar._Tool import (Tool)
 
 from PyQt5 import (QtWidgets)
-import os
 
 class Copy(Tool):
 	

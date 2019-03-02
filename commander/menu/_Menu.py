@@ -4,6 +4,15 @@ from deposit.commander.ViewChild import (ViewChild)
 from deposit.commander.menu._ordering import ordering as MENU_ORDERING
 from deposit.commander.menu._ordering import recent as MENU_RECENT
 
+from deposit.commander.menu.ClearLocalFolder import (ClearLocalFolder)
+from deposit.commander.menu.ClearRecent import (ClearRecent)
+from deposit.commander.menu.Copy import (Copy)
+from deposit.commander.menu.SaveAs import (SaveAs)
+from deposit.commander.menu.SaveAsDB import (SaveAsDB)
+from deposit.commander.menu.SaveAsDBRel import (SaveAsDBRel)
+from deposit.commander.menu.SetIdentifier import (SetIdentifier)
+from deposit.commander.menu.SetLocalFolder import (SetLocalFolder)
+
 from PyQt5 import (QtWidgets, QtCore, QtGui)
 import json
 import os
@@ -18,7 +27,7 @@ class Menu(CmdDict, ViewChild):
 		self.actions = {} # {name: QAction, ...}
 		self.recent_menu = None
 
-		CmdDict.__init__(self)
+		CmdDict.__init__(self, ClearLocalFolder, ClearRecent, Copy, SaveAs, SaveAsDB, SaveAsDBRel, SetIdentifier, SetLocalFolder)
 		ViewChild.__init__(self, model, view)
 		
 		self.set_up()

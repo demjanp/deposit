@@ -12,7 +12,6 @@ from deposit.store.datasources._DataSource import (DataSource)
 from deposit.store.externalsources._ExternalSources import (ExternalSources)
 from deposit.store.Conversions import (as_url, to_unique)
 
-from importlib import import_module
 import time
 
 class Store(DModule):
@@ -49,13 +48,18 @@ class Store(DModule):
 		self.files = Files(self)
 		self.images = Images(self)
 		
-		self.DCLASS = getattr(import_module("deposit.store.DElements.DClasses"), "DClass")
-		self.DCLASSES = getattr(import_module("deposit.store.DElements.DClasses"), "DClasses")
-		self.DOBJECT = getattr(import_module("deposit.store.DElements.DObjects"), "DObject")
-		self.DOBJECTS = getattr(import_module("deposit.store.DElements.DObjects"), "DObjects")
-		self.DRELATIONS = getattr(import_module("deposit.store.DElements.DRelations"), "DRelations")
-		self.DDESCRIPTORS = getattr(import_module("deposit.store.DElements.DDescriptors"), "DDescriptors")
-
+		from deposit.store.DElements.DClasses import (DClass)
+		from deposit.store.DElements.DObjects import (DObject)
+		from deposit.store.DElements.DRelations import (DRelations)
+		from deposit.store.DElements.DDescriptors import (DDescriptors)
+		
+		self.DCLASS = DClass
+		self.DCLASSES = DClasses
+		self.DOBJECT = DObject
+		self.DOBJECTS = DObjects
+		self.DRELATIONS = DRelations
+		self.DDESCRIPTORS = DDescriptors
+		
 		self.connect_broadcast(Broadcasts.ELEMENT_ADDED, self.on_data_changed)
 		self.connect_broadcast(Broadcasts.ELEMENT_CHANGED, self.on_data_changed)
 		self.connect_broadcast(Broadcasts.ELEMENT_DELETED, self.on_data_changed)
