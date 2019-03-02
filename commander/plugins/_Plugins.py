@@ -1,4 +1,3 @@
-import deposit
 from deposit import Broadcasts
 from deposit.DModule import (DModule)
 from deposit.commander.CmdDict import (CmdDict)
@@ -6,6 +5,8 @@ from deposit.commander.plugins._ordering import (ordering)
 
 from deposit.commander.plugins.C14Form import (C14Form)
 from deposit.commander.plugins.C14Search import (C14Search)
+
+from deposit import res
 
 from PyQt5 import (QtWidgets, QtCore, QtGui)
 import os
@@ -59,7 +60,7 @@ class Plugins(DModule, CmdDict):
 	
 	def get_plugin_icon(self, name):
 		
-		path = os.path.join(os.path.dirname(deposit.__file__), "res", "plugin_icons")
+		path = os.path.join(os.path.dirname(res.__file__), "plugin_icons")
 		for ext in self.model.images.IMAGE_EXTENSIONS:
 			for ext2 in [ext, ext.upper()]:
 				icon_path = os.path.join(path, "%s.%s" % (name, ext2))

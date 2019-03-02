@@ -1,4 +1,3 @@
-import deposit
 from deposit import Broadcasts
 from deposit.DModule import (DModule)
 
@@ -7,6 +6,8 @@ from deposit.commander.Model import (Model)
 from deposit.commander.toolbar._Toolbar import (Toolbar)
 from deposit.commander.dialogs._Dialogs import (Dialogs)
 from deposit.commander.menu._Menu import (Menu)
+
+from deposit import res
 
 from deposit.commander.navigator._Navigator import (Navigator)
 from deposit.commander.MdiArea import (MdiArea)
@@ -91,7 +92,7 @@ class View(DModule, QtWidgets.QMainWindow):
 	
 	def get_icon(self, name):
 
-		path = os.path.join(os.path.dirname(deposit.__file__), "res", name)
+		path = os.path.join(os.path.dirname(res.__file__), name)
 		if os.path.isfile(path):
 			return QtGui.QIcon(path)
 		raise Exception("Could not load icon", name)

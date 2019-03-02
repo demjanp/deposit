@@ -1,10 +1,10 @@
-import deposit
+from deposit import res
 
 from PyQt5 import (uic, QtWidgets, QtCore, QtGui)
 from collections import defaultdict
 import os
 
-class View(*uic.loadUiType(os.path.join(os.path.dirname(deposit.__file__), "res", "C14Form", "View.ui"), resource_suffix = "", from_imports = True, import_from = "deposit.commander.plugins.C14FormMembers.ui")):
+class View(*uic.loadUiType(os.path.join(os.path.dirname(res.__file__), "C14Form", "View.ui"), resource_suffix = "", from_imports = True, import_from = "deposit.res.C14Form")):
 	
 	def __init__(self, parent):
 
