@@ -45,8 +45,10 @@ class View(DModule, QtWidgets.QMainWindow):
 
 	def set_up(self):
 		
+		update_info = True
 		if self.model is None:
 			self.model = Model(self)
+			update_info = False
 		
 		self.stop_broadcasts()
 		
@@ -90,6 +92,9 @@ class View(DModule, QtWidgets.QMainWindow):
 		self._broadcast_timer = QtCore.QTimer()
 		self._broadcast_timer.setSingleShot(True)
 		self._broadcast_timer.timeout.connect(self.on_broadcast_timer)
+		
+		if update_info:
+			self.update_model_info()
 	
 	def get_icon(self, name):
 

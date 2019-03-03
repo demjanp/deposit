@@ -1,9 +1,7 @@
 from deposit.commander.dialogs._Dialog import (Dialog)
-from deposit.store.Store import (Store)
 
 from PyQt5 import (QtWidgets, QtCore, QtGui)
 from collections import defaultdict
-from urllib.parse import urlparse
 
 class LoadDB(Dialog):
 	
