@@ -7,11 +7,14 @@ class Commander(object):
 
 	# main Deposit Commander class
 	
-	def __init__(self, model = None):
+	def __init__(self, model = None, start_application = True):
 		
-		app = QtWidgets.QApplication(sys.argv)
+		if start_application:
+			app = QtWidgets.QApplication(sys.argv)
 
 		self.view = View(model)
 		
 		self.view.show()
-		app.exec_()
+		
+		if start_application:
+			app.exec_()
