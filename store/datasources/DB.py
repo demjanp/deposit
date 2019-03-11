@@ -1,4 +1,4 @@
-from deposit import Broadcasts
+from deposit import Broadcasts, __version__
 from deposit.store.datasources._DataSource import (DataSource)
 from deposit.store.LinkedStore import (LinkedStore)
 
@@ -119,7 +119,11 @@ class DB(DataSource):
 		table = self.identifier + "changed"
 		create_table(table, "timestamp TEXT", tables, cursor)
 		cursor.execute("INSERT INTO \"%s\" VALUES ('%s');" % (table, json.dumps(self.store.changed)))
-		
+
+		table = self.identifier + "deposit_version"
+		create_table(table, "version TEXT", tables, cursor)
+		cursor.execute("INSERT INTO \"%s\" VALUES ('%s');" % (table, __version__))
+
 		table = self.identifier + "local_folder"
 		create_table(table, "path TEXT", tables, cursor)
 		if not self.store.local_folder is None:

@@ -1,4 +1,4 @@
-from deposit import Broadcasts
+from deposit import Broadcasts, __version__
 from deposit.store.datasources._DataSource import (DataSource)
 
 from urllib.parse import urlparse
@@ -67,9 +67,9 @@ class JSON(DataSource):
 		self.store.changed = data["changed"]
 		self.store.local_folder = data["local_folder"]
 		
-		if "events" in data: # TODO will be obsolete for new databases
+		if "events" in data:  # TODO will be obsolete for new databases
 			self.store.events.from_list(data["events"])
-		
+
 		self.store.images.load_thumbnails()
 		
 		self.store.set_datasource(self)
@@ -92,6 +92,7 @@ class JSON(DataSource):
 			changed = self.store.changed,
 			local_folder = self.store.local_folder,
 			events = self.store.events.to_list() if self.store.save_events else [],
+			deposit_version = __version__,
 		)
 		
 		parsed = urlparse(self.url)
