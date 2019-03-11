@@ -1,6 +1,6 @@
 
 from deposit import Broadcasts
-from deposit.store.DElements.DElements import (DElement, DElements)
+from deposit.store.DElements.DElements import (DElement, DElements, event)
 from deposit import (INVALID_CHARACTERS_NAME)
 
 from numbers import Number
@@ -15,6 +15,11 @@ class DRelation(DElement):
 		self._objects = None
 		self._weights = {}  # {id: weight, ...}
 	
+	@property
+	def key(self):
+		
+		return self.name
+		
 	@property
 	def source(self):
 		# return source object
@@ -52,12 +57,13 @@ class DRelation(DElement):
 		if target_id.__class__.__name__ == "DObject":
 			target_id = target_id.id
 		self._weights[target_id] = weight
-		
 	
 	def set_weight(self, target_id, weight):
 		
 		self._set_weight(target_id, weight)
 		self.store.objects[target_id].relations[self.store.reverse_relation(self.name)]._set_weight(self.source.id, weight)
+		
+		self.store.events.add(self.parent.parent, self.parent.parent.set_relation_weight.__wrapped__, self.name, target_id, weight)
 	
 	def on_object_added(self, obj):
 
@@ -114,10 +120,10 @@ class DRelation(DElement):
 	def to_dict(self):
 		
 		return dict(
-			delement = "DRelation",
 			name = self.name,
 			objects = self.objects._keys,
 			weights = self._weights.copy(),
+			**super(DRelation, self).to_dict(),
 		)
 	
 	def from_dict(self, data):
@@ -161,6 +167,9 @@ class DRelations(DElements):
 				raise Exception("Invalid character (%s) in Relation name" % (char))
 		target = self._add(name, target, weight)
 		target.relations._add(self.store.reverse_relation(name), self.parent, weight)
+		
+		self.store.events.add(self.parent, self.parent.add_relation.__wrapped__, name, target, weight)
+		
 		return self[name]
 	
 	def _populate(self, key):
@@ -190,10 +199,8 @@ class DRelations(DElements):
 				del self[name][id]
 			self.del_naive(name)
 			self.broadcast(Broadcasts.ELEMENT_CHANGED, self.parent)
-
-	def to_dict(self):
-		
-		return dict([(name, self._members[name] if isinstance(self._members[name], dict) else self._members[name].to_dict()) for name in self._keys])
+			
+			self.store.events.add(self.parent, self.parent.del_relation.__wrapped__, name)
 	
 	def from_dict(self, data):
 		

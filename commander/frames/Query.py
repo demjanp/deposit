@@ -213,7 +213,7 @@ class Query(Frame, QtWidgets.QWidget):
 
 	def on_add_object(self):
 
-		cls = self.query.parse.selects[0].classes[0]
+		cls = self.query.classes[0]
 		if cls == "!*":
 			self.model.objects.add()
 		else:

@@ -32,6 +32,7 @@ class JSON(DataSource):
 			return False
 		
 		self.stop_broadcasts()
+		self.store.events.stop_recording()
 		self.store.clear()
 		
 		parsed = urlparse(self.url)
@@ -66,10 +67,14 @@ class JSON(DataSource):
 		self.store.changed = data["changed"]
 		self.store.local_folder = data["local_folder"]
 		
+		if "events" in data: # TODO will be obsolete for new databases
+			self.store.events.from_list(data["events"])
+		
 		self.store.images.load_thumbnails()
-
+		
 		self.store.set_datasource(self)
-
+		
+		self.store.events.resume_recording()
 		self.resume_broadcasts()
 		self.broadcast(Broadcasts.STORE_LOADED)
 
@@ -80,12 +85,13 @@ class JSON(DataSource):
 		if self.url is None:
 			self.broadcast(Broadcasts.STORE_SAVE_FAILED)
 			return False
-
+		
 		data = dict(
 			classes = self.store.classes.to_dict(), # {name: class data, ...}
 			objects = self.store.objects.to_dict(), # {id: object data, ...}
 			changed = self.store.changed,
 			local_folder = self.store.local_folder,
+			events = self.store.events.to_list() if self.store.save_events else [],
 		)
 		
 		parsed = urlparse(self.url)

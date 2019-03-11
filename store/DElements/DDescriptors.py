@@ -1,7 +1,7 @@
 from deposit import Broadcasts
 from deposit.store.DLabel.DLabel import (DLabel)
 from deposit.store.DLabel.DNone import (DNone)
-from deposit.store.DElements.DElements import (DElement, DElements)
+from deposit.store.DElements.DElements import (DElement, DElements, event)
 from deposit.store.DElements.DClasses import (DClass)
 from deposit.store.Conversions import (as_url)
 from deposit.store.Projections import (get_raster_projection)
@@ -20,6 +20,11 @@ class DDescriptor(DElement):
 		self.geotag = None
 		
 	@property
+	def key(self):
+		
+		return self.dclass.name
+	
+	@property
 	def target(self):
 		# return target object
 		
@@ -35,11 +40,11 @@ class DDescriptor(DElement):
 	def to_dict(self):
 		
 		return dict(
-			delement = "DDescriptor",
 			target = self.target.id,
 			dclass = self.dclass.name,
 			label = self.label.to_dict(),
 			geotag = self.geotag,
+			**super(DDescriptor, self).to_dict(),
 		)
 	
 	def __str__(self):
@@ -97,6 +102,9 @@ class DDescriptors(DElements):
 			self.parent.classes[cls2].add_descriptor(cls.name)
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self.parent)
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, cls)
+		
+		self.store.events.add(self.parent, self.parent.add_descriptor.__wrapped__, cls.name, label.value, dtype)
+		
 		return self[cls.name]
 	
 	def rename(self, old_name, new_name):
@@ -111,6 +119,7 @@ class DDescriptors(DElements):
 			self.store.classes.add(new_name)
 		self.add(new_name, self[old_name].label)
 		del self[old_name]
+		self.store.events.add(self.parent, self.parent.rename_descriptor.__wrapped__, old_name, new_name)
 	
 	def _populate(self, key):
 		
@@ -155,17 +164,15 @@ class DDescriptors(DElements):
 		dclass = self[name].dclass
 		
 		self.del_naive(name)
-
+		
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, dclass)
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self.parent)
+		
+		self.store.events.add(self.parent, self.parent.del_descriptor.__wrapped__, name)
 
 	def update_order(self):
 		
 		self._keys = sorted(self._keys, key = lambda key: self[key].dclass.order)
-	
-	def to_dict(self):
-		
-		return dict([(name, self._members[name] if isinstance(self._members[name], dict) else self._members[name].to_dict()) for name in self._keys])
 	
 	def from_dict(self, data):
 		

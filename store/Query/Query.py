@@ -2,7 +2,7 @@
 	Query string:
 	
 	SELECT [select1], [select2] RELATED [relation1], [relation2] WHERE [conditions] COUNT [conditions] AS [alias] SUM [select] AS [alias]
-	RELATED, WHERE, COUNT AS, SUM AS are optional
+	RELATED, WHERE, COUNT .. AS, SUM .. AS are optional
 	
 	[select]:
 		1. [class]

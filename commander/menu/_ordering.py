@@ -8,6 +8,8 @@ ordering = [
 	["Resources",	"SetLocalFolder", "ClearLocalFolder"],
 	["Resources",	"LocalizeAll", "LocalizeSelected"],
 	["Resources",	"GenerateThumbnails"],
+	["Events",	"SaveHistory"],
+	["Events",	"History"],
 ]
 
 recent = "Data"

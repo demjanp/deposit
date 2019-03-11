@@ -6,6 +6,7 @@ from deposit.store.DElements.DDescriptors import (DDescriptor)
 from deposit.store.DLabel.DNone import (DNone)
 from deposit.store.Files import (Files)
 from deposit.store.Images import (Images)
+from deposit.store.Events import (Events)
 from deposit.store.Query.Query import (Query)
 from deposit.store.datasources._DataSources import (DataSources)
 from deposit.store.datasources._DataSource import (DataSource)
@@ -30,16 +31,18 @@ class Store(DModule):
 		
 		self.files = None
 		self.images = None
+		self.events = None
 
 		self.local_folder = None
 		self.changed = None
 		self.linked = {} # {identifier: LinkedStore(), ...}
 		self._local_resource_uris = []
+		self.save_events = False
 
 		self.data_source = None # DB / DBRel / JSON / RDFGraph / None
 
 		DModule.__init__(self)
-
+		
 		self.objects = DObjects(self)
 		self.classes = DClasses(self)
 		
@@ -47,6 +50,7 @@ class Store(DModule):
 		
 		self.files = Files(self)
 		self.images = Images(self)
+		self.events = Events(self)
 		
 		from deposit.store.DElements.DClasses import (DClass)
 		from deposit.store.DElements.DObjects import (DObject)
@@ -79,6 +83,7 @@ class Store(DModule):
 		self.changed = None
 		self.linked = {}
 		self._local_resource_uris = []
+		self.events.clear()
 
 		self.broadcast(Broadcasts.STORE_LOADED)
 
@@ -128,7 +133,11 @@ class Store(DModule):
 	def set_local_resource_uris(self, uris):
 
 		self._local_resource_uris = uris
-
+	
+	def set_save_events(self, state):
+		
+		self.save_events = state
+	
 	def null_descriptor(self, obj, cls):
 		
 		return DDescriptor(obj, cls, DNone())
@@ -180,7 +189,7 @@ class Store(DModule):
 				return True
 		
 		return False
-
+	
 	def populate_descriptor_names(self):  # TODO will be obsolete for new databases
 
 		for class_name in self.classes:
@@ -199,7 +208,7 @@ class Store(DModule):
 								self.classes[class_name1].add_relation(rel, class_name2)
 						else:
 							self.classes[class_name1].add_relation(rel, "!*")
-
+	
 	def on_data_changed(self, *args):
 
 		self.changed = time.time()

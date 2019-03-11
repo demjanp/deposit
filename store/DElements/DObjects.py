@@ -1,5 +1,5 @@
 from deposit import Broadcasts
-from deposit.store.DElements.DElements import (DElement, DElements)
+from deposit.store.DElements.DElements import (DElement, DElements, event)
 
 class DObjects(DElements):
 	
@@ -17,7 +17,8 @@ class DObjects(DElements):
 	def set_on_deleted(self, func):
 
 		self._on_deleted = func
-
+	
+	@event
 	def add(self):
 		# returns the added / created object
 		
@@ -29,17 +30,24 @@ class DObjects(DElements):
 		self.broadcast(Broadcasts.ELEMENT_ADDED, self.store.objects[id])
 
 		self[id] = self.store.objects[id]
+		
+		if self.parent.__class__.__name__ == "DClass":
+			self.store.events.add(self.parent, self.parent.add_object.__wrapped__)
 
 		if self._on_added is not None:
 			self._on_added(self.store.objects[id])
 
 		return self[id]
-
+	
+	@event
 	def __delitem__(self, id):
 
 		if isinstance(self.parent, DElement):
 			obj = self.store.objects[id]
 			self.del_naive(id)
+			
+			if self.parent.__class__.__name__ == "DClass":
+				self.store.events.add(self.parent, self.parent.del_object.__wrapped__, id)
 
 		else:
 			# delete from store
@@ -67,11 +75,7 @@ class DObjects(DElements):
 
 		if self._on_deleted is not None:
 			self._on_deleted(obj)
-
-	def to_dict(self):
-
-		return dict([(id, self._members[id].to_dict()) for id in self._keys])
-	
+		
 	def from_dict(self, data):
 		# note: classes have to be already loaded for this to work
 		
@@ -133,6 +137,11 @@ class DObject(DElement):
 		self._descriptors = None
 	
 	@property
+	def key(self):
+		
+		return self.id
+	
+	@property
 	def classes(self):
 
 		if not isinstance(self._classes, DElements):
@@ -190,15 +199,54 @@ class DObject(DElement):
 		
 		return self._descriptors
 	
+	@event
+	def add_descriptor(self, cls, label, dtype):
+		
+		return self.descriptors.add(cls, label, dtype)
+	
+	@event
+	def rename_descriptor(self, old_name, new_name):
+		
+		return self.descriptors.rename(old_name, new_name)
+	
+	@event
+	def del_descriptor(self, name):
+		
+		del self.descriptors[name]
+	
+	@event
+	def add_relation(self, name, target, weight):
+		
+		return self.relations.add(name, target, weight)
+	
+	@event
+	def del_relation(self, name):
+		
+		del self.relations[name]
+	
+	@event
+	def set_relation_weight(self, name, target_id, weight):
+		
+		return self.relations[name].set_weight(target_id, weight)
+	
+	@event
+	def add_class(self, cls):
+		
+		return self.classes.add(cls)
+	
+	def del_class(self, name):
+		
+		del self.classes[name]
+	
 	def to_dict(self):
 		
 		return dict(
-			delement = self.__class__.__name__,
 			id = self.id,
 			linked = self.linked,
 			classes = self.classes._keys,
 			relations = self.relations.to_dict(),
 			descriptors = self.descriptors.to_dict(),
+			**super(DObject, self).to_dict(),
 		)
 	
 	def from_dict(self, data):

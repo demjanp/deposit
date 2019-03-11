@@ -1,6 +1,6 @@
 
 from deposit import Broadcasts
-from deposit.store.DElements.DElements import (DElement, DElements)
+from deposit.store.DElements.DElements import (DElement, DElements, event)
 from deposit import (INVALID_CHARACTERS_NAME)
 
 from collections import defaultdict
@@ -20,7 +20,12 @@ class DClass(DElement):
 		self._subclasses = None
 		self.descriptors = []  # [name, ...]
 		self.relations = defaultdict(list)  # {name: [class_name, ...], ...}
-
+	
+	@property
+	def key(self):
+		
+		return self.name
+	
 	@property
 	def objects(self):
 
@@ -73,7 +78,8 @@ class DClass(DElement):
 
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, dclass)
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
-
+	
+	@event
 	def add_descriptor(self, name):
 
 		if not name in self.descriptors:
@@ -82,7 +88,8 @@ class DClass(DElement):
 			self.descriptors.append(name)
 			self.descriptors = sorted(self.descriptors, key=lambda name: self.store.classes[name].order)
 			self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
-
+	
+	@event
 	def rename_descriptor(self, old_name, new_name):
 		
 		self.descriptors.remove(old_name)
@@ -90,7 +97,8 @@ class DClass(DElement):
 		for id in self.objects:
 			self.objects[id].descriptors.rename(old_name, new_name)
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
-		
+	
+	@event	
 	def del_descriptor(self, name):
 
 		if not name in self.descriptors:
@@ -102,14 +110,16 @@ class DClass(DElement):
 
 		self.descriptors.remove(name)
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
-
+	
+	@event
 	def add_relation(self, rel, class_name):
 
 		if class_name not in self.relations[rel]:
 			self.relations[rel].append(class_name)
 			self.relations[rel] = sorted(self.relations[rel], key=lambda class_name: self.store.classes[class_name].order if (class_name != "!*") else -1)
 			self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
-
+	
+	@event
 	def del_relation(self, rel, class_name):
 
 		if (rel in self.relations) and (class_name in self.relations[rel]):
@@ -128,10 +138,28 @@ class DClass(DElement):
 				for id2 in to_del:
 					del self.store.objects[id1].relations[rel][id2]
 	
+	@event
+	def add_object(self):
+		
+		return self.objects.add()
+	
+	def del_object(self, id):
+		
+		del self.objects[id]
+	
+	@event
+	def add_subclass(self, cls):
+		
+		return self.subclasses.add(cls)
+	
+	@event
+	def del_subclass(self, name):
+		
+		del self.subclasses[name]
+	
 	def to_dict(self):
 		
 		return dict(
-			delement = "DClass",
 			order = self.order,
 			name = self.name,
 			linked = self.linked,
@@ -139,6 +167,7 @@ class DClass(DElement):
 			subclasses = self.subclasses._keys,
 			descriptors = self.descriptors,
 			relations = dict(self.relations),
+			**super(DClass, self).to_dict(),
 		)
 	
 	def from_dict(self, data):
@@ -174,9 +203,10 @@ class DClasses(DElements):
 	def set_on_deleted(self, func):
 
 		self._on_deleted = func
-
+	
+	@event
 	def add(self, cls):
-
+		
 		if isinstance(cls, DClass):
 			name = cls.name
 		else:
@@ -196,14 +226,20 @@ class DClasses(DElements):
 			self.broadcast(Broadcasts.ELEMENT_ADDED, self.store.classes[name])
 
 		self[name] = self.store.classes[name]
+		
+		if self.parent.__class__.__name__ == "DClass":
+			self.store.events.add(self.parent, self.parent.add_subclass.__wrapped__, name)
+		elif self.parent.__class__.__name__ == "DObject":
+			self.store.events.add(self.parent, self.parent.add_class.__wrapped__, name)
 
 		if self._on_added is not None:
 			self._on_added(self.store.classes[name])
 
 		return self[name]
-
+	
+	@event
 	def rename(self, old_cls, new_cls):
-
+		
 		if old_cls not in self.store.classes:
 			return False
 		if new_cls in self.store.classes:
@@ -235,7 +271,8 @@ class DClasses(DElements):
 		if super(DClasses, self).__contains__(key):
 			return super(DClasses, self).__getitem__(key)
 		return DClass(self, "[no class]")
-
+	
+	@event
 	def __delitem__(self, name):
 
 		if not name in self:
@@ -244,7 +281,12 @@ class DClasses(DElements):
 		if isinstance(self.parent, DElement):
 			cls = self.store.classes[name]
 			self.del_naive(name)
-
+			
+			if self.parent.__class__.__name__ == "DClass":
+				self.store.events.add(self.parent, self.parent.del_subclass.__wrapped__, name)
+			elif self.parent.__class__.__name__ == "DObject":
+				self.store.events.add(self.parent, self.parent.del_class.__wrapped__, name)
+			
 		else:
 			# delete from store
 			cls = self[name]
@@ -271,7 +313,8 @@ class DClasses(DElements):
 
 		if self._on_deleted is not None:
 			self._on_deleted(cls)
-
+	
+	@event
 	def switch_order(self, name1, name2):
 		
 		if DElements.switch_order(self, name1, name2):
@@ -289,10 +332,6 @@ class DClasses(DElements):
 	def update_order(self):
 		
 		self._keys = sorted(self._keys, key = lambda key: self[key].order)
-	
-	def to_dict(self):
-		
-		return dict([(name, self._members[name].to_dict()) for name in self._keys])
 	
 	def from_dict(self, data):
 		

@@ -1,5 +1,7 @@
 from deposit.DModule import (DModule)
 
+from functools import wraps
+
 class DElement(DModule):
 	
 	def __init__(self, parent):
@@ -11,7 +13,12 @@ class DElement(DModule):
 		self.store = self.parent
 		while isinstance(self.store, DElement) or isinstance(self.store, DElements):
 			self.store = self.store.parent
-
+	
+	@property
+	def key(self):
+		
+		return None
+	
 	def to_dict(self):
 		
 		return dict(
@@ -27,7 +34,7 @@ class DElements(DModule):
 	def __init__(self, parent):
 		
 		self.parent = parent # a Store or DElement object
-		self._members = {} # {key: object instance, ...}
+		self._members = {} # {key: DElement instance, ...}
 		self._keys = [] # [key, ...]
 		self._pos = 0
 		
@@ -36,7 +43,12 @@ class DElements(DModule):
 		self.store = self.parent
 		while isinstance(self.store, DElement) or isinstance(self.store, DElements):
 			self.store = self.store.parent
-
+	
+	@property
+	def key(self):
+		
+		return None
+	
 	def get_new_id(self, main_elements):
 		# generate new id unique to main_elements
 		
@@ -112,3 +124,24 @@ class DElements(DModule):
 		i2 = self._keys.index(key2)
 		self._keys[i1], self._keys[i2] = self._keys[i2], self._keys[i1]
 		return True
+	
+	def to_dict(self):
+		
+		return dict([(key, self._members[key] if isinstance(self._members[key], dict) else self._members[key].to_dict()) for key in self._keys])
+	
+	def from_dict(self, data):
+		
+		pass
+
+def event(function):
+	# event decorator for DElement and DElements
+	
+	@wraps(function)
+	def wrapper(self, *args):
+		
+		self.store.events.add(self, function, *args)
+		
+		return function(self, *args)
+	
+	return wrapper
+

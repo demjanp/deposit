@@ -9,7 +9,7 @@ class DataSource(DModule):
 		self.identifier = None
 		self.url = None
 		self.connstr = None
-
+		
 		DModule.__init__(self)
 	
 	@property
@@ -52,9 +52,3 @@ class DataSource(DModule):
 		# re-implement
 		
 		return False
-	
-	def export(self, objects):
-		# re-implement
-		
-		return False
-

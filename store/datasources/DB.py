@@ -125,6 +125,22 @@ class DB(DataSource):
 		if not self.store.local_folder is None:
 			cursor.execute("INSERT INTO \"%s\" VALUES ('%s');" % (table, json.dumps(self.store.local_folder)))
 		
+		table = self.identifier + "events"
+		event_type = "time TEXT, user_ TEXT, delement TEXT, key TEXT, function TEXT, args TEXT"
+		create_table(table, event_type, tables, cursor)
+		if self.store.save_events:
+			events = self.store.events.to_list()
+			if events:
+				data = []
+				for t, user, delement, key, function, args in events:
+					t, user, delement, key, function, args = [json.dumps(val) for val in [t, user, delement, key, function, args]]
+					data.append(dict(time = t, user_ = user, delement = delement, key = key, function = function, args = args))
+				cursor.execute("""
+					DROP TYPE IF EXISTS event_;
+					CREATE TYPE event_ as (%s);
+					INSERT INTO \"%s\" SELECT time, user_, delement, key, function, args FROM json_populate_recordset(null::event_, %%s);
+				""" % (event_type, table), (json.dumps(data),))
+		
 		cursor.connection.commit()
 		cursor.connection.close()
 		
@@ -144,6 +160,7 @@ class DB(DataSource):
 			return False
 		
 		self.stop_broadcasts()
+		self.store.events.stop_recording()
 		self.store.clear()
 
 		has_class_descriptors = False  # TODO will be obsolete for new databases
@@ -191,10 +208,21 @@ class DB(DataSource):
 			self.store.local_folder = json.loads(row[0])
 			break
 		
+		table = self.identifier + "events"
+		if table in tables: # TODO will be obsolete for new databases
+			cursor.execute("SELECT * FROM \"%s\";" % (table,))
+			rows = cursor.fetchall()
+			if rows:
+				data = []  # [[t, user, class_name, key, func_name, args], ...]
+				for row in rows:
+					data.append([json.loads(val) for val in row])
+				self.store.events.from_list(data)
+		
 		self.store.images.load_thumbnails()
 		
 		self.store.set_datasource(self)
-
+		
+		self.store.events.resume_recording()
 		self.resume_broadcasts()
 		self.broadcast(Broadcasts.STORE_LOADED)
 		
@@ -215,6 +243,7 @@ class DB(DataSource):
 			return False
 		
 		self.stop_broadcasts()
+		self.store.events.stop_recording()
 		
 		if not self.identifier in self.store.linked:
 			self.store.linked[self.identifier] = LinkedStore(self.identifier)
@@ -268,6 +297,7 @@ class DB(DataSource):
 		
 		self.store.images.load_thumbnails(local_folder = self.store.linked[self.identifier].local_folder)
 		
+		self.store.events.resume_recording()
 		self.resume_broadcasts()
 		self.broadcast(Broadcasts.STORE_LOADED)
 		

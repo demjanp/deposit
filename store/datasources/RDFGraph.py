@@ -78,6 +78,7 @@ class RDFGraph(DataSource):
 		self.store.clear()
 
 		self.stop_broadcasts()
+		self.store.events.stop_recording()
 
 		# TODO get local folder from the graph
 		self.store.set_local_folder(os.path.split(path)[0])
@@ -198,7 +199,8 @@ class RDFGraph(DataSource):
 			self.store.changed = changed.value
 		
 		self.store.set_datasource(self)
-
+		
+		self.store.events.resume_recording()
 		self.resume_broadcasts()
 		self.broadcast(Broadcasts.STORE_LOADED)
 

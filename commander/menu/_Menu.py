@@ -12,6 +12,8 @@ from deposit.commander.menu.SaveAsDB import (SaveAsDB)
 from deposit.commander.menu.SaveAsDBRel import (SaveAsDBRel)
 from deposit.commander.menu.SetIdentifier import (SetIdentifier)
 from deposit.commander.menu.SetLocalFolder import (SetLocalFolder)
+from deposit.commander.menu.SaveHistory import (SaveHistory)
+from deposit.commander.menu.History import (History)
 
 from PyQt5 import (QtWidgets, QtCore, QtGui)
 import json
@@ -27,7 +29,7 @@ class Menu(CmdDict, ViewChild):
 		self.actions = {} # {name: QAction, ...}
 		self.recent_menu = None
 
-		CmdDict.__init__(self, ClearLocalFolder, ClearRecent, Copy, SaveAs, SaveAsDB, SaveAsDBRel, SetIdentifier, SetLocalFolder)
+		CmdDict.__init__(self, ClearLocalFolder, ClearRecent, Copy, SaveAs, SaveAsDB, SaveAsDBRel, SetIdentifier, SetLocalFolder, SaveHistory, History)
 		ViewChild.__init__(self, model, view)
 		
 		self.set_up()
