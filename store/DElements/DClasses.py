@@ -138,7 +138,6 @@ class DClass(DElement):
 				for id2 in to_del:
 					del self.store.objects[id1].relations[rel][id2]
 	
-	@event
 	def add_object(self):
 		
 		return self.objects.add()
@@ -147,12 +146,10 @@ class DClass(DElement):
 		
 		del self.objects[id]
 	
-	@event
 	def add_subclass(self, cls):
 		
 		return self.subclasses.add(cls)
 	
-	@event
 	def del_subclass(self, name):
 		
 		del self.subclasses[name]
@@ -228,9 +225,9 @@ class DClasses(DElements):
 		self[name] = self.store.classes[name]
 		
 		if self.parent.__class__.__name__ == "DClass":
-			self.store.events.add(self.parent, self.parent.add_subclass.__wrapped__, name)
+			self.store.events.add(self.parent, self.parent.add_subclass, name)
 		elif self.parent.__class__.__name__ == "DObject":
-			self.store.events.add(self.parent, self.parent.add_class.__wrapped__, name)
+			self.store.events.add(self.parent, self.parent.add_class, name)
 
 		if self._on_added is not None:
 			self._on_added(self.store.classes[name])
@@ -283,9 +280,9 @@ class DClasses(DElements):
 			self.del_naive(name)
 			
 			if self.parent.__class__.__name__ == "DClass":
-				self.store.events.add(self.parent, self.parent.del_subclass.__wrapped__, name)
+				self.store.events.add(self.parent, self.parent.del_subclass, name)
 			elif self.parent.__class__.__name__ == "DObject":
-				self.store.events.add(self.parent, self.parent.del_class.__wrapped__, name)
+				self.store.events.add(self.parent, self.parent.del_class, name)
 			
 		else:
 			# delete from store

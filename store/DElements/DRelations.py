@@ -63,7 +63,7 @@ class DRelation(DElement):
 		self._set_weight(target_id, weight)
 		self.store.objects[target_id].relations[self.store.reverse_relation(self.name)]._set_weight(self.source.id, weight)
 		
-		self.store.events.add(self.parent.parent, self.parent.parent.set_relation_weight.__wrapped__, self.name, target_id, weight)
+		self.store.events.add(self.parent.parent, self.parent.parent.set_relation_weight, self.name, target_id, weight)
 	
 	def on_object_added(self, obj):
 
@@ -107,7 +107,7 @@ class DRelation(DElement):
 		self.objects.__next__()
 	
 	def __delitem__(self, key):
-
+		
 		if key in self.objects:
 			rev_name = self.store.reverse_relation(self.name)
 			del self.objects[key].relations[rev_name].objects[self.source.id]
@@ -116,6 +116,7 @@ class DRelation(DElement):
 			del self.objects[key]
 			if not len(self.objects):
 				del self.source.relations[self.name]
+			self.store.events.add(self.parent.parent, self.parent.parent.del_relation, self.name, key)
 	
 	def to_dict(self):
 		
@@ -168,7 +169,7 @@ class DRelations(DElements):
 		target = self._add(name, target, weight)
 		target.relations._add(self.store.reverse_relation(name), self.parent, weight)
 		
-		self.store.events.add(self.parent, self.parent.add_relation.__wrapped__, name, target, weight)
+		self.store.events.add(self.parent, self.parent.add_relation, name, target.id, weight)
 		
 		return self[name]
 	
@@ -200,7 +201,7 @@ class DRelations(DElements):
 			self.del_naive(name)
 			self.broadcast(Broadcasts.ELEMENT_CHANGED, self.parent)
 			
-			self.store.events.add(self.parent, self.parent.del_relation.__wrapped__, name)
+			self.store.events.add(self.parent, self.parent.del_relation, name)
 	
 	def from_dict(self, data):
 		

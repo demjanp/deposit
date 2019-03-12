@@ -32,6 +32,44 @@ dep:LocalFolder - rdfs:Resource. IRI of the local folder to store resources.
 
 dep:Images - rdf:Bag. List of resources which are images.
 
+dep:Version - rdfs:Literal. Version of Deposit used to create a graph.
+
+dep:User - User of a Deposit graph.
+
+dep:Event - Event documenting modification of a Deposit graph.
+
+dep:Event_add - Add Object or Class to graph. Arguments: key; key = id of Object or name of Class.
+
+dep:Event_delete - Delete Object or Class from graph. Arguments: key; key = id of Object or name of Class.
+
+dep:Event_rename - Rename Class. Arguments: old_name, new_name.
+
+dep:Event_switch_order - Switch order of Classes. Arguments: name1, name2.
+
+dep:Event_add_descriptor - Add Descriptor to Object or Class. Arguments for Class: name. Arguments for Object: name, value, dtype; dtype = name of DLabel class.
+
+dep:Event_rename_descriptor - Rename Descriptor for a specific Class or Object. Arguments: old_name, new_name.
+
+dep:Event_del_descriptor - Delete Descriptor from a specific Class or Object. Arguments: name.
+
+dep:Event_add_relation - Add Relation between Classes or Objects. Arguments for Classes: relation_label, target_name. Arguments for Objects: relation_label, target_id, weight.
+
+dep:Event_del_relation - Delete Relation between Classes or Objects. Arguments for Classes: relation_label, target_name. Arguments for Objects: relation_label, target_id.
+
+dep:Event_set_relation_weight - Set weight of Relation between Objects. Arguments for Objects: relation_label, target_id, weight.
+
+dep:Event_add_subclass - Add Subclass to Class. Arguments: name.
+
+dep:Event_del_subclass - Delete Subclass from Class. Arguments: name.
+
+dep:Event_add_object - Add Object to Class. Arguments: id.
+
+dep:Event_del_object - Delete Object from Class. Arguments: id.
+
+dep:Event_add_class - Add Class to Object. Arguments: name.
+
+dep:Event_del_class - Delete Class from Object. Arguments: name.
+
 ### Deposit properties:
 
 dep:label - Label of a Node or Edge. Can be numeric, string, resource or geometry.
@@ -49,6 +87,20 @@ dep:description - Additional description of a Class, Property or Relation.
 dep:projection - Geographic projection as wkt in OGC or ESRI format.
 
 dep:worldfile_A..F - ESRI world file parameters used for georeferencing raster image resources.
+
+dep:username - User name.
+
+dep:password - User password.
+
+dep:time - Time stamp of an Event.
+
+dep:user - Indicates a User of a Deposit graph who performed an Event.
+
+dep:node -Indicates class of Node targeted by Event.
+
+dep:key - Key specifying a Node (Object id or Class label) involved in an Event.
+
+dep:arguments - Arguments of a function performed on a Deposit Node involved in an Event specified as a JSON string.
 
 ## Concepts:
 
@@ -167,6 +219,13 @@ Images:
 	gra:images rdf:type dep:Images
 	gra:images rdf:_n URIRef(label)
 
+Version:
+	
+	gra:version rdf:type dep:Version
+	gra:version rdf:value Literal(version)
+	
+	The graph was created using Deposit of the specified version.
+
 description:
 	
 	gra:[id] dep:description Literal(d)
@@ -197,6 +256,27 @@ worldfile_A..F:
 	E (line 4): pixel size in the y-direction in map units.
 	C (line 5): x-coordinate of the center of the upper left pixel.
 	F (line 6): y-coordinate of the center of the upper left pixel.
+
+User:
+	
+	gra:[id_usr] rdf:type dep:User
+	gra:[id_usr] dep:username Literal(username)
+	gra:[id_usr] dep:password Literal(password)
+	
+	id_usr is a User specified by username and password
+
+Event:
+	
+	gra:[id_evt] rdf:type dep:Event
+	gra:[id_evt] dep:time Literal(time)
+	gra:[id_evt] dep:user gra:[id_usr]
+	gra:[id_evt] dep:node dep:Object / dep:Class
+	gra:[id_evt] dep:key Literal(key)
+	gra:[id_evt] dep:arguments Literal(arguments)
+	
+	id_evt is an Event documenting modification of a Deposit graph.
+	The modification occured at time, was performed by User id_usr, on a Deposit Node or list of Nodes specified by node and key.
+	The function performed is specified by the subclass of dep:Event and arguments, where arguments is a JSON encoded list of arguments.
 
 Locally stored file:
 	

@@ -18,21 +18,25 @@ class DObjects(DElements):
 
 		self._on_deleted = func
 	
-	@event
-	def add(self):
+	def add(self, id = None):
 		# returns the added / created object
 		
 		if (self.parent.__class__.__name__ == "DClass") and (self.parent.name == "[no class]"):
 			raise Exception("Attempted to add object to a non-existing class")
 		
-		id = self.get_new_id(self.store.objects)
-		self.store.objects.add_naive(id, DObject(self, id))
+		add_new = False
+		if id is None:
+			id = self.get_new_id(self.store.objects)
+			add_new = True
+		if add_new or (id not in self.store.objects):
+			self.store.objects.add_naive(id, DObject(self, id))
 		self.broadcast(Broadcasts.ELEMENT_ADDED, self.store.objects[id])
 
 		self[id] = self.store.objects[id]
 		
+		self.store.events.add(self, self.add, id)
 		if self.parent.__class__.__name__ == "DClass":
-			self.store.events.add(self.parent, self.parent.add_object.__wrapped__)
+			self.store.events.add(self.parent, self.parent.add_object, id)
 
 		if self._on_added is not None:
 			self._on_added(self.store.objects[id])
@@ -47,7 +51,7 @@ class DObjects(DElements):
 			self.del_naive(id)
 			
 			if self.parent.__class__.__name__ == "DClass":
-				self.store.events.add(self.parent, self.parent.del_object.__wrapped__, id)
+				self.store.events.add(self.parent, self.parent.del_object, id)
 
 		else:
 			# delete from store
@@ -199,37 +203,33 @@ class DObject(DElement):
 		
 		return self._descriptors
 	
-	@event
 	def add_descriptor(self, cls, label, dtype):
 		
 		return self.descriptors.add(cls, label, dtype)
 	
-	@event
 	def rename_descriptor(self, old_name, new_name):
 		
 		return self.descriptors.rename(old_name, new_name)
 	
-	@event
 	def del_descriptor(self, name):
 		
 		del self.descriptors[name]
 	
-	@event
 	def add_relation(self, name, target, weight):
 		
 		return self.relations.add(name, target, weight)
 	
-	@event
-	def del_relation(self, name):
+	def del_relation(self, name, target = None):
 		
-		del self.relations[name]
+		if target is None:
+			del self.relations[name]
+		else:
+			del self.relations[name][target]
 	
-	@event
 	def set_relation_weight(self, name, target_id, weight):
 		
 		return self.relations[name].set_weight(target_id, weight)
 	
-	@event
 	def add_class(self, cls):
 		
 		return self.classes.add(cls)

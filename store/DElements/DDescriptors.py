@@ -103,7 +103,7 @@ class DDescriptors(DElements):
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self.parent)
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, cls)
 		
-		self.store.events.add(self.parent, self.parent.add_descriptor.__wrapped__, cls.name, label.value, dtype)
+		self.store.events.add(self.parent, self.parent.add_descriptor, cls.name, label.value, dtype)
 		
 		return self[cls.name]
 	
@@ -119,7 +119,7 @@ class DDescriptors(DElements):
 			self.store.classes.add(new_name)
 		self.add(new_name, self[old_name].label)
 		del self[old_name]
-		self.store.events.add(self.parent, self.parent.rename_descriptor.__wrapped__, old_name, new_name)
+		self.store.events.add(self.parent, self.parent.rename_descriptor, old_name, new_name)
 	
 	def _populate(self, key):
 		
@@ -168,7 +168,7 @@ class DDescriptors(DElements):
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, dclass)
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self.parent)
 		
-		self.store.events.add(self.parent, self.parent.del_descriptor.__wrapped__, name)
+		self.store.events.add(self.parent, self.parent.del_descriptor, name)
 
 	def update_order(self):
 		
