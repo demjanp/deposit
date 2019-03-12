@@ -102,6 +102,18 @@ dep:key - Key specifying a Node (Object id or Class label) involved in an Event.
 
 dep:arguments - Arguments of a function performed on a Deposit Node involved in an Event specified as a JSON string.
 
+## DLabel classes:
+
+DNone - No value.
+
+DString - String value.
+
+DResource - Local or online Resource.
+
+DGeometry - Geometry
+
+DDateTime - Date and Time
+
 ## Concepts:
 
 Subclass: A Class which is a Member of another Class.
