@@ -40,7 +40,7 @@ class Dialogs(CmdDict, ViewChild):
 			dialog.finished.connect(self.on_finished)
 			self.dialogs_open.append(dialog_name)
 			dialog.show()
-		return dialog
+			return dialog
 
 	def is_open(self, dialog_name):
 		
@@ -56,4 +56,4 @@ class Dialogs(CmdDict, ViewChild):
 		
 		if code == QtWidgets.QDialog.Accepted:			
 			dialog.process()
-	
+

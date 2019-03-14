@@ -41,7 +41,7 @@ class Toolbar(CmdDict, ViewChild):
 			for name in row:
 				if name in self.classes:
 					self[name] = self.classes[name](self.model, self.view)
-					if not self[name].combo() is None:
+					if self[name].combo() is not None:
 						label = None
 						if self[name].name():
 							label = QtWidgets.QLabel(self[name].name() + ": ", self.view)

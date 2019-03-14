@@ -13,7 +13,7 @@ from deposit.commander.navigator._Navigator import (Navigator)
 from deposit.commander.MdiArea import (MdiArea)
 from deposit.commander.StatusBar import (StatusBar)
 from deposit.commander.QueryToolbar import (QueryToolbar)
-from deposit.commander.plugins._Plugins import (Plugins)
+from deposit.commander.UserToolbar import (UserToolbar)
 
 from PyQt5 import (QtWidgets, QtCore, QtGui)
 import os
@@ -32,8 +32,8 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.menu = None
 		self.dialogs = None
 		
-		self.plugins = None
 		self.querytoolbar = None
+		self.usertoolbar = None
 		self.statusbar = None
 
 		self._broadcast_timer = None
@@ -69,8 +69,8 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.menu = Menu(self.model, self)
 		self.dialogs = Dialogs(self.model, self)
 		
-		self.plugins = Plugins(self.model, self)
 		self.querytoolbar = QueryToolbar(self.model, self)
+		self.usertoolbar = UserToolbar(self.model, self)
 		self.statusbar = StatusBar(self.model, self)
 		self.setStatusBar(self.statusbar)
 
@@ -194,5 +194,4 @@ class View(DModule, QtWidgets.QMainWindow):
 			self.populate_thread.wait()
 		self.menu.save_recent()
 		self.mdiarea.close_all()
-		self.plugins.close_all()
 		self.model.on_close()
