@@ -32,6 +32,7 @@
 	--------------------------------
 	<[control type] [class].[descriptor]>[label]</>
 	<[control type] [class].[descriptor] bold>[label]</>
+	<Select [class.descriptor]/>
 	...
 
 
@@ -78,10 +79,11 @@ DC_USER_TOOLS_DIR = "user_tools"
 DC_ORDERING = "_ordering.cfg"
 
 def parse(data):
-	# returns [["Title", title], ["Type", type], tag, group, multigroup, ...]
+	# returns [["Title", title], ["Type", type], tag, group, multigroup, select, ...]
 	#	type = "Query" / "SearchForm" / "EntryForm"
 	# 	tag = [control type, class.descriptor, label]
 	# 	group = [["Group", title], tag, ...], multigroup = [["MultiGroup", title], tag, ...]
+	#	select = [class.descriptor]
 	
 	elements = []
 	collect = []
@@ -182,7 +184,7 @@ class UserToolbar(ViewChild):
 			if name == "_separator":
 				self.toolbar.addSeparator()
 				continue
-			with open(os.path.join(DC_USER_TOOLS_DIR, "%s.cfg" % (name)), "r") as f:
+			with open(os.path.join(DC_USER_TOOLS_DIR, "%s.cfg" % (name)), "r", encoding = "utf-8") as f:
 				data = f.read()
 				elements = parse(data)
 				if not elements:

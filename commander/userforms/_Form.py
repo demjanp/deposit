@@ -23,12 +23,10 @@ class Form(DModule, QtWidgets.QDialog):
 		
 		self.setLayout(QtWidgets.QVBoxLayout())
 		self.layout().setContentsMargins(0, 0, 0, 0)
-		self.central_frame = QtWidgets.QFrame()
-		self.layout().addWidget(self.central_frame)
 		
 		button_frame = QtWidgets.QFrame()
 		button_frame.setLayout(QtWidgets.QHBoxLayout())
-		button_frame.layout().setContentsMargins(0, 0, 0, 0)
+		button_frame.layout().setContentsMargins(5, 5, 5, 5)
 		button_frame.layout().addStretch()
 		button_submit = QtWidgets.QPushButton("Submit")
 		button_submit.clicked.connect(self.on_submit)
@@ -39,9 +37,7 @@ class Form(DModule, QtWidgets.QDialog):
 		self.layout().addWidget(button_frame)
 		
 		self.set_up(elements)
-		
-		self.adjustSize()
-
+	
 	def set_enabled(self, state):
 
 		if self.buttonBox is not None:
@@ -73,6 +69,8 @@ class Form(DModule, QtWidgets.QDialog):
 			return None, None, None
 		ctrl._select = select
 		label = QtWidgets.QLabel("%s:" % label)
+		if bold:
+			label.setStyleSheet("font-weight: bold;")
 		
 		return label, ctrl, select
 	

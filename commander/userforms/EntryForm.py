@@ -12,8 +12,14 @@ class EntryForm(Form):
 		
 		self.max_group_frame_nr = 1
 		
+		self.central_frame = QtWidgets.QFrame()
+		scroll_area = QtWidgets.QScrollArea()
+		scroll_area.setWidgetResizable(True)
+		scroll_area.setWidget(self.central_frame)
+		self.layout().insertWidget(0, scroll_area)
 		self.central_frame.setLayout(QtWidgets.QHBoxLayout())
 		self.central_frame.layout().setContentsMargins(0, 0, 0, 0)
+		self.overrideWindowFlags(QtCore.Qt.Window)
 		column = self.add_column()
 		for element in elements[2:]:
 			# element = [tag, group, multigroup, ...]
@@ -56,6 +62,7 @@ class EntryForm(Form):
 	def add_group(self, column, title):
 		
 		group = QtWidgets.QGroupBox(title)
+		group.setStyleSheet("QGroupBox { font-weight: bold; }")
 		group._multi = False
 		group.setLayout(QtWidgets.QVBoxLayout())
 		group.layout().setContentsMargins(0, 0, 0, 0)
@@ -68,7 +75,7 @@ class EntryForm(Form):
 		group._multi = True
 		button_frame = QtWidgets.QFrame()
 		button_frame.setLayout(QtWidgets.QHBoxLayout())
-		button_frame.layout().setContentsMargins(0, 0, 0, 0)
+		button_frame.layout().setContentsMargins(5, 5, 5, 5)
 		button_frame.layout().addStretch()
 		button = QtWidgets.QPushButton("Add Entry")
 		button._group = group
@@ -169,7 +176,7 @@ class EntryForm(Form):
 				return objects[0].id
 		return None
 	
-	def reset_controls(self, add_empty_groups = False):
+	def reset_controls(self):
 		
 		for column in self.central_frame.findChildren(QtWidgets.QFrame, options = QtCore.Qt.FindDirectChildrenOnly):
 			for frame in column.findChildren(QtWidgets.QFrame, options = QtCore.Qt.FindDirectChildrenOnly):
@@ -177,8 +184,6 @@ class EntryForm(Form):
 					self.set_control(frame._select, None)
 			for group in column.findChildren(QtWidgets.QGroupBox, options = QtCore.Qt.FindDirectChildrenOnly):
 				self.clear_group_frame(group)
-				if add_empty_groups and group._multi:
-					self.add_group_frame(group)
 	
 	def update_controls(self):
 		
@@ -237,15 +242,22 @@ class EntryForm(Form):
 					data[cls][obj.id][descr] = value
 		
 		# fill single entry fields
-		for select in self.controls:
-			if isinstance(select, int):
-				continue
-			cls, descr = select.split(".")
-			if cls not in data:
-				continue
-			obj_id = next(iter(data[cls]))
-			if descr in data[cls][obj_id]:
-				self.set_control(select, data[cls][obj_id][descr])
+		for key in self.controls:
+			if isinstance(key, int):
+				for select in self.controls[key]:
+					cls, descr = select.split(".")
+					if (cls not in data) or (cls in multi_classes):
+						continue
+					obj_id = next(iter(data[cls]))
+					if descr in data[cls][obj_id]:
+						self.set_control(select, data[cls][obj_id][descr], key)
+			else:
+				cls, descr = key.split(".")
+				if cls not in data:
+					continue
+				obj_id = next(iter(data[cls]))
+				if descr in data[cls][obj_id]:
+					self.set_control(key, data[cls][obj_id][descr])
 		
 		# fill multi entry fields
 		group_values = defaultdict(dict)  # {obj_id: {select: value, ...}, ...}
@@ -261,6 +273,12 @@ class EntryForm(Form):
 		for obj_id in group_values:
 			for group in group_ids[obj_id]:
 				self.add_group_frame(group, group_values[obj_id])
+		
+		self.central_frame.adjustSize()
+	
+	def sizeHint(self):
+		
+		return self.central_frame.sizeHint()
 	
 	def submit(self):
 		
@@ -330,17 +348,16 @@ class EntryForm(Form):
 						continue
 					self.model.objects[obj_id1].relations.add(rel, obj_id2)
 	
-	@QtCore.pyqtSlot()
-	def on_add_entry(self):
+	def on_add_entry(self, *args):
 		
 		self.add_group_frame(self.sender()._group)
 	
 	def on_reset(self, *args):
 		
-		self.reset_controls(add_empty_groups = True)
+		self.reset_controls()
 	
 	def on_submit(self, *args):
 		
 		self.submit()
-		self.reset_controls(add_empty_groups = True)
+		self.reset_controls()
 

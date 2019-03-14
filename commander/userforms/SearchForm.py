@@ -8,7 +8,10 @@ class SearchForm(Form):
 	def set_up(self, elements):
 		
 		# self.controls = {class.descriptor: QWidget, group_frame_nr: {class.descriptor: QWidget, ...}, ...}
+		self.selects = [] # [class.descriptor, ...]
 		
+		self.central_frame = QtWidgets.QFrame()
+		self.layout().insertWidget(0, self.central_frame)
 		self.central_frame.setLayout(QtWidgets.QVBoxLayout())
 		self.central_frame.layout().setContentsMargins(0, 0, 0, 0)
 		self.form_frame = QtWidgets.QFrame()
@@ -16,8 +19,10 @@ class SearchForm(Form):
 		self.form_frame.layout().setContentsMargins(10, 10, 10, 10)
 		self.central_frame.layout().addWidget(self.form_frame)
 		
-		for element in elements[2:]:  # [tag, ...]; tag = [control type, class.descriptor, label]
-			
+		for element in elements[2:]:  # [tag, select, ...]; tag = [control type, class.descriptor, label]; select = [class.descriptor]
+			if element[0] == "Select":
+				self.selects.append(element[1])
+				continue
 			label, ctrl, select = self.make_row(element)
 			if label is None:
 				continue
@@ -30,7 +35,7 @@ class SearchForm(Form):
 	
 	def on_submit(self, *args):
 		
-		query = "SELECT %s" % (", ".join(self.controls.keys()))
+		query = "SELECT %s" % (", ".join(self.selects))
 		conditions = []
 		for select in self.controls:
 			value = self.get_value(select)
