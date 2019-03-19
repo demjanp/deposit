@@ -70,6 +70,40 @@ dep:Event_add_class - Add Class to Object. Arguments: name.
 
 dep:Event_del_class - Delete Class from Object. Arguments: name.
 
+dep:UserTool - User tool.
+
+dep:UserElement - User tool element.
+
+dep:UserElementList - User tool containing multiple elements.
+
+dep:Query - Query user tool.
+
+dep:SearchForm - Search Form user tool.
+
+dep:EntryForm - Entry Form user tool.
+
+dep:UserLabeledElement - Labeled user tool element.
+
+dep:UserSelect - User tool element specifying a Class and Descriptor.
+
+dep:UserControl - Control user tool element.
+
+dep:LineEdit - Line Edit user tool element.
+
+dep:PlainTextEdit - Plain Text Edit user tool element.
+
+dep:ComboBox - Combo Box Edit user tool element.
+
+dep:CheckBox - Check Box Edit user tool element.
+
+dep:Group - Group of user tool elements.
+
+dep:MultiGroup - Group of user tool elements allowing to specify multiple Objects.
+
+dep:ColumnBreak - Column Break user tool element.
+
+dep:Select - Select user tool element.
+
 ### Deposit properties:
 
 dep:label - Label of a Node or Edge. Can be numeric, string, resource or geometry.
@@ -101,6 +135,12 @@ dep:node -Indicates class of Node targeted by Event.
 dep:key - Key specifying a Node (Object id or Class label) involved in an Event.
 
 dep:arguments - Arguments of a function performed on a Deposit Node involved in an Event specified as a JSON string.
+
+dep:class - Indicates Class of the user tool element.
+
+dep:descriptor - Indicates Descriptor of the user tool element.
+
+dep:stylesheet - Indicates CSS style of the user tool element.
 
 ## DLabel classes:
 
@@ -296,5 +336,89 @@ Locally stored file:
 	
 	the original name of localy stored file [local name].[ext] is [name].[ext]
 
+UserElement:
+	
+	gra:[id_uel]	rdf:type	dep:UserElement
+
+LineEdit:
+
+	gra:[id_uel]	rdf:type	dep:LineEdit
+	gra:[id_uel]	dep:stylesheet	Literal(stylesheet)
+	gra:[id_uel]	rdfs:label	Literal(label)
+	gra:[id_uel]	dep:class	gra:[id_cls]
+	gra:[id_uel]	dep:descriptor	gra:[id_cls]
+
+PlainTextEdit:
+
+	gra:[id_uel]	rdf:type	dep:PlainTextEdit
+	gra:[id_uel]	dep:stylesheet	Literal(stylesheet)
+	gra:[id_uel]	rdfs:label	Literal(label)
+	gra:[id_uel]	dep:class	gra:[id_cls]
+	gra:[id_uel]	dep:descriptor	gra:[id_cls]
+
+ComboBox:
+
+	gra:[id_uel]	rdf:type	dep:ComboBox
+	gra:[id_uel]	dep:stylesheet	Literal(stylesheet)
+	gra:[id_uel]	rdfs:label	Literal(label)
+	gra:[id_uel]	dep:class	gra:[id_cls]
+	gra:[id_uel]	dep:descriptor	gra:[id_cls]
+
+CheckBox:
+
+	gra:[id_uel]	rdf:type	dep:CheckBox
+	gra:[id_uel]	dep:stylesheet	Literal(stylesheet)
+	gra:[id_uel]	rdfs:label	Literal(label)
+	gra:[id_uel]	dep:class	gra:[id_cls]
+	gra:[id_uel]	dep:descriptor	gra:[id_cls]
+
+Group:
+
+	gra:[id_uel]	rdf:type	dep:Group
+	gra:[id_uel]	dep:stylesheet	Literal(stylesheet)
+	gra:[id_uel]	rdfs:label	Literal(label)
+	gra:[id_uel]	rdf:_n		gra:[id_uel]
+
+MultiGroup:
+
+	gra:[id_uel]	rdf:type	dep:MultiGroup
+	gra:[id_uel]	dep:stylesheet	Literal(stylesheet)
+	gra:[id_uel]	rdfs:label	Literal(label)
+	gra:[id_uel]	rdf:_n		gra:[id_uel]
+
+ColumnBreak:
+
+	gra:[id_uel]	rdf:type	dep:ColumnBreak
+
+Select:
+
+	gra:[id_uel]	rdf:type	dep:Select
+	gra:[id_uel]	dep:class	gra:[id_cls]
+	gra:[id_uel]	dep:descriptor	gra:[id_cls]
+
+UserTool:
+
+	gra:[id_utl]	rdf:type	dep:UserTool
+	gra:[id_utl]	rdfs:label	Literal(label)
+
+Query:
+
+	gra:[id_utl]	rdf:type	dep:Query
+	gra:[id_utl]	rdfs:label	Literal(label)
+	gra:[id_utl]	rdf:value	Literal(querystring)
+
+SearchForm:
+
+	gra:[id_utl]	rdf:type	dep:SearchForm
+	gra:[id_utl]	rdfs:label	Literal(label)
+	gra:[id_utl]	rdf:_n		gra:[id_uel]
+
+EntryForm:
+
+	gra:[id_utl]	rdf:type	dep:EntryForm
+	gra:[id_utl]	rdfs:label	Literal(label)
+	gra:[id_utl]	rdf:_n		gra:[id_uel]
+
 ## License:
+
 This code is licensed under the [GNU GENERAL PUBLIC LICENSE](https://www.gnu.org/licenses/gpl-3.0.en.html) - see the [LICENSE](LICENSE) file for details
