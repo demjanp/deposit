@@ -69,7 +69,10 @@ class JSON(DataSource):
 		
 		if "events" in data:  # TODO will be obsolete for new databases
 			self.store.events.from_list(data["events"])
-
+		
+		if "user_tools" in data:  # TODO will be obsolete for new databases
+			self.store.user_tools.from_list(data["user_tools"])
+		
 		self.store.images.load_thumbnails()
 		
 		self.store.set_datasource(self)
@@ -92,6 +95,7 @@ class JSON(DataSource):
 			changed = self.store.changed,
 			local_folder = self.store.local_folder,
 			events = self.store.events.to_list() if self.store.save_events else [],
+			user_tools = self.store.user_tools.to_list(),
 			deposit_version = __version__,
 		)
 		

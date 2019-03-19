@@ -54,6 +54,6 @@ class Dialogs(CmdDict, ViewChild):
 		
 		self.dialogs_open.remove(dialog.__class__.__name__)
 		
-		if code == QtWidgets.QDialog.Accepted:			
+		if code == QtWidgets.QDialog.Accepted:	
 			dialog.process()
 

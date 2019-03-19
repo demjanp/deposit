@@ -7,6 +7,7 @@ from deposit.store.DLabel.DNone import (DNone)
 from deposit.store.Files import (Files)
 from deposit.store.Images import (Images)
 from deposit.store.Events import (Events)
+from deposit.store.UserTools import (UserTools)
 from deposit.store.Query.Query import (Query)
 from deposit.store.datasources._DataSources import (DataSources)
 from deposit.store.datasources._DataSource import (DataSource)
@@ -32,6 +33,7 @@ class Store(DModule):
 		self.files = None
 		self.images = None
 		self.events = None
+		self.user_tools = None
 
 		self.local_folder = None
 		self.changed = None
@@ -51,6 +53,7 @@ class Store(DModule):
 		self.files = Files(self)
 		self.images = Images(self)
 		self.events = Events(self)
+		self.user_tools = UserTools(self)
 		
 		from deposit.store.DElements.DClasses import (DClass)
 		from deposit.store.DElements.DObjects import (DObject)

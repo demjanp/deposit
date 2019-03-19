@@ -25,7 +25,7 @@ class AddObject(Tool):
 	def triggered(self, state):
 		
 		current = self.view.mdiarea.get_current()
-		cls = current.query.parse.selects[0].classes[0]
+		cls = current.query.parse.selects[0].first_class()
 		if cls == "!*":
 			self.model.objects.add()
 		else:
