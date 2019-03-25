@@ -423,9 +423,9 @@ EntryForm:
 
 ### Query string:
 	
-SELECT [select1], [select2] RELATED [relation1], [relation2] WHERE [conditions] COUNT [conditions] AS [alias] SUM [select] AS [alias]
+SELECT [select1], [select2], ... RELATED [relation1], [relation2], ... WHERE [conditions] COUNT [conditions] AS [alias] SUM [select] AS [alias]
 
-(RELATED, WHERE, COUNT .. AS, SUM .. AS are optional)
+    Note: RELATED, WHERE, COUNT .. AS, SUM .. AS are optional
 
 ADD RELATION [relation] FROM [condition] TO [condition]
 	
@@ -438,12 +438,12 @@ ADD RELATION [relation] FROM [condition] TO [condition]
 \![class] means all classes except [class]
 
 	Examples:
-		cls1.descr1
-		cls1.*
-		*.descr1
-		*.*
-		!*.descr1
-		!cls1.descr1
+        cls1.descr1
+        cls1.*
+        *.descr1
+        *.*
+        !*.descr1
+        !cls1.descr1
 
 ### [relation]:
 [class1].[relation].[class2]
@@ -451,33 +451,35 @@ ADD RELATION [relation] FROM [condition] TO [condition]
 \* instead of class / descriptor / relation means any class / descriptor / relation
 !* instead of class / decriptor / relation means no class / descriptor / relation
 !class / !descriptor / !relation means all except class / descriptor / relation
-	Examples:
-		cls1.rel1.cls2
-			all objects which are members of cls1, related by rel1 to members of cls2
-		*.rel1.cls2
-			all objects related by rel1 to members of cls2
-		cls1.*.cls2
-		!cls1.rel1.cls2
-		cls1.!rel1.cls2
-		cls1.!*.cls2
-		!*.rel1.cls2
-
-### [conditions]:
-a python expression, where specific strings can be used as variables:
-[class].[descriptor] as a variable e.g. "WHERE Class1.Descr1 == 8"
-id([class]) as the ID of the Object belonging to the class e.g. "WHERE id(Class1) == 2"
-weight([class1].[relation].[class2]) as weight of the relation e.g. "WHERE weight(Class1.relation.Class2) > 0.5"
-
-### [alias]:
-column name under which to display the quantity
-if an alias has the same name as a regular column or another alias, an underscore will be added to it
-
-Parts of the query string can be quoted using single quotes to allow class names with a dot (e.g. 'Cls.1', 'Class.One') or to denote string constants (e.g. cls1.descr1 == 'one')
+    
+    Examples:
+	    cls1.rel1.cls2
+            all objects which are members of cls1, related by rel1 to members of cls2
+        *.rel1.cls2
+            all objects related by rel1 to members of cls2
+        cls1.*.cls2
+        !cls1.rel1.cls2
+        cls1.!rel1.cls2
+        cls1.!*.cls2
+        !*.rel1.cls2
 
 If no relations are specified but relations between the specified classes exist, they are automatically added to the query.
 
 	Example:
 	"SELECT Class1.Descr1, Class2.Descr2" would be equivalent to "SELECT Class1.Descr1, Class2.Descr2 RELATED Class1.relation1.Class2" if relation1 between Class1 and Class2 exists
+
+### [conditions]:
+Python expression, where specific strings can be used as variables:
+* [class].[descriptor] as a variable e.g. "WHERE Class1.Descr1 == 8"
+* id([class]) as the ID of the Object belonging to the class e.g. "WHERE id(Class1) == 2"
+* weight([class1].[relation].[class2]) as weight of the relation e.g. "WHERE weight(Class1.relation.Class2) > 0.5"
+
+### [alias]:
+Column name under which to display the quantity. If an alias has the same name as a regular column or another alias, an underscore will be added to it.
+
+### Quoting:
+Parts of the query string can be quoted using double quotes to allow class names with a dot e.g. "Cls.1", "Class.One". 
+Single quotes denote string constants e.g. "cls1.descr1 == 'one'".
 
 ## License:
 
