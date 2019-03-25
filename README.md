@@ -6,7 +6,16 @@ Created on 29. 4. 2013
 ### Author of the code:
 Peter Demján (peter.demjan@gmail.com)
 
-## Deposit (DEP) RDF Schema:
+## Table of Contents
+1. [Deposit (DEP) RDF Schema](#rdf_schema)
+2. [DLabel classes](#dlabel_classes)
+3. [Concepts](#concepts)
+4. [RDFLib definitions](#rdflib_definitions)
+5. [Deposit graph RDF definitions](#graph_rdf_definitions)
+6. [Querying](#querying)
+7. [License](#license)
+
+## Deposit (DEP) RDF Schema: <a name="rdf_schema"></a>
 
 ### Deposit classes:
 
@@ -142,7 +151,7 @@ dep:descriptor - Indicates Descriptor of the user tool element.
 
 dep:stylesheet - Indicates CSS style of the user tool element.
 
-## DLabel classes:
+## DLabel classes: <a name="dlabel_classes"></a>
 
 DNone - No value.
 
@@ -154,7 +163,7 @@ DGeometry - Geometry
 
 DDateTime - Date and Time
 
-## Concepts:
+## Concepts: <a name="concepts"></a>
 
 Subclass: A Class which is a Member of another Class.
 
@@ -172,7 +181,7 @@ Geometry is specified by WKT and optionally EPSG code(s) in GeoSPARQL format sto
 
 Time stamp of last change of the Deposit graph is stored in a Literal
 
-## RDFLib definitions:
+## RDFLib definitions: <a name="rdflib_definitions"></a>
 
 The Deposit RDF Schema IRI (Internationalized Resource Identifier):
 dep = http://future_url/2017/04/deposit-schema#
@@ -186,7 +195,7 @@ local graph (stored in a file system):
 The GeoSPARQL schema IRI:
 ogc = http://www.opengis.net/ont/geosparql#
 
-## Deposit graph RDF definitions:
+## Deposit graph RDF definitions: <a name="graph_rdf_definitions"></a>
 
 Object:
 	
@@ -419,7 +428,7 @@ EntryForm:
 	gra:[id_utl]	rdfs:label	Literal(label)
 	gra:[id_utl]	rdf:_n		gra:[id_uel]
 
-## Querying
+## Querying: <a name="querying"></a>
 
 ### Query string:
 	
@@ -481,6 +490,6 @@ Column name under which to display the quantity. If an alias has the same name a
 Parts of the query string can be quoted using double quotes to allow class names with a dot e.g. "Cls.1", "Class.One". 
 Single quotes denote string constants e.g. "cls1.descr1 == 'one'".
 
-## License:
+## License: <a name="license"></a>
 
 This code is licensed under the [GNU GENERAL PUBLIC LICENSE](https://www.gnu.org/licenses/gpl-3.0.en.html) - see the [LICENSE](LICENSE) file for details
