@@ -239,10 +239,13 @@ class UserTools(ViewChild):
 		querystr = form_tool.value
 		id = str(self.get_selected_id())
 		while SELECTED_STR in querystr:
-			idx1 = querystr.find(SELECTED_STR)
+			idx1 = querystr.lower().find(SELECTED_STR)
 			idx2 = idx1 + len(SELECTED_STR)
 			querystr = querystr[:idx1] + id + querystr[idx2:]
-		self.view.mdiarea.create("Query", querystr)
+		if querystr.startswith("SELECT "):
+			self.view.mdiarea.create("Query", querystr)
+		else:
+			self.model.query(querystr)
 	
 	def open_search_form(self, form_tool):
 		

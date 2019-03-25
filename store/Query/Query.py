@@ -1,60 +1,3 @@
-'''
-	Query string:
-	
-	SELECT [select1], [select2] RELATED [relation1], [relation2] WHERE [conditions] COUNT [conditions] AS [alias] SUM [select] AS [alias]
-	RELATED, WHERE, COUNT .. AS, SUM .. AS are optional
-	
-	[select]:
-		1. [class]
-		2. [class].[descriptor]
-		
-		* instead of class / descriptor means any class / descriptor
-		!* instead of class means classless objects
-		![class] means all classes except [class]
-		
-		E.g.:
-			cls1.descr1
-			cls1.*
-			*.descr1
-			*.*
-			!*.descr1
-			!cls1.descr1
-	
-	[relation]:
-		[class1].[relation].[class2]
-		
-		* instead of class / descriptor / relation means any class / descriptor / relation
-		!* instead of class / decriptor / relation means no class / descriptor / relation
-		!class / !descriptor / !relation means all except class / descriptor / relation
-		E.g.:
-			cls1.rel1.cls2
-				all objects which are members of cls1, related by rel1 to members of cls2
-			*.rel1.cls2
-				all objects related by rel1 to members of cls2
-			cls1.*.cls2
-			!cls1.rel1.cls2
-			cls1.!rel1.cls2
-			cls1.!*.cls2
-			!*.rel1.cls2
-	
-	[conditions]:
-		a python expression, where specific strings can be used as variables:
-		[class].[descriptor] as a variable e.g. "WHERE Class1.Descr1 == 8"
-		id([class]) as the ID of the Object belonging to the class e.g. "WHERE id(Class1) == 2"
-		weight([class1].[relation].[class2]) as weight of the relation e.g. "WHERE weight(Class1.relation.Class2) > 0.5"
-	
-	[alias]:
-		column name under which to display the quantity
-		if an alias has the same name as a regular column or another alias, an underscore will be added to it
-
-	Parts of the query string can be quoted using single quotes to allow class names with a dot (e.g. 'Cls.1', 'Class.One') or to denote string constants (e.g. cls1.descr1 == 'one')
-	
-	If no relations are specified but relations between the specified classes exist, they are automatically added to the query.
-	E.g. "SELECT Class1.Descr1, Class2.Descr2" would be equivalent to "SELECT Class1.Descr1, Class2.Descr2 RELATED Class1.relation1.Class2" if relation1 between Class1 and Class2 exists
-	
-
-'''
-
 from deposit.store.DLabel.DString import (DString)
 from deposit.store.DElements.DClasses import (DClass)
 from deposit.store.DElements.DDescriptors import (DDescriptor)
@@ -114,6 +57,19 @@ class Query(object):
 	def process(self):
 		
 		self.parse = Parse(self.store, self.querystr)
+		
+		if self.parse.query_type == "ADD RELATION":
+			rel, wherestr_from, wherestr_to = self.parse.add_relation
+			query_from = Query(self.store, "SELECT * WHERE " + wherestr_from)
+			query_to = Query(self.store, "SELECT * WHERE " + wherestr_to)
+			for row_from in query_from:
+				for row_to in query_to:
+					row_from.object.relations.add(rel, row_to.object)
+			return
+		
+		if self.parse.query_type != "SELECT":
+			return
+		
 		if not self.parse.selects:
 			return
 		
@@ -133,6 +89,13 @@ class Query(object):
 			if (classstr_index1 not in classstr_index0s) and (classstr_index2 not in classstr_index0s):
 				classstr_index0s.append(classstr_index1)
 				objects[related.classstr1][related.index1] = self.get_objects_by_classes(related.classes1)
+		
+		collect = []
+		for classstr, index in classstr_index0s:
+			if ("*" not in classstr) and (("*", index) in classstr_index0s):
+				continue
+			collect.append((classstr, index))
+		classstr_index0s = collect
 		
 		self._classes = list(self.parse.selects[0].classes)
 		
@@ -249,10 +212,11 @@ class Query(object):
 					for cls in classes:
 						row.add(obj, cls)
 				for descr in select.descriptors:
-					if not descr in obj.descriptors:
-						continue
 					for cls in classes:
-						row.add(obj, cls, obj.descriptors[descr])
+						if not descr in obj.descriptors:
+							row.add(obj, cls)
+						else:
+							row.add(obj, cls, obj.descriptors[descr])
 			
 			if len(row) and (row.hash not in done):
 				self.add(row)
@@ -294,7 +258,13 @@ class Query(object):
 	def classes(self):
 
 		return self._classes.copy()
-
+	
+	@property
+	def query_type(self):
+		# returns SELECT, INSERT, ADD RELATION, ADD CLASS, ...
+		
+		return self.parse.query_type
+	
 	def __len__(self):
 
 		return len(self._rows)

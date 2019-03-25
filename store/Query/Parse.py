@@ -71,6 +71,12 @@ def check_classes(obj, classes):
 		return True
 	return False
 
+def check_classstr(classstr, objects):
+	
+	if (classstr not in objects) and ("*" in objects) and (classstr != "!*"):
+		return "*"
+	return classstr
+
 class Select(object):
 	
 	def __init__(self, store, selectstr, quotes):
@@ -145,17 +151,19 @@ class Select(object):
 					pass
 			return str(value)
 		
-		if (self.classstr not in objects) or (self.index not in objects[self.classstr]):
+		classstr = check_classstr(self.classstr, objects)
+		if (classstr not in objects) or (self.index not in objects[classstr]):
 			return None
-		values = [convert_value(objects[self.classstr][self.index].descriptors[descr].label.value) for descr in self.descriptors]
+		values = [convert_value(objects[classstr][self.index].descriptors[descr].label.value) for descr in self.descriptors]
 		if len(values) == 1:
 			return values[0]
 		return values
 	
 	def get_object(self, objects):
 		
-		if (self.classstr in objects) and (self.index in objects[self.classstr]):
-			return objects[self.classstr][self.index]
+		classstr = check_classstr(self.classstr, objects)
+		if (classstr in objects) and (self.index in objects[classstr]):
+			return objects[classstr][self.index]
 		return None
 	
 class ObjectId(object):
@@ -187,9 +195,10 @@ class ObjectId(object):
 	
 	def id(self, objects):
 		
-		if (self.classstr not in objects) or (self.index not in objects[self.classstr]):
+		classstr = check_classstr(self.classstr, objects)
+		if (classstr not in objects) or (self.index not in objects[classstr]):
 			return None
-		return objects[self.classstr][self.index].id
+		return objects[classstr][self.index].id
 	
 class Related(object):
 	
@@ -296,8 +305,9 @@ class Weight(object):
 	
 	def value(self, objects):
 		
-		obj1 = objects[self.related.relation.classstr1][self.related.relation.index1]
-		obj2 = objects[self.related.relation.classstr2][self.related.relation.index2]
+		classstr1, classstr2 = check_classstr(self.related.relation.classstr1, objects), check_classstr(self.related.relation.classstr2, objects)
+		obj1 = objects[classstr1][self.related.relation.index1]
+		obj2 = objects[classstr2][self.related.relation.index2]
 		if self.related.relation in obj1.relations:
 			return obj1.relations[self.related.relation].weight(obj2)
 		return None
@@ -520,7 +530,7 @@ class Sum(object):
 	
 class Parse(object):
 	
-	RESERVED_WORDS = ["SELECT", "RELATED", "WHERE", "COUNT", "SUM", "AS"]
+	RESERVED_WORDS = ["SELECT", "RELATED", "WHERE", "COUNT", "SUM", "AS", "ADD RELATION", "FROM", "TO"]
 	
 	def __init__(self, store, querystr):
 		
@@ -531,6 +541,8 @@ class Parse(object):
 		self.conditions = []  # [Condition, ...]
 		self.counts = []  # [Count, ...]
 		self.sums = []  # [Sum, ...]
+		self.query_type = None # SELECT, ADD RELATION, ...
+		self.add_relation = []  # [relation name, from_conditions, to_conditions]
 		
 		self.process()
 	
@@ -565,13 +577,23 @@ class Parse(object):
 		
 		# find quotes
 		qry, quotes = find_quotes(qry) # quotes = {"q0": "[text]", "q1": "[text]", ...}
-		
+				
 		# find segments
 		segments = self.find_segments(qry) # [[reserved_word, text], ...]
 		if not segments:
 			return
+		
+		if (len(segments) == 3) and (segments[0][0] == "ADD RELATION") and (segments[1][0] == "FROM") and (segments[2][0] == "TO"):
+			for key in quotes:
+				quotes[key] = '"%s"' % quotes[key]
+			self.query_type = "ADD RELATION"
+			self.add_relation = [segment[1] % quotes for segment in segments]
+			return
+			
 		if segments[0][0] != "SELECT":
 			return
+		
+		self.query_type = "SELECT"
 		
 		# find selects
 		_, qry_select = segments.pop(0)
@@ -723,4 +745,4 @@ class Parse(object):
 						chains.append([self.relations[i1] for i1 in collect])
 			
 			self.relations = chains
-
+	

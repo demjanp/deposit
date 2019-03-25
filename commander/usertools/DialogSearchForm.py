@@ -8,7 +8,7 @@ class DialogSearchForm(DialogForm):
 		
 		DialogForm.__init__(self, model, view, form_tool)
 	
-	def on_submit(self, *args):
+	def submit(self):
 		
 		query = "SELECT %s" % (", ".join([".".join(select) for select in self.selects]))
 		conditions = []
@@ -21,9 +21,18 @@ class DialogSearchForm(DialogForm):
 			query += " WHERE %s" % (" and ".join(conditions))
 		self.view.mdiarea.create("Query", query)
 	
-	def on_reset(self, *args):
+	def clear(self):
 		
 		frames, _ = self.frames()
 		for frame in frames:
 			frame.set_value("")
+	
+	def on_submit(self, *args):
+		
+		self.submit()
+		self.hide()
+	
+	def on_reset(self, *args):
+		
+		self.clear()
 

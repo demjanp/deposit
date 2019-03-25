@@ -18,7 +18,7 @@ class AddObject(Tool):
 
 		current = self.view.mdiarea.get_current()
 		if current.__class__.__name__ == "QueryLst":
-			if (len(current.query.parse.selects[0].classes) == 1):
+			if current.query.parse.selects and (len(current.query.parse.selects[0].classes) == 1):
 				return True
 		return False
 	

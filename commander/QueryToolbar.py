@@ -35,5 +35,9 @@ class QueryToolbar(ViewChild):
 		
 		querystr = self.query_box.currentText()
 		if querystr:
-			self.view.mdiarea.create("Query", querystr)
-			
+			querystr = querystr.strip()
+			if querystr.startswith("SELECT "):
+				self.view.mdiarea.create("Query", querystr)
+			else:
+				self.model.query(querystr)
+

@@ -117,7 +117,7 @@ class DialogEntryForm(DialogForm):
 						frame.set_value(frameset_values[obj_id][frame.dclass][frame.descriptor])
 		self.adjustSize()
 	
-	def on_submit(self, *args):
+	def submit(self):
 		
 		# find frames, framesets and all possible relations
 		frames, framesets, relations = self.find_relations()
@@ -177,11 +177,20 @@ class DialogEntryForm(DialogForm):
 						continue
 					self.model.objects[obj_id1].relations.add(rel, obj_id2)
 	
-	def on_reset(self, *args):
+	def clear(self):
 		
 		for group in self.multigroups():
 			group.clear()
 		frames, _ = self.frames()
 		for frame in frames:
 			frame.set_value("")
+	
+	def on_submit(self, *args):
+		
+		self.submit()
+		self.clear()
+	
+	def on_reset(self, *args):
+		
+		self.clear()
 
