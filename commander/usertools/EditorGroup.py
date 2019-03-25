@@ -44,6 +44,10 @@ class EditorGroup(QtWidgets.QGroupBox):
 			idx = self.controls_frame.layout().indexOf(before)
 			self.controls_frame.layout().insertWidget(idx, EditorFrame(element, self, user_control))
 	
+	def remove_control(self, element):
+		
+		self.controls_frame.layout().removeWidget(element)
+	
 	def user_element(self):
 		
 		label = self.label_edit.text()
@@ -53,7 +57,7 @@ class EditorGroup(QtWidgets.QGroupBox):
 		self.group.members = []
 		for element in self.controls_frame.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
 			if isinstance(element, EditorFrame):
-				self.group.members.append(element.user_control())
+				self.group.members.append(element.user_element())
 		return self.group
 		
 	def get_selected(self):

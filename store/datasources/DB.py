@@ -145,6 +145,20 @@ class DB(DataSource):
 					INSERT INTO \"%s\" SELECT time, user_, delement, key, function, args FROM json_populate_recordset(null::event_, %%s);
 				""" % (event_type, table), (json.dumps(data),))
 		
+		table = self.identifier + "user_tools"
+		user_tool_type = "data TEXT"
+		create_table(table, user_tool_type, tables, cursor)
+		data_user_tools = self.store.user_tools.to_list()
+		if data_user_tools:
+			data = []
+			for row in data_user_tools:
+				data.append(dict(data = json.dumps(row)))
+			cursor.execute("""
+				DROP TYPE IF EXISTS user_tool_;
+				CREATE TYPE user_tool_ as (%s);
+				INSERT INTO \"%s\" SELECT data FROM json_populate_recordset(null::user_tool_, %%s);
+			""" % (user_tool_type, table), (json.dumps(data),))
+		
 		cursor.connection.commit()
 		cursor.connection.close()
 		
@@ -221,6 +235,16 @@ class DB(DataSource):
 				for row in rows:
 					data.append([json.loads(val) for val in row])
 				self.store.events.from_list(data)
+		
+		table = self.identifier + "user_tools"
+		if table in tables: # TODO will be obsolete for new databases
+			cursor.execute("SELECT * FROM \"%s\";" % (table,))
+			rows = cursor.fetchall()
+			if rows:
+				data = []
+				for row in rows:
+					data.append(json.loads(row[0]))
+				self.store.user_tools.from_list(data)
 		
 		self.store.images.load_thumbnails()
 		

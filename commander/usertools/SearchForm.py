@@ -7,8 +7,9 @@ class SearchForm(UserElementList):
 		UserElementList.__init__(self, label, view)
 		
 		self.setIcon(view.get_icon("search.svg"))
-		
+		self.setToolTip("Search Form: %s" % self.label)
+	
 	def on_triggered(self, state):
 		
-		pass
+		self.view.usertools.open_search_form(self)
 	

@@ -175,7 +175,7 @@ class ColumnBreak(Action):
 	
 	def on_triggered(self, state):
 		
-		pass
+		self.form_editor.add_column()
 
 class Select(Action):
 	

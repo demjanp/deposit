@@ -87,6 +87,7 @@ class Store(DModule):
 		self.linked = {}
 		self._local_resource_uris = []
 		self.events.clear()
+		self.user_tools.clear()
 
 		self.broadcast(Broadcasts.STORE_LOADED)
 

@@ -1,4 +1,3 @@
-from deposit import Broadcasts
 from deposit.DModule import (DModule)
 
 class UserTools(DModule):
@@ -13,12 +12,16 @@ class UserTools(DModule):
 	def add(self, user_tool):
 		
 		self._user_tools.append(user_tool)
-		self.broadcast(Broadcasts.STORE_DATA_CHANGED)
+		self.store.on_data_changed()
 	
 	def delete(self, label):
 		
 		self._user_tools = [user_tool for user_tool in self._user_tools if user_tool["label"] != label]
-		self.broadcast(Broadcasts.STORE_DATA_CHANGED)
+		self.store.on_data_changed()
+	
+	def clear(self):
+		
+		self._user_tools = []
 	
 	def to_list(self):
 		

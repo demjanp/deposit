@@ -7,6 +7,10 @@ class UserElementList(UserTool):
 		self.elements = []
 		UserTool.__init__(self, label, view)
 	
+	def to_markup(self):
+		
+		return UserTool.to_markup(self) + "\n".join([element.to_markup() for element in self.elements])
+	
 	def to_dict(self):
 		
 		return dict(

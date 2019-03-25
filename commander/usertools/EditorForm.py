@@ -2,21 +2,24 @@ from deposit.commander.ViewChild import (ViewChild)
 from deposit.commander.usertools.EditorFrame import (EditorFrame)
 from deposit.commander.usertools.EditorGroup import (EditorGroup)
 from deposit.commander.usertools.EditorSelect import (EditorSelect)
+from deposit.commander.usertools.EditorColumn import (EditorColumn)
 from deposit.commander.usertools.EditorActions import (Action)
 from deposit.commander.usertools import (EditorActions)
 from deposit.commander.usertools.SearchForm import (SearchForm)
 from deposit.commander.usertools.EntryForm import (EntryForm)
 from deposit.commander.usertools.UserControls import (UserControl, Select)
+from deposit.commander.usertools.ColumnBreak import (ColumnBreak)
 from deposit.commander.usertools.UserGroups import (Group)
 
 from PyQt5 import (QtWidgets, QtCore, QtGui)
 
-class FormEditor(ViewChild, QtWidgets.QMainWindow):
+class EditorForm(ViewChild, QtWidgets.QMainWindow):
 	
 	def __init__(self, model, view, form_tool, entry):
 		
 		self.entry = entry
 		self.form_tool = form_tool
+		self.columns = []
 		
 		ViewChild.__init__(self, model, view)
 		QtWidgets.QMainWindow.__init__(self)
@@ -32,11 +35,17 @@ class FormEditor(ViewChild, QtWidgets.QMainWindow):
 		self.title_frame.layout().addWidget(QtWidgets.QLabel("Title:"))
 		self.title_edit = QtWidgets.QLineEdit()
 		self.title_frame.layout().addWidget(self.title_edit)
-		
 		self.central_widget.layout().addWidget(self.title_frame)
+		
 		self.controls_frame = QtWidgets.QFrame()
-		self.controls_frame.setLayout(QtWidgets.QVBoxLayout())
-		self.central_widget.layout().addWidget(self.controls_frame)
+		self.controls_frame.setLayout(QtWidgets.QHBoxLayout())
+		
+		scroll_area = QtWidgets.QScrollArea()
+		scroll_area.setWidgetResizable(True)
+		scroll_area.setWidget(self.controls_frame)
+		
+		self.central_widget.layout().addWidget(scroll_area)
+		
 		self.selects_frame = QtWidgets.QFrame()
 		self.selects_frame.setLayout(QtWidgets.QHBoxLayout())
 		if not self.entry:
@@ -82,23 +91,29 @@ class FormEditor(ViewChild, QtWidgets.QMainWindow):
 			for element in self.form_tool.elements:
 				if issubclass(element.__class__, Select):
 					self.add_select(element)
+				elif isinstance(element, ColumnBreak):
+					self.add_column()
 				elif issubclass(element.__class__, UserControl):
 					self.add_frame(element.__class__.__name__, element)
 				elif issubclass(element.__class__, Group):
 					self.add_group(element.__class__.__name__, element)
 		
+		if not self.columns:
+			self.add_column()
+		
 		self.update_toolbar()
 	
 	def get_selected(self):
 		
-		for element in self.controls_frame.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
-			if isinstance(element, EditorGroup) or isinstance(element, EditorFrame):
-				if element.selected:
-					return element
-				if isinstance(element, EditorGroup):
-					element = element.get_selected()
-					if element is not None:
+		for column in self.columns:
+			for element in column.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
+				if isinstance(element, EditorGroup) or isinstance(element, EditorFrame):
+					if element.selected:
 						return element
+					if isinstance(element, EditorGroup):
+						element = element.get_selected()
+						if element is not None:
+							return element
 		for element in self.selects_frame.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
 			if isinstance(element, EditorSelect):
 				if element.selected:
@@ -124,6 +139,17 @@ class FormEditor(ViewChild, QtWidgets.QMainWindow):
 				continue
 			action.update()
 	
+	def get_control_index(self, element):
+		
+		for column in self.columns:
+			idx = column.layout().indexOf(element)
+		return column, idx
+	
+	def add_column(self):
+		
+		self.columns.append(EditorColumn())
+		self.controls_frame.layout().addWidget(self.columns[-1])
+	
 	def add_frame(self, element, user_control = None):
 		
 		selected = self.get_selected()
@@ -131,12 +157,12 @@ class FormEditor(ViewChild, QtWidgets.QMainWindow):
 			selected.add_frame(element)
 		elif isinstance(selected, EditorFrame):
 			if selected.form_editor == self:
-				idx = self.controls_frame.layout().indexOf(selected)
-				self.controls_frame.layout().insertWidget(idx, EditorFrame(element, self, user_control))
+				column, idx = self.get_control_index(selected)
+				column.layout().insertWidget(idx, EditorFrame(element, self, user_control))
 			else:
 				selected.form_editor.add_frame(element, before = selected)
 		else:
-			self.controls_frame.layout().addWidget(EditorFrame(element, self, user_control))
+			self.columns[-1].layout().addWidget(EditorFrame(element, self, user_control))
 	
 	def add_group(self, element, user_group = None):
 		
@@ -144,11 +170,11 @@ class FormEditor(ViewChild, QtWidgets.QMainWindow):
 		idx = None
 		if (selected is None) or (not isinstance(selected, EditorSelect)):
 			if (selected is not None) and (selected.form_editor == self):
-				idx = self.controls_frame.layout().indexOf(selected)
+				column, idx = self.get_control_index(selected)
 		if idx is None:
-			self.controls_frame.layout().addWidget(EditorGroup(element, self, user_group))
+			self.columns[-1].layout().addWidget(EditorGroup(element, self, user_group))
 		else:
-			self.controls_frame.layout().insertWidget(idx, EditorGroup(element, self, user_group))
+			column.layout().insertWidget(idx, EditorGroup(element, self, user_group))
 	
 	def add_select(self, user_select = None):
 		
@@ -159,15 +185,20 @@ class FormEditor(ViewChild, QtWidgets.QMainWindow):
 			idx = self.selects_frame.layout().count() - 1
 		self.selects_frame.layout().insertWidget(idx, EditorSelect(self, user_select))
 	
+	def remove_control(self, element):
+		
+		column, _ = self.get_control_index(element)
+		column.layout().removeWidget(element)
+	
 	def delete(self):
 		
 		selected = self.get_selected()
 		if selected is None:
 			return
 		if isinstance(selected, EditorFrame):
-			selected.form_editor.controls_frame.layout().removeWidget(selected)
+			selected.form_editor.remove_control(selected)
 		elif isinstance(selected, EditorGroup):
-			self.controls_frame.layout().removeWidget(selected)
+			self.remove_control(selected)
 		elif isinstance(selected, EditorSelect):
 			self.selects_frame.layout().removeWidget(selected)
 		selected.selected = False
@@ -183,9 +214,12 @@ class FormEditor(ViewChild, QtWidgets.QMainWindow):
 		title = self.title_edit.text()
 		if title:
 			form = Form(title, self.view)
-			for element in self.controls_frame.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
-				if isinstance(element, EditorGroup) or isinstance(element, EditorFrame):
-					form.elements.append(element.user_element())
+
+			for column in self.columns:
+				form.elements.append(column.user_element())
+				for element in column.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
+					if isinstance(element, EditorGroup) or isinstance(element, EditorFrame):
+						form.elements.append(element.user_element())
 			for element in self.selects_frame.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
 				if isinstance(element, EditorSelect):
 					form.elements.append(element.user_element())

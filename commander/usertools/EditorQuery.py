@@ -3,7 +3,7 @@ from deposit.commander.usertools.Query import (Query)
 
 from PyQt5 import (QtWidgets, QtCore, QtGui)
 
-class QueryEditor(ViewChild, QtWidgets.QDialog):
+class EditorQuery(ViewChild, QtWidgets.QDialog):
 	
 	def __init__(self, model, view, query_tool):
 		

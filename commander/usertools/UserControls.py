@@ -9,6 +9,10 @@ class UserControl(UserLabeledElement, UserSelect):
 		UserLabeledElement.__init__(self, stylesheet, label)
 		UserSelect.__init__(self, dclass, descriptor)
 	
+	def to_markup(self):
+		
+		return "<%s %s.%s>%s</>" % (self.__class__.__name__, self.dclass, self.descriptor, self.label)
+	
 	def to_dict(self):
 		
 		out = dict(**UserLabeledElement.to_dict(self))
@@ -44,7 +48,11 @@ class Select(UserSelect):
 	def __init__(self, stylesheet, label, dclass, descriptor):
 		
 		UserSelect.__init__(self, dclass, descriptor)
+	
+	def to_markup(self):
 		
+		return "<%s %s.%s/>" % (self.__class__.__name__, self.dclass, self.descriptor)
+	
 	def to_dict(self):
 		
 		return dict(
