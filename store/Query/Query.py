@@ -1,4 +1,5 @@
 from deposit.store.DLabel.DString import (DString)
+from deposit.store.DLabel.DNone import (DNone)
 from deposit.store.DElements.DClasses import (DClass)
 from deposit.store.DElements.DDescriptors import (DDescriptor)
 from deposit.store.Query.Parse import (Parse)
@@ -214,7 +215,7 @@ class Query(object):
 				for descr in select.descriptors:
 					for cls in classes:
 						if not descr in obj.descriptors:
-							row.add(obj, cls)
+							row.add(obj, cls, DDescriptor(obj, self.store.classes[descr], DNone()))
 						else:
 							row.add(obj, cls, obj.descriptors[descr])
 			

@@ -399,6 +399,7 @@ class Condition(object):
 					self.selects.append(select)
 					self.classes.update(select.classes)
 					extracted.append([idx1, idx2, 1])
+					idx0 = idx2
 		
 		# extract object ids
 		idx0 = -1
@@ -483,7 +484,10 @@ class Condition(object):
 			values[vars[key]] = weight.value(objects)
 			n += 1
 		
-		return eval(self.eval_str % vars, values)
+		try:
+			return eval(self.eval_str % vars, values)
+		except:
+			return False
 	
 class Count(Condition):
 	
