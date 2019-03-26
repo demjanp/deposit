@@ -19,6 +19,7 @@ class EditorSelect(QtWidgets.QFrame):
 		
 		self.setStyleSheet("%s:hover {background: grey;}" % (self.__class__.__name__))
 		self.setLayout(QtWidgets.QHBoxLayout())
+		self.layout().setContentsMargins(10, 10, 10, 10)
 		
 		self.select = QtWidgets.QLineEdit("%s.%s" % (self.user_select.dclass, self.user_select.descriptor))
 		self.layout().addWidget(self.select)

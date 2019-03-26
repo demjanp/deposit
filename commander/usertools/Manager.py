@@ -25,11 +25,13 @@ class Manager(ViewChild, QtWidgets.QDialog):
 		self.setMinimumWidth(300)
 		self.setModal(True)
 		self.setLayout(QtWidgets.QHBoxLayout())
+		self.layout().setContentsMargins(10, 10, 10, 10)
 		
 		self.tool_list = QtWidgets.QListWidget()
 		self.tool_list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 		self.controls = QtWidgets.QFrame()
 		self.controls.setLayout(QtWidgets.QVBoxLayout())
+		self.controls.layout().setContentsMargins(0, 0, 0, 0)
 		
 		self.button_add_query = QtWidgets.QPushButton("Add Query")
 		self.button_add_query.setIcon(self.view.get_icon("add_query.svg"))

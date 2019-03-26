@@ -16,7 +16,11 @@ class DialogFrame(QtWidgets.QFrame):
 		self.ctrl = getattr(DialogControls, user_control.__class__.__name__)(self.model, self.user_control)
 		
 		self.setLayout(QtWidgets.QFormLayout())
-		self.layout().addRow("%s:" % (self.user_control.label), self.ctrl)
+		self.layout().setContentsMargins(0, 0, 0, 0)
+		self.layout().setRowWrapPolicy(QtWidgets.QFormLayout.WrapLongRows)
+		label = QtWidgets.QLabel("%s:" % (self.user_control.label))
+		label.setStyleSheet(self.user_control.stylesheet)
+		self.layout().addRow(label, self.ctrl)
 	
 	@property
 	def dclass(self):

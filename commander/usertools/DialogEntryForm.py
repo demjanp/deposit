@@ -1,4 +1,4 @@
-from deposit.commander.usertools._DialogForm import (DialogForm)
+from deposit.commander.usertools.DialogForm import (DialogForm)
 
 from PyQt5 import (QtWidgets, QtCore, QtGui)
 from collections import defaultdict
@@ -116,7 +116,7 @@ class DialogEntryForm(DialogForm):
 					if (frame.dclass in frameset_values[obj_id]) and (frame.descriptor in frameset_values[obj_id][frame.dclass]):
 						frame.set_value(frameset_values[obj_id][frame.dclass][frame.descriptor])
 		self.adjustSize()
-	
+		
 	def submit(self):
 		
 		# find frames, framesets and all possible relations

@@ -1,6 +1,6 @@
-from deposit.commander.usertools._UserElement import (UserElement)
-from deposit.commander.usertools._UserLabeledElement import (UserLabeledElement)
-from deposit.commander.usertools._UserSelect import (UserSelect)
+from deposit.commander.usertools.UserElement import (UserElement)
+from deposit.commander.usertools.UserLabeledElement import (UserLabeledElement)
+from deposit.commander.usertools.UserSelect import (UserSelect)
 
 class UserControl(UserLabeledElement, UserSelect):
 	
@@ -11,7 +11,7 @@ class UserControl(UserLabeledElement, UserSelect):
 	
 	def to_markup(self):
 		
-		return "<%s %s.%s>%s</>" % (self.__class__.__name__, self.dclass, self.descriptor, self.label)
+		return "<%s %s.%s style=\"%s\">%s</>" % (self.__class__.__name__, self.dclass, self.descriptor, self.stylesheet, self.label)
 	
 	def to_dict(self):
 		

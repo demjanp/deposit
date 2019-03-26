@@ -10,12 +10,15 @@ class EditorGroup(QtWidgets.QGroupBox):
 		self.label_edit = None
 		self.element = element
 		self.group = None
+		self.hovered = False
 		self.selected = False
+		self.bold = False
 		self.form_editor = form_editor
 		
 		QtWidgets.QGroupBox.__init__(self, self.element)
 		
 		self.setLayout(QtWidgets.QVBoxLayout())
+		self.layout().setContentsMargins(10, 10, 10, 10)
 		
 		if user_group is None:
 			user_group = getattr(UserGroups, element)("", "Label")
@@ -24,15 +27,21 @@ class EditorGroup(QtWidgets.QGroupBox):
 		self.label_edit = QtWidgets.QLineEdit(self.group.label)
 		form = QtWidgets.QFrame()
 		form.setLayout(QtWidgets.QFormLayout())
+		form.layout().setContentsMargins(0, 0, 0, 0)
 		form.layout().addRow("Label:", self.label_edit)
 		self.layout().addWidget(form)
 		
 		self.controls_frame = QtWidgets.QFrame()
 		self.controls_frame.setLayout(QtWidgets.QVBoxLayout())
+		self.controls_frame.layout().setContentsMargins(0, 0, 0, 0)
 		self.layout().addWidget(self.controls_frame)
 		
 		for member in self.group.members:
 			self.add_frame(member.__class__.__name__, member)
+		
+		self.bold = "font-weight: bold;" in self.group.stylesheet
+		
+		self.update_stylesheet()
 		
 		self.setMouseTracking(True)
 	
@@ -54,6 +63,7 @@ class EditorGroup(QtWidgets.QGroupBox):
 		if not label:
 			return None
 		self.group.label = label
+		self.group.stylesheet = "QGroupBox {font-weight: bold;}" if self.bold else ""
 		self.group.members = []
 		for element in self.controls_frame.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
 			if isinstance(element, EditorFrame):
@@ -73,29 +83,38 @@ class EditorGroup(QtWidgets.QGroupBox):
 		for element in self.controls_frame.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
 			if isinstance(element, EditorFrame):
 				element.setSelected(False)
+	
+	def update_stylesheet(self):
 		
+		stylesheet = ""
+		if self.hovered:
+			stylesheet += "%s {background: lightgrey;}" % (self.__class__.__name__)
+		if self.selected:
+			stylesheet += " %s {border: 2px solid grey;}" % (self.__class__.__name__)
+		if self.bold:
+			stylesheet += " %s {font-weight: bold;}" % (self.__class__.__name__)
+		self.setStyleSheet(stylesheet)
+	
 	def setSelected(self, state):
 		
-		if state:
-			self.setStyleSheet("%s {border: 2px solid grey;}" % (self.__class__.__name__))
-		else:
-			self.setStyleSheet("")
 		self.selected = state
+		self.update_stylesheet()
 		self.form_editor.on_selection_changed()
+	
+	def setBold(self, state):
+		
+		self.bold = state
+		self.update_stylesheet()
 	
 	def enterEvent(self, event):
 		
-		if self.selected:
-			self.setStyleSheet("%s {border: 2px solid grey;} %s {background: lightgrey;}" % (self.__class__.__name__, self.__class__.__name__))
-		else:
-			self.setStyleSheet("%s {background: lightgrey;}" % (self.__class__.__name__))
+		self.hovered = True
+		self.update_stylesheet()
 	
 	def leaveEvent(self, event):
 		
-		if self.selected:
-			self.setStyleSheet("%s {border: 2px solid grey;}" % (self.__class__.__name__))
-		else:
-			self.setStyleSheet("")
+		self.hovered = False
+		self.update_stylesheet()
 		
 	def mousePressEvent(self, event):
 		

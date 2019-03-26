@@ -14,12 +14,16 @@ class DialogGroup(QtWidgets.QGroupBox):
 		QtWidgets.QGroupBox.__init__(self, self.user_group.label)
 		
 		self.setLayout(QtWidgets.QVBoxLayout())
+		self.layout().setContentsMargins(0, 0, 0, 0)
 		self.controls_frame = QtWidgets.QFrame()
 		self.controls_frame.setLayout(QtWidgets.QVBoxLayout())
+		self.controls_frame.layout().setContentsMargins(10, 10, 10, 10)
 		self.layout().addWidget(self.controls_frame)
 		
 		for member in self.user_group.members:
 			self.add_frame(member)
+		
+		self.setStyleSheet(self.user_group.stylesheet)
 		
 	def add_frame(self, user_control):
 		

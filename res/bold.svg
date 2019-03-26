@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="34.133335"
+   height="34.133335"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.92.1 r15371"
+   sodipodi:docname="bold.svg"
+   inkscape:export-filename="C:\documents\deposit_1_1\_res\dep_cube_48px.png"
+   inkscape:export-xdpi="135"
+   inkscape:export-ydpi="135">
+  <defs
+     id="defs4">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="-173.42076 : 134.99922 : 1"
+       inkscape:vp_y="0 : 1066.6667 : 0"
+       inkscape:vp_z="204.11941 : 133.73499 : 1"
+       inkscape:persp3d-origin="5.5877722 : 6.6606441 : 1"
+       id="perspective3029" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="3.4825"
+     inkscape:cx="-54.552725"
+     inkscape:cy="35.329257"
+     inkscape:document-units="px"
+     inkscape:current-layer="text3019"
+     showgrid="false"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:snap-bbox="true"
+     inkscape:bbox-nodes="true"
+     inkscape:bbox-paths="true"
+     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:snap-bbox-midpoints="true"
+     inkscape:snap-global="true"
+     inkscape:window-width="1920"
+     inkscape:window-height="1001"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:object-paths="true"
+     inkscape:snap-intersection-paths="true"
+     inkscape:snap-smooth-nodes="true"
+     inkscape:snap-midpoints="true"
+     inkscape:object-nodes="true"
+     inkscape:snap-center="false"
+     inkscape:snap-object-midpoints="true">
+    <sodipodi:guide
+       orientation="0,1"
+       position="69.866667,134.93333"
+       id="guide3143"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-1088.3863)">
+    <g
+       id="g3992-1"
+       transform="matrix(-1,0,0,1,78.933333,34.536241)" />
+    <g
+       aria-label="B"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:12.80000019px;line-height:0%;font-family:'Myriad Pro';-inkscape-font-specification:'Sans Bold';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06666672"
+       id="text3019">
+      <path
+         d="m 9.7333342,1115.221 c 0.9973338,0.1466 2.6399998,0.2933 4.8399998,0.2933 3.930667,0 6.336,-0.6453 7.773334,-1.7893 1.232,-0.9974 2.053333,-2.4054 2.053333,-4.1947 0,-2.552 -1.672,-4.2533 -3.930667,-4.8693 v -0.059 c 2.229334,-0.8213 3.256001,-2.464 3.256001,-4.224 0,-1.7893 -0.997334,-3.1387 -2.376001,-3.872 -1.437333,-0.8507 -3.109333,-1.1147 -5.837333,-1.1147 -2.229333,0 -4.605333,0.176 -5.7786668,0.4107 z m 4.4293338,-16.456 c 0.381333,-0.059 0.938666,-0.1174 1.906666,-0.1174 2.024,0 3.168,0.792 3.168,2.288 0,1.4667 -1.261333,2.4347 -3.608,2.4347 h -1.466666 z m 0,7.8026 h 1.525333 c 2.229333,0 4.018667,0.792 4.018667,2.7867 0,2.0533 -1.789334,2.8453 -3.813334,2.8453 -0.762666,0 -1.290666,0 -1.730666,-0.059 z"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:29.33333397px;line-height:1.25;font-family:'Myriad Pro';-inkscape-font-specification:'Myriad Pro Bold';stroke-width:1.06666672"
+         id="path4491" />
+    </g>
+  </g>
+</svg>

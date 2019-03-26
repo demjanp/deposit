@@ -9,16 +9,21 @@ class EditorFrame(QtWidgets.QFrame):
 		self.label_edit = None
 		self.ctrl = None
 		self.selected = False
+		self.bold = False
 		self.form_editor = form_editor
 		
 		QtWidgets.QFrame.__init__(self)
 		
-		self.setStyleSheet("%s:hover {background: grey;}" % (self.__class__.__name__))
 		self.setLayout(QtWidgets.QFormLayout())
+		self.layout().setContentsMargins(10, 10, 10, 10)
 		
 		self.ctrl = getattr(EditorControls, element)(user_control)
 		self.label_edit = QtWidgets.QLineEdit(self.ctrl.user_control.label)
 		self.layout().addRow(self.label_edit, self.ctrl)
+		
+		self.bold = "font-weight: bold;" in self.ctrl.user_control.stylesheet
+		
+		self.update_stylesheet()
 	
 	def user_element(self):
 		
@@ -32,17 +37,31 @@ class EditorFrame(QtWidgets.QFrame):
 			return None
 		
 		self.ctrl.user_control.label = label
+		self.ctrl.user_control.stylesheet = "QLabel {font-weight: bold;}" if self.bold else ""
 		self.ctrl.user_control.dclass = select[0]
 		self.ctrl.user_control.descriptor = select[1]
 		return self.ctrl.user_control
 	
+	def update_stylesheet(self):
+		
+		stylesheet = "%s:hover {background: grey;}" % (self.__class__.__name__)
+		if self.selected:
+			stylesheet += " %s {border: 2px solid grey;} " % (self.__class__.__name__)
+		self.setStyleSheet(stylesheet)
+		if self.bold:
+			self.label_edit.setStyleSheet("QLineEdit {font-weight: bold;}")
+		else:
+			self.label_edit.setStyleSheet("")
+	
 	def setSelected(self, state):
 		
-		if state:
-			self.setStyleSheet("%s {border: 2px solid grey;} %s:hover {background: grey;}" % (self.__class__.__name__, self.__class__.__name__))
-		else:
-			self.setStyleSheet("%s:hover {background: grey;}" % (self.__class__.__name__))
 		self.selected = state
+		self.update_stylesheet()
+	
+	def setBold(self, state):
+		
+		self.bold = state
+		self.update_stylesheet()
 	
 	def mousePressEvent(self, event):
 		

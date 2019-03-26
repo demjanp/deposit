@@ -1,4 +1,4 @@
-from deposit.commander.usertools._UserElement import (UserElement)
+from deposit.commander.usertools.UserElement import (UserElement)
 
 class UserSelect(UserElement):
 	

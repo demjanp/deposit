@@ -99,7 +99,7 @@ class UserTools(ViewChild):
 		elements = []
 		# elements = [["Title", title], ["Type", type], tag, group, multigroup, select, ...]
 		#	type = "Query" / "SearchForm" / "EntryForm"
-		# 	tag = [control type, class.descriptor, label]
+		# 	tag = [control type, class.descriptor, label, stylesheet]
 		# 	group = [["Group", label], tag, ...], multigroup = [["MultiGroup", label], tag, ...]
 		#	select = [class.descriptor]
 		collect = []
@@ -123,10 +123,21 @@ class UserTools(ViewChild):
 				tag = tag.strip("/").strip()
 				if tag:
 					tag, quotes = find_quotes(tag)
+					stylesheet = ""
+					if " style=%(q" in tag:
+						idxs1 = tag.find(" style=%(q")
+						idxs2 = tag.find(")s", idxs1)
+						if idxs2 == -1:
+							idx0 = idx1 + 1
+							continue
+						key = tag[idxs1 + 9:idxs2]
+						stylesheet = quotes[key]
+						del quotes[key]
+						tag = tag[:idxs1]
 					tag = [fragment.strip() % quotes for fragment in tag.split(" ")]
 					tag = [fragment for fragment in tag if fragment]
 					if tag:
-						collect.append(tag)
+						collect.append(tag + [stylesheet])
 				if slash_end:
 					collect.append(-1)
 			idx0 = idx1 + 1
@@ -159,7 +170,7 @@ class UserTools(ViewChild):
 		
 		data = dict(
 			typ = elements[1][1],
-			label = elements[0][1],
+			label = elements[0][2],
 			elements = []
 		)
 		if elements[1][1] == "Query":
@@ -184,30 +195,30 @@ class UserTools(ViewChild):
 				elif isinstance(element[0], list): # Group or MultiGroup
 					data["elements"].append(dict(
 						typ = element[0][0],
-						label = element[0][1],
-						stylesheet = "",
+						stylesheet = element[0][1],
+						label = element[0][2],
 						members = [],
 					))
-					for typ, select, label in element[1:]:
+					for typ, select, stylesheet, label in element[1:]:
 						dclass, descriptor = select.split(".")
 						data["elements"][-1]["members"].append(dict(
 							typ = typ,
 							dclass = dclass,
 							descriptor = descriptor,
 							label = label,
-							stylesheet = "",
+							stylesheet = stylesheet,
 						))
-				elif len(element) == 3:  # tag
-					typ, select, label = element
+				elif len(element) == 4:  # tag
+					typ, select, stylesheet, label = element
 					dclass, descriptor = select.split(".")
 					data["elements"].append(dict(
 						typ = typ,
 						dclass = dclass,
 						descriptor = descriptor,
 						label = label,
-						stylesheet = "",
+						stylesheet = stylesheet,
 					))
-			
+		
 		self.model.user_tools.add(data)
 		
 	def update_tools(self):

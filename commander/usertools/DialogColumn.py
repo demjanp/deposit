@@ -8,9 +8,10 @@ class DialogColumn(QtWidgets.QFrame):
 		QtWidgets.QFrame.__init__(self)
 		
 		self.setLayout(QtWidgets.QVBoxLayout())
+		self.layout().setContentsMargins(0, 0, 0, 0)
 		self.layout().addStretch()
 		
-		self.setStyleSheet("DialogColumn {border: 1px solid gray;}")
+#		self.setStyleSheet("DialogColumn {border: 1px solid gray;}")
 	
 	def add_widget(self, widget):
 		

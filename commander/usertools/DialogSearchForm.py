@@ -1,4 +1,4 @@
-from deposit.commander.usertools._DialogForm import (DialogForm)
+from deposit.commander.usertools.DialogForm import (DialogForm)
 
 class DialogSearchForm(DialogForm):
 	

@@ -9,6 +9,7 @@ class EditorColumn(QtWidgets.QFrame):
 		QtWidgets.QFrame.__init__(self)
 		
 		self.setLayout(QtWidgets.QVBoxLayout())
+		self.layout().setContentsMargins(0, 0, 0, 0)
 		
 		self.setStyleSheet("EditorColumn {border: 1px solid gray;}")
 	

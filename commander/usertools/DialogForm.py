@@ -6,6 +6,7 @@ from deposit.commander.usertools.DialogMultiGroup import (DialogMultiGroup)
 from deposit.commander.usertools.UserGroups import (Group, MultiGroup)
 from deposit.commander.usertools.UserControls import (UserControl, Select)
 from deposit.commander.usertools.ColumnBreak import (ColumnBreak)
+from deposit.commander.usertools.VerticalScrollArea import (VerticalScrollArea)
 
 from PyQt5 import (QtWidgets, QtCore, QtGui)
 
@@ -34,24 +35,23 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 		
 		self.controls_frame = QtWidgets.QFrame()
 		self.controls_frame.setLayout(QtWidgets.QHBoxLayout())
+		self.controls_frame.layout().setContentsMargins(10, 10, 10, 10)
 		
-		scroll_area = QtWidgets.QScrollArea()
-		scroll_area.setWidgetResizable(True)
-		scroll_area.setWidget(self.controls_frame)
+		self.scroll_area = VerticalScrollArea(self.controls_frame)
 		
-		self.layout().addWidget(scroll_area)
+		self.layout().addWidget(self.scroll_area)
 		
-		button_frame = QtWidgets.QFrame()
-		button_frame.setLayout(QtWidgets.QHBoxLayout())
-		button_frame.layout().setContentsMargins(5, 5, 5, 5)
-		button_frame.layout().addStretch()
+		self.button_frame = QtWidgets.QFrame()
+		self.button_frame.setLayout(QtWidgets.QHBoxLayout())
+		self.button_frame.layout().setContentsMargins(5, 5, 5, 5)
+		self.button_frame.layout().addStretch()
 		button_submit = QtWidgets.QPushButton("Submit")
 		button_submit.clicked.connect(self.on_submit)
-		button_frame.layout().addWidget(button_submit)
+		self.button_frame.layout().addWidget(button_submit)
 		button_reset = QtWidgets.QPushButton("Reset")
 		button_reset.clicked.connect(self.on_reset)
-		button_frame.layout().addWidget(button_reset)
-		self.layout().addWidget(button_frame)
+		self.button_frame.layout().addWidget(button_reset)
+		self.layout().addWidget(self.button_frame)
 		
 		for element in self.form_tool.elements:
 			if issubclass(element.__class__, Select):
@@ -63,9 +63,7 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 			elif issubclass(element.__class__, Group):
 				self.add_group(element)
 		
-		self.set_up()
-	
-	def set_up(self):
+		self.adjust_labels()
 		
 		pass
 	
@@ -123,9 +121,21 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 					frames.append(element)
 		return frames, framesets
 	
+	def adjust_labels(self):
+		
+		for column in self.columns:
+			wmax = 0
+			for label in column.findChildren(QtWidgets.QLabel):
+				wmax = max(wmax, label.sizeHint().width())
+			for label in column.findChildren(QtWidgets.QLabel):
+				label.setFixedWidth(wmax)
+				label.setAlignment(QtCore.Qt.AlignRight)
+			
 	def sizeHint(self):
 		
-		return self.controls_frame.sizeHint()
+		w = self.controls_frame.sizeHint().width()
+		h = self.controls_frame.sizeHint().height() + self.button_frame.sizeHint().height()
+		return QtCore.QSize(w, h)
 	
 	def on_submit(self, *args):
 		

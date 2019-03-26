@@ -1,4 +1,4 @@
-from deposit.commander.usertools._UserLabeledElement import (UserLabeledElement)
+from deposit.commander.usertools.UserLabeledElement import (UserLabeledElement)
 
 class Group(UserLabeledElement):
 	
@@ -9,7 +9,7 @@ class Group(UserLabeledElement):
 	
 	def to_markup(self):
 		
-		return "<%s>%s\n" % (self.__class__.__name__, self.label) + "\n".join(["\t%s" % (member.to_markup()) for member in self.members]) + "\n</>"
+		return "<%s style=\"%s\">%s\n" % (self.__class__.__name__, self.stylesheet, self.label) + "\n".join(["\t%s" % (member.to_markup()) for member in self.members]) + "\n</>"
 	
 	def to_dict(self):
 		

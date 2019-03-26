@@ -26,12 +26,14 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 		
 		self.central_widget = QtWidgets.QWidget(self)
 		self.central_widget.setLayout(QtWidgets.QVBoxLayout())
+		self.central_widget.layout().setContentsMargins(0, 0, 0, 0)
 		self.setCentralWidget(self.central_widget)
 		
 		self.setStyleSheet("font: 14px;")
 		
 		self.title_frame = QtWidgets.QFrame()
 		self.title_frame.setLayout(QtWidgets.QHBoxLayout())
+		self.title_frame.layout().setContentsMargins(0, 0, 0, 0)
 		self.title_frame.layout().addWidget(QtWidgets.QLabel("Title:"))
 		self.title_edit = QtWidgets.QLineEdit()
 		self.title_frame.layout().addWidget(self.title_edit)
@@ -39,6 +41,7 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 		
 		self.controls_frame = QtWidgets.QFrame()
 		self.controls_frame.setLayout(QtWidgets.QHBoxLayout())
+		self.controls_frame.layout().setContentsMargins(10, 10, 10, 10)
 		
 		scroll_area = QtWidgets.QScrollArea()
 		scroll_area.setWidgetResizable(True)
@@ -48,6 +51,7 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 		
 		self.selects_frame = QtWidgets.QFrame()
 		self.selects_frame.setLayout(QtWidgets.QHBoxLayout())
+		self.selects_frame.layout().setContentsMargins(10, 10, 10, 10)
 		if not self.entry:
 			self.selects_frame.layout().addWidget(QtWidgets.QLabel("SELECT"))
 			self.selects_frame.layout().addStretch()

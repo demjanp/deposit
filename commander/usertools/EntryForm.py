@@ -1,4 +1,4 @@
-from deposit.commander.usertools._UserElementList import (UserElementList)
+from deposit.commander.usertools.UserElementList import (UserElementList)
 
 class EntryForm(UserElementList):
 	

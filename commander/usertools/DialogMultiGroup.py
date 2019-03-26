@@ -15,8 +15,10 @@ class DialogMultiGroup(QtWidgets.QGroupBox):
 		QtWidgets.QGroupBox.__init__(self, self.user_group.label)
 		
 		self.setLayout(QtWidgets.QVBoxLayout())
+		self.layout().setContentsMargins(0, 0, 0, 0)
 		self.controls_frame = QtWidgets.QFrame()
 		self.controls_frame.setLayout(QtWidgets.QVBoxLayout())
+		self.controls_frame.layout().setContentsMargins(0, 0, 0, 0)
 		self.layout().addWidget(self.controls_frame)
 		
 		button_frame = QtWidgets.QFrame()
@@ -29,6 +31,8 @@ class DialogMultiGroup(QtWidgets.QGroupBox):
 		self.layout().addWidget(button_frame)
 		
 		self.add_entry()
+		
+		self.setStyleSheet(self.user_group.stylesheet)
 	
 	def add_frameset(self):
 		
