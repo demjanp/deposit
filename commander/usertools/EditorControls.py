@@ -32,6 +32,7 @@ class PlainTextEdit(EditorControl, QtWidgets.QPlainTextEdit):
 		
 		EditorControl.__init__(self, user_control)
 		QtWidgets.QPlainTextEdit.__init__(self)
+		self.setFixedHeight(100)
 		self.setPlainText("%s.%s" % (self.user_control.dclass, self.user_control.descriptor))
 		
 	def select_text(self):

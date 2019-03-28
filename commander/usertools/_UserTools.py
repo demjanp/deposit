@@ -26,6 +26,7 @@ class UserTools(ViewChild):
 		self.actions = {} # {name: QAction, ...}
 		self.manager = None
 		self.form_editor = None
+		self.entry_form_geometry = None
 		
 		ViewChild.__init__(self, model, view)
 		
@@ -176,7 +177,7 @@ class UserTools(ViewChild):
 		if elements[1][1] == "Query":
 			if elements[2][0] != "QueryString":
 				return
-			data["value"] = elements[2][1]
+			data["value"] = elements[2][2]
 		else:
 			for element in elements[2:]:
 				if element[0] == "ColumnBreak":
@@ -239,10 +240,14 @@ class UserTools(ViewChild):
 	def get_selected_id(self):
 		
 		current = self.view.mdiarea.get_current()
-		if current and hasattr(current, "get_selected_objects"):
-			objects = list(current.get_selected_objects().values())
-			if len(objects) == 1:
-				return objects[0].id
+		if current:
+			if hasattr(current, "get_selected_objects"):
+				objects = list(current.get_selected_objects().values())
+				if len(objects) == 1:
+					return objects[0].id
+			if hasattr(current, "object") and (current.object is not None):
+				return current.object.id
+				
 		return None
 	
 	def open_query(self, form_tool):

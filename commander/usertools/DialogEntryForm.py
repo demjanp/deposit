@@ -12,6 +12,11 @@ class DialogEntryForm(DialogForm):
 		
 		DialogForm.__init__(self, model, view, form_tool)
 		
+		if self.view.usertools.entry_form_geometry is not None:
+			self.setGeometry(self.view.usertools.entry_form_geometry)
+		else:
+			self.setMinimumWidth(600)
+		
 		self.overrideWindowFlags(QtCore.Qt.Window)
 		
 		if self.selected_id is not None:
@@ -111,11 +116,12 @@ class DialogEntryForm(DialogForm):
 						frameset_values[obj_id][cls][descr] = value
 		for obj_id in frameset_values:
 			for group in group_ids[obj_id]:
-				frameset = group.add_entry()
+				frameset = group.framesets()[-1]
 				for frame in frameset:
 					if (frame.dclass in frameset_values[obj_id]) and (frame.descriptor in frameset_values[obj_id][frame.dclass]):
 						frame.set_value(frameset_values[obj_id][frame.dclass][frame.descriptor])
-		self.adjustSize()
+				group.add_entry()
+		self.adjust_labels()
 		
 	def submit(self):
 		
@@ -193,4 +199,10 @@ class DialogEntryForm(DialogForm):
 	def on_reset(self, *args):
 		
 		self.clear()
+
+	
+	def closeEvent(self, event):
+		
+		self.view.usertools.entry_form_geometry = self.geometry()
+		DialogForm.closeEvent(self, event)
 

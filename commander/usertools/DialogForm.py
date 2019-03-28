@@ -7,6 +7,7 @@ from deposit.commander.usertools.UserGroups import (Group, MultiGroup)
 from deposit.commander.usertools.UserControls import (UserControl, Select)
 from deposit.commander.usertools.ColumnBreak import (ColumnBreak)
 from deposit.commander.usertools.VerticalScrollArea import (VerticalScrollArea)
+from deposit.commander.usertools.DialogControls import (DialogControl)
 
 from PyQt5 import (QtWidgets, QtCore, QtGui)
 
@@ -26,7 +27,6 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 		self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 		
 		self.setWindowTitle(self.form_tool.label)
-		self.setMinimumWidth(256)
 		self.setModal(False)
 		
 		self.setLayout(QtWidgets.QVBoxLayout())
@@ -34,7 +34,7 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 		self.layout().setContentsMargins(0, 0, 0, 0)
 		
 		self.controls_frame = QtWidgets.QFrame()
-		self.controls_frame.setLayout(QtWidgets.QHBoxLayout())
+		self.controls_frame.setLayout(QtWidgets.QGridLayout())
 		self.controls_frame.layout().setContentsMargins(10, 10, 10, 10)
 		
 		self.scroll_area = VerticalScrollArea(self.controls_frame)
@@ -75,7 +75,7 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 	def add_column(self):
 		
 		self.columns.append(DialogColumn())
-		self.controls_frame.layout().addWidget(self.columns[-1])
+		self.controls_frame.layout().addWidget(self.columns[-1], 0, len(self.columns) - 1)
 	
 	def add_frame(self, user_control):
 		
@@ -133,9 +133,21 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 			
 	def sizeHint(self):
 		
-		w = self.controls_frame.sizeHint().width()
-		h = self.controls_frame.sizeHint().height() + self.button_frame.sizeHint().height()
+		margins = self.controls_frame.layout().contentsMargins()
+		w = self.controls_frame.sizeHint().width() + self.scroll_area.verticalScrollBar().width() + margins.left() + margins.right()
+		h = self.controls_frame.sizeHint().height() + self.button_frame.sizeHint().height() + margins.top() + margins.bottom()
 		return QtCore.QSize(w, h)
+	
+	def resizeEvent(self, event):
+		
+		if not self.columns:
+			return
+		w = 0
+		for column in self.columns:
+			w += column.sizeHint().width()
+		w = int(round(w / len(self.columns)))
+		for col in range(len(self.columns)):
+			self.controls_frame.layout().setColumnMinimumWidth(col, w)
 	
 	def on_submit(self, *args):
 		
@@ -145,3 +157,4 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 		
 		pass
 
+	

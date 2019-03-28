@@ -7,6 +7,8 @@ class DialogSearchForm(DialogForm):
 		self.selects = []
 		
 		DialogForm.__init__(self, model, view, form_tool)
+		
+		self.setMinimumWidth(600)
 	
 	def submit(self):
 		

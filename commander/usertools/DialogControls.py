@@ -28,7 +28,7 @@ class LineEdit(DialogControl, QtWidgets.QLineEdit):
 		
 		self.last_added = ""
 		self.values = []
-		self.autocomplete = True
+		self._autocompleting = True
 		
 		DialogControl.__init__(self, model, user_control)
 		QtWidgets.QLineEdit.__init__(self)
@@ -51,9 +51,9 @@ class LineEdit(DialogControl, QtWidgets.QLineEdit):
 		self.setText(value)
 		self.blockSignals(False)
 		if value == "":
-			self.autocomplete = True
+			self._autocompleting = True
 		else:
-			self.autocomplete = False
+			self._autocompleting = False
 	
 	def get_value(self):
 		
@@ -64,9 +64,9 @@ class LineEdit(DialogControl, QtWidgets.QLineEdit):
 		text = self.text()
 		if not text:
 			self.last_added = ""
-			self.autocomplete = True
+			self._autocompleting = True
 			return
-		if self.autocomplete:
+		if self._autocompleting:
 			for value in self.values:
 				if value.lower().startswith(text.lower()):
 					if value[len(text):] == self.last_added:
@@ -86,10 +86,12 @@ class PlainTextEdit(DialogControl, QtWidgets.QPlainTextEdit):
 		
 		self.last_added = ""
 		self.values = []
-		self.autocomplete = True
+		self._autocompleting = True
 		
 		DialogControl.__init__(self, model, user_control)
 		QtWidgets.QPlainTextEdit.__init__(self)
+		
+		self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 		
 		self.values = set()
 		for id in self.model.classes[self.user_control.dclass].objects:
@@ -109,22 +111,22 @@ class PlainTextEdit(DialogControl, QtWidgets.QPlainTextEdit):
 		self.setPlainText(value)
 		self.blockSignals(False)
 		if value == "":
-			self.autocomplete = True
+			self._autocompleting = True
 		else:
-			self.autocomplete = False
+			self._autocompleting = False
 		
 	def get_value(self):
 		
 		return self.toPlainText().strip()
 	
-	def on_text_changed(self, *args):
+	def autocomplete(self):
 		
 		text = self.toPlainText()
 		if not text:
 			self.last_added = ""
-			self.autocomplete = True
+			self._autocompleting = True
 			return
-		if self.autocomplete:
+		if self._autocompleting:
 			for value in self.values:
 				if value.lower().startswith(text.lower()):
 					if value[len(text):] == self.last_added:
@@ -140,6 +142,30 @@ class PlainTextEdit(DialogControl, QtWidgets.QPlainTextEdit):
 					self.blockSignals(False)
 					return
 		self.last_added = ""
+	
+	def set_num_rows(self, rows):
+		
+		doc = self.document()
+		line = QtGui.QFontMetrics(doc.defaultFont()).lineSpacing()
+		margins = self.contentsMargins()
+		h = line * rows + (doc.documentMargin() + self.frameWidth()) * 2 + margins.top() + margins.bottom()
+		if self.height() != h:
+			self.setFixedHeight(h)
+	
+	def resize_to_fit(self):
+		
+		rows = max(2, self.document().size().height() + 1)
+		self.set_num_rows(rows)
+	
+	def on_text_changed(self, *args):
+		
+		self.autocomplete()
+		self.resize_to_fit()
+	
+	def resizeEvent(self, event):
+		
+		QtWidgets.QPlainTextEdit.resizeEvent(self, event)
+		self.resize_to_fit()
 
 class ComboBox(DialogControl, QtWidgets.QComboBox):
 	
@@ -174,6 +200,10 @@ class ComboBox(DialogControl, QtWidgets.QComboBox):
 	def get_value(self):
 		
 		return self.currentText().strip()
+	
+	def wheelEvent(self, event):
+		
+		pass
 
 class CheckBox(DialogControl, QtWidgets.QCheckBox):
 	
