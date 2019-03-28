@@ -86,6 +86,7 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 		dialog_group = None
 		if isinstance(user_group, MultiGroup):
 			dialog_group = DialogMultiGroup(self.model, user_group)
+			dialog_group.entry_added.connect(self.on_entry_added)
 		elif isinstance(user_group, Group):
 			dialog_group = DialogGroup(self.model, user_group)
 		if dialog_group is None:
@@ -148,6 +149,10 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 		w = int(round(w / len(self.columns)))
 		for col in range(len(self.columns)):
 			self.controls_frame.layout().setColumnMinimumWidth(col, w)
+	
+	def on_entry_added(self):
+		
+		self.adjust_labels()
 	
 	def on_submit(self, *args):
 		

@@ -4,6 +4,8 @@ from PyQt5 import (QtWidgets, QtCore, QtGui)
 
 class DialogMultiGroup(QtWidgets.QGroupBox):
 	
+	entry_added = QtCore.pyqtSignal()
+	
 	def __init__(self, model, user_group):
 		# user_group = MultiGroup
 		
@@ -75,4 +77,5 @@ class DialogMultiGroup(QtWidgets.QGroupBox):
 	def on_add_entry(self, *args):
 	
 		self.add_entry()
+		self.entry_added.emit()
 
