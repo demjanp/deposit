@@ -136,7 +136,7 @@ class View(DModule, QtWidgets.QMainWindow):
 			url, format = QtWidgets.QFileDialog.getSaveFileUrl(self, caption="Save Database As",
 															   filter="JSON (*.json);;Resource Description Framework (*.rdf)",
 															   directory=directory)
-			url = url.toString()
+			url = str(url.toString())
 			if url:
 				ds = None
 				if format == "Resource Description Framework (*.rdf)":

@@ -37,7 +37,6 @@ class Dialogs(CmdDict, ViewChild):
 		
 		if dialog_name in self.classes:
 			dialog = self.classes[dialog_name](self.model, self.view, *args)
-			dialog.finished.connect(self.on_finished)
 			self.dialogs_open.append(dialog_name)
 			dialog.show()
 			return dialog
@@ -46,11 +45,11 @@ class Dialogs(CmdDict, ViewChild):
 		
 		return dialog_name in self.dialogs_open
 	
-	def on_finished(self, code):
-		
-		dialog = self.view.sender()
+	def on_finished(self, code, dialog):
 		
 		dialog.set_closed()
+		
+		print(self.dialogs_open, dialog.__class__.__name__)  # DEBUG
 		
 		self.dialogs_open.remove(dialog.__class__.__name__)
 		

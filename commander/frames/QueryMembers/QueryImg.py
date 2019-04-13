@@ -160,7 +160,7 @@ class ListModel(DModule, PrototypeDragModel, QtCore.QAbstractListModel):
 		if role == QtCore.Qt.UserRole:
 			return QueryItem(index, self.images[index.row()])
 		
-		return QtCore.QVariant()
+		return None
 	
 	def on_icon_thread(self, index, path):
 		

@@ -184,7 +184,7 @@ class Manager(ViewChild, QtWidgets.QDialog):
 	def on_export(self, *args):
 		
 		url, format = QtWidgets.QFileDialog.getSaveFileUrl(self.view, caption = "Export User Tool As", filter = "Text file (*.txt)")
-		url = url.toString()
+		url = str(url.toString())
 		if not url:
 			return
 		path = as_path(url, check_if_exists = False)
@@ -195,7 +195,7 @@ class Manager(ViewChild, QtWidgets.QDialog):
 	def on_import(self, *args):
 		
 		url, format = QtWidgets.QFileDialog.getOpenFileUrl(self.view, caption = "Import User Tool", filter = "(*.txt)")
-		url = url.toString()
+		url = str(url.toString())
 		if not url:
 			return
 		path = as_path(url)

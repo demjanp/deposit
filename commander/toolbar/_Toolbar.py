@@ -21,12 +21,41 @@ from deposit.commander.toolbar.Save import (Save)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
+class Action(QtWidgets.QAction):
+	
+	def __init__(self, parent, title, name):
+		
+		self.parent = parent
+		self.name = name
+		self._data = name
+		
+		QtWidgets.QAction.__init__(self, title, self.parent.view)
+		
+		self.hovered.connect(self.on_hovered)
+		self.triggered.connect(self.on_triggered)
+	
+	def get_data(self):
+		
+		return self._data
+	
+	def set_data(self, data):
+		
+		self._data = data
+	
+	def on_hovered(self, *args):
+		
+		self.parent.on_action_hovered(self)
+	
+	def on_triggered(self, *args):
+		
+		self.parent.on_triggered(self)
+
 class Toolbar(CmdDict, ViewChild):
 
 	def __init__(self, model, view):
 
 		self.toolbar = None
-		self.actions = {} # {name: QAction, ...}
+		self.actions = {} # {name: Action, ...}
 
 		CmdDict.__init__(self, AddClass, AddDescriptor, AddObject, AddRelation, Connect, Export, Import, Load, New, RelationName, RemoveClass, RemoveDescriptor, RemoveObject, RemoveRelation, Save)
 		ViewChild.__init__(self, model, view)
@@ -48,19 +77,16 @@ class Toolbar(CmdDict, ViewChild):
 						self.actions[name] = QtWidgets.QComboBox(self.view)
 						self.actions[name].setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
 						self.actions[name].setEditable(True)
-						self.actions[name].currentTextChanged.connect(self.on_combo_text_changed)
+						self.actions[name].currentTextChanged.connect(lambda: self.on_combo_text_changed(str))
 						if label:
 							self.toolbar.addWidget(label)
 						self.toolbar.addWidget(self.actions[name])
 					else:
-						self.actions[name] = QtWidgets.QAction(self[name].name(), self.view)
-						self.actions[name].setData(name)
+						self.actions[name] = Action(self, self[name].name(), name)
 						self.toolbar.addAction(self.actions[name])
-						self.actions[name].hovered.connect(self.on_action_hovered)
 			if i < len(ordering) - 1:
 				self.toolbar.addSeparator()
-
-		self.toolbar.actionTriggered.connect(self.on_triggered)
+		
 		self.connect_broadcast(Broadcasts.VIEW_ACTION, self.on_view_action)
 		self.connect_broadcast(Broadcasts.STORE_LOADED, self.on_loaded)
 		self.connect_broadcast(Broadcasts.STORE_DATA_SOURCE_CHANGED, self.on_view_action)
@@ -113,16 +139,16 @@ class Toolbar(CmdDict, ViewChild):
 
 	def on_triggered(self, action):
 
-		self[str(action.data())].triggered(action.isChecked())
+		self[action.name].triggered(action.isChecked())
 		self.update_tools()
 
 	def on_combo_text_changed(self, text):
 
 		self.broadcast(Broadcasts.VIEW_ACTION)
 
-	def on_action_hovered(self):
+	def on_action_hovered(self, action):
 
-		self.view.statusbar.message(self.view.sender().toolTip())
+		self.view.statusbar.message(action.toolTip())
 
 	def on_view_action(self, args):
 

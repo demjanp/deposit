@@ -28,7 +28,7 @@ class SaveAs(Tool):
 		if not self.model.local_folder is None:
 			directory = as_url(self.model.local_folder)
 		url, format = QtWidgets.QFileDialog.getSaveFileUrl(self.view, caption = "Save Database As", filter = "JSON (*.json);;Resource Description Framework (*.rdf)", directory = directory)
-		url = url.toString()
+		url = str(url.toString())
 		if url:
 			ds = None
 			if format == "Resource Description Framework (*.rdf)":

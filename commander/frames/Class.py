@@ -3,6 +3,22 @@ from deposit.commander.frames._Frame import (Frame)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
+class UnlinkButton(QtWidgets.QToolButton):
+	
+	def __init__(self, parent, rel, clsA, clsB):
+		
+		self.parent = parent
+		self.rel = rel
+		self.clsA = clsA
+		self.clsB = clsB
+		QtWidgets.QToolButton.__init__(self, parent)
+		
+		self.clicked.connect(self.on_unlink)
+	
+	def on_unlink(self, *args):
+		
+		self.parent.on_unlink(self.clsA, self.rel, self.clsB)
+
 class Class(Frame, QtWidgets.QWidget):
 	
 	def __init__(self, model, view, parent, dclass_name):
@@ -39,14 +55,10 @@ class Class(Frame, QtWidgets.QWidget):
 					rel = rel[1:]
 				
 				self.layout().addWidget(QtWidgets.QLabel(formatstr % (clsA, rel, clsB)), row, 0)
-				button = QtWidgets.QToolButton(self)
-				button._rel = rel
-				button._clsA = clsA
-				button._clsB = clsB
+				button = UnlinkButton(self, rel, clsA, clsB)
 				button.setIcon(self.view.get_icon("unlink.svg"))
 				button.setIconSize(QtCore.QSize(24, 24))
 				button.setToolTip("Unlink Class")
-				button.clicked.connect(self.on_unlink)
 				self.layout().addWidget(button, row, 1)
 				row += 1
 		
@@ -69,7 +81,7 @@ class Class(Frame, QtWidgets.QWidget):
 		
 		self.populate()
 	
-	def on_unlink(self, *args):
+	def on_unlink(self, clsA, rel, clsB):
 		
-		self.view.dialogs.open("RemoveClassRelation", self.sender()._clsA, self.sender()._rel, self.sender()._clsB)
+		self.view.dialogs.open("RemoveClassRelation", clsA, rel, clsB)
 

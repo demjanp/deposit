@@ -32,7 +32,7 @@ class Export(Tool):
 			return
 		formats = ";;".join([self.FORMAT_XLSX, self.FORMAT_CSV, self.FORMAT_Shapefile])
 		url, format = QtWidgets.QFileDialog.getSaveFileUrl(self.view, caption = "Export Query As", filter = formats)
-		url = url.toString()
+		url = str(url.toString())
 		if not url:
 			return
 		es = None

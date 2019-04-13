@@ -3,6 +3,7 @@ from deposit.commander.CmdDict import (CmdDict)
 from deposit.commander.ViewChild import (ViewChild)
 from deposit.commander.menu._ordering import ordering as MENU_ORDERING
 from deposit.commander.menu._ordering import recent as MENU_RECENT
+from deposit.commander.toolbar._Toolbar import (Action)
 
 from deposit.commander.menu.ClearLocalFolder import (ClearLocalFolder)
 from deposit.commander.menu.ClearRecent import (ClearRecent)
@@ -26,7 +27,7 @@ class Menu(CmdDict, ViewChild):
 	def __init__(self, model, view):
 		
 		self.menubar = None
-		self.actions = {} # {name: QAction, ...}
+		self.actions = {} # {name: Action, ...}
 		self.recent_menu = None
 
 		CmdDict.__init__(self, ClearLocalFolder, ClearRecent, Copy, SaveAs, SaveAsDB, SaveAsDBRel, SetIdentifier, SetLocalFolder, SaveHistory, History)
@@ -63,8 +64,7 @@ class Menu(CmdDict, ViewChild):
 					self[name] = self.view.toolbar.classes[name](self.model, self.view)
 				else:
 					continue
-				self.actions[name] = QtWidgets.QAction(self[name].name(), self.view)
-				self.actions[name].setData(name)
+				self.actions[name] = Action(self, self[name].name(), name)
 				menus[row[0]].addAction(self.actions[name])
 			if (i < len(MENU_ORDERING) - 1) and (MENU_ORDERING[i + 1][0] == row[0]):
 				menus[row[0]].addSeparator()
@@ -72,7 +72,6 @@ class Menu(CmdDict, ViewChild):
 		self.recent_menu = menus[MENU_RECENT]
 		self.recent_menu.addSeparator()
 		
-		self.menubar.triggered.connect(self.on_triggered)
 		self.connect_broadcast(Broadcasts.VIEW_ACTION, self.on_view_action)
 		self.connect_broadcast(Broadcasts.STORE_LOADED, self.on_loaded)
 		
@@ -115,7 +114,9 @@ class Menu(CmdDict, ViewChild):
 		
 		with open(DC_RECENT, "w") as f:
 			for action in self.recent_menu.actions():
-				data = action.data()
+				if not isinstance(action, Action):
+					continue
+				data = action.get_data()
 				if isinstance(data, list):
 					f.write(json.dumps(data) + "\n")
 	
@@ -124,7 +125,9 @@ class Menu(CmdDict, ViewChild):
 		
 		collect = []
 		for action in self.recent_menu.actions():
-			data = action.data()
+			if not isinstance(action, Action):
+				continue
+			data = action.get_data()
 			if isinstance(data, list):
 				collect.append(data)
 		return collect
@@ -132,13 +135,17 @@ class Menu(CmdDict, ViewChild):
 	def clear_recent(self):
 		
 		for action in self.recent_menu.actions():
-			if isinstance(action.data(), list):
+			if not isinstance(action, Action):
+				continue
+			if isinstance(action.get_data(), list):
 				action.setParent(None)
 	
 	def has_recent(self, data):
 		
 		for action in self.recent_menu.actions():
-			if action.data() == data:
+			if not isinstance(action, Action):
+				continue
+			if action.get_data() == data:
 				return True
 		return False
 	
@@ -146,8 +153,8 @@ class Menu(CmdDict, ViewChild):
 		
 		if self.has_recent([url]):
 			return
-		action = QtWidgets.QAction(url, self.view)
-		action.setData([url])
+		action = Action(self, url, "url")
+		action.set_data([url])
 		self.recent_menu.addAction(action)
 		self.save_recent()
 	
@@ -156,8 +163,8 @@ class Menu(CmdDict, ViewChild):
 		if self.has_recent([identifier, connstr]):
 			return
 		name = "%s (%s)" % (identifier, os.path.split(connstr)[1])
-		action = QtWidgets.QAction(name, self.view)
-		action.setData([identifier, connstr])
+		action = Action(self, name, "db")
+		action.set_data([identifier, connstr])
 		self.recent_menu.addAction(action)
 	
 	def on_recent_triggered(self, data):
@@ -171,12 +178,16 @@ class Menu(CmdDict, ViewChild):
 	
 	def on_triggered(self, action):
 		
-		data = action.data()
+		data = action.get_data()
 		if isinstance(data, list):
 			self.on_recent_triggered(data)
 			return
 		self[str(data)].triggered(action.isChecked())
 		self.update_tools()
+	
+	def on_action_hovered(self, action):
+		
+		self.view.statusbar.message(action.toolTip())
 	
 	def on_view_action(self, args):
 

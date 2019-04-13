@@ -48,7 +48,7 @@ class QueryItem(DModule):
 				if self.element.label.__class__.__name__ == "DNone":
 					return None
 				return str(self.element.label.value)
-			return QtCore.QVariant()
+			return None
 		
 		if role == QtCore.Qt.DecorationRole:
 			if self.element.__class__.__name__ == "DDescriptor":
@@ -61,15 +61,15 @@ class QueryItem(DModule):
 					return self.icons["file" if stored else "remote_file"]
 				if self.element.label.__class__.__name__ == "DGeometry":
 					return self.icons["geo"]
-			return QtCore.QVariant()
+			return None
 		
 		if role == QtCore.Qt.UserRole:
 			return self
 		
 		if role == QtCore.Qt.BackgroundRole:
 			if self.is_read_only():
-				return QtCore.QVariant(QtGui.QColor(240, 240, 240, 255))
-			return QtCore.QVariant()
+				return QtGui.QColor(240, 240, 240, 255)
+			return None
 		
-		return QtCore.QVariant()
+		return None
 

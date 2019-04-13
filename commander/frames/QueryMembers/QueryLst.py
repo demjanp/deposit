@@ -100,12 +100,12 @@ class TableModel(DModule, PrototypeDragModel, QtCore.QAbstractTableModel):
 						return "id()"
 					return "id(%s)" % (self.class_name)
 				return self.query.columns[section - 1]
-		return QtCore.QVariant()
+		return None
 	
 	def data(self, index, role):
 		
 		if not index.isValid():
-			return QtCore.QVariant()
+			return None
 		
 		if (index.column() == 0) and (role == QtCore.Qt.DecorationRole):
 			return self.icons["obj"]

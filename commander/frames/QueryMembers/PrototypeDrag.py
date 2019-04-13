@@ -90,7 +90,7 @@ class PrototypeDragModel(object):
 				return False
 		
 		if data.hasUrls():
-			urls = [url.toString() for url in data.urls()]
+			urls = [str(url.toString()) for url in data.urls()]
 			if urls:	
 				self.on_drop_url(item, urls)
 				return False
