@@ -2,7 +2,7 @@ from deposit.commander.frames._Frame import (Frame)
 from deposit.commander.frames.DescriptorMembers.DescriptorGraphicsView import (DescriptorGraphicsView)
 from deposit.commander.frames.DescriptorMembers.ResourceItem import (PixmapItem, SvgItem)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 import shutil
 import os
 
@@ -53,7 +53,7 @@ class Descriptor(Frame, QtWidgets.QMainWindow):
 			["zoom_out", "Zoom Out", "zoom_out.svg"],
 			["zoom_reset", "Zoom Reset", "zoom_reset.svg"],
 			["#separator", None, None],
-			["polygon", "Geotag Polygon", "draw_polygon.png"],
+			["polygon", "Geotag Polygon", "draw_polygon.svg"],
 			["remove_geotag", "Remove Geotag", "unlink.svg"],
 		]
 		

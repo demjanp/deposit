@@ -1,7 +1,7 @@
 from deposit.commander.usertools import (UserGroups)
 from deposit.commander.usertools.EditorFrame import (EditorFrame)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class EditorGroup(QtWidgets.QGroupBox):
 	

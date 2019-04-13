@@ -5,7 +5,7 @@ from deposit.commander.frames.QueryMembers.QueryItem import (QueryItem)
 from deposit.commander.frames.QueryMembers.QuerySelection import (QuerySelection)
 from deposit.commander.frames.QueryMembers.PrototypeDrag import (PrototypeDragView, PrototypeDragModel)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 from natsort import (natsorted)
 
 class ProxyModel(QtCore.QSortFilterProxyModel):
@@ -284,7 +284,7 @@ class QueryLst(Frame, PrototypeDragView, QtWidgets.QTableView):
 		h = self.rowHeight(0) * (self.table_model.rowCount(None) + 1) * 1.05
 		return QtCore.QSize(w, h)
 	
-	@QtCore.pyqtSlot(QtCore.QModelIndex)
+	@QtCore.Slot(QtCore.QModelIndex)
 	def on_activated(self, index):
 		
 		item = index.data(QtCore.Qt.UserRole)

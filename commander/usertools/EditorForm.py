@@ -11,7 +11,7 @@ from deposit.commander.usertools.UserControls import (UserControl, Select)
 from deposit.commander.usertools.ColumnBreak import (ColumnBreak)
 from deposit.commander.usertools.UserGroups import (Group)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class EditorForm(ViewChild, QtWidgets.QMainWindow):
 	

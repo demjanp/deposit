@@ -2,7 +2,7 @@ from deposit import Broadcasts
 from deposit.commander.frames._Frame import (Frame)
 from deposit.commander.frames.QueryMembers.PrototypeDrag import (PrototypeDragWidget)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class ObjView(Frame, PrototypeDragWidget, QtWidgets.QTableWidget):
 	

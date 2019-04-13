@@ -1,7 +1,7 @@
 from deposit.commander.toolbar._Tool import (Tool)
 from deposit.commander.frames.External.External import External
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class Import(Tool):
 	

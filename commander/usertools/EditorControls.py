@@ -1,6 +1,6 @@
 from deposit.commander.usertools import (UserControls)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class EditorControl(object):
 	

@@ -1,6 +1,6 @@
 from deposit.commander.usertools.ColumnBreak import (ColumnBreak)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class EditorColumn(QtWidgets.QFrame):
 	

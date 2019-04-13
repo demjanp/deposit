@@ -12,7 +12,7 @@ from deposit.commander.usertools.DialogSearchForm import (DialogSearchForm)
 from deposit.commander.usertools.DialogEntryForm import (DialogEntryForm)
 from deposit.store.Query.Parse import (find_quotes)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 SELECTED_STR = "{selected}"
 

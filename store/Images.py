@@ -1,6 +1,6 @@
 from deposit.DModule import (DModule)
 
-from PyQt5 import (QtCore, QtGui, QtSvg)
+from PySide2 import (QtCore, QtGui, QtSvg)
 from PIL import Image
 import hashlib
 import shutil

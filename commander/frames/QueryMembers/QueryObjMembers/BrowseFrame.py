@@ -2,7 +2,7 @@ from deposit import Broadcasts
 from deposit.commander.frames._Frame import (Frame)
 from deposit.commander.frames.QueryMembers.QueryObjMembers.LabelFrame import (LabelFrame)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class BrowseFrame(Frame, QtWidgets.QFrame):
 	

@@ -1,6 +1,6 @@
 from deposit.commander.usertools.UserControls import (Select)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class EditorSelect(QtWidgets.QFrame):
 	

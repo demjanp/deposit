@@ -1,6 +1,6 @@
 from deposit.commander.frames._Frame import (Frame)
 
-from PyQt5 import (QtCore, QtWidgets, QtGui)
+from PySide2 import (QtCore, QtWidgets, QtGui)
 
 class DatabaseList(Frame, QtWidgets.QListWidget):
 	

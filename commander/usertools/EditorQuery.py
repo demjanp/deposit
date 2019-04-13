@@ -1,7 +1,7 @@
 from deposit.commander.ViewChild import (ViewChild)
 from deposit.commander.usertools.Query import (Query)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class EditorQuery(ViewChild, QtWidgets.QDialog):
 	

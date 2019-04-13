@@ -3,7 +3,7 @@ from deposit.commander.frames.External.External import External
 from deposit.commander.frames.External.ExternalHeader import ExternalHeader
 from deposit.commander.frames.External.ExternalLst import ExternalLst
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class Shapefile(External, QtWidgets.QWidget):
 

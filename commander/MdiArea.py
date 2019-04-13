@@ -3,7 +3,7 @@ from deposit.commander.ViewChild import (ViewChild)
 
 from deposit.commander.frames import FRAMES
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class MdiSubWindow(ViewChild, QtWidgets.QMdiSubWindow):
 

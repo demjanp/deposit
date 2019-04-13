@@ -5,7 +5,7 @@ from deposit.commander.navigator.DatabaseList import (DatabaseList)
 from deposit.store.Conversions import (as_url)
 from deposit.store.Store import (Store)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class DatabaseWidget(Frame, QtWidgets.QWidget):
 	

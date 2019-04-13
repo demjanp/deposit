@@ -1,7 +1,7 @@
 from deposit.commander.frames._Frame import (Frame)
 from deposit.commander.frames.QueryMembers.QueryObjMembers.ObjectLabel import (ObjectLabel)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class ObjectFrame(Frame, QtWidgets.QFrame):
 	

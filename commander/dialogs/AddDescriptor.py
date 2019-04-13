@@ -1,7 +1,7 @@
 from deposit import Broadcasts
 from deposit.commander.dialogs._Dialog import (Dialog)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class AddDescriptor(Dialog):
 	

@@ -1,7 +1,7 @@
 from deposit.DModule import (DModule)
 from deposit.commander.frames._Frame import (Frame)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 from collections import defaultdict
 

@@ -1,6 +1,6 @@
 from deposit.commander.usertools.DialogForm import (DialogForm)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 from collections import defaultdict
 
 class DialogEntryForm(DialogForm):

@@ -1,6 +1,6 @@
 from deposit.commander.ViewChild import (ViewChild)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class StatusBar(ViewChild, QtWidgets.QStatusBar):
 

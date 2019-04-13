@@ -4,7 +4,7 @@ from deposit.commander.frames.External.ExternalHeader import ExternalHeader
 from deposit.commander.frames.External.ExternalLst import ExternalLst
 from deposit.commander.frames.XLSXMembers.XLSXSheet import XLSXSheet
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class XLSX(External, QtWidgets.QTabWidget):
 

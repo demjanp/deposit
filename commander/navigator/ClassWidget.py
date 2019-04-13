@@ -3,7 +3,7 @@ from deposit.DModule import (DModule)
 from deposit.commander.frames._Frame import (Frame)
 from deposit.commander.navigator.ClassList import (ClassList)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class ClassWidget(Frame, QtWidgets.QWidget):
 	

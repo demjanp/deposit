@@ -1,6 +1,6 @@
 from deposit.commander.usertools.DialogFrame import (DialogFrame)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class DialogGroup(QtWidgets.QGroupBox):
 	

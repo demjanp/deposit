@@ -3,7 +3,7 @@ from deposit.commander.frames.QueryMembers.QueryObjMembers.BrowseFrame import (B
 from deposit.commander.frames.QueryMembers.QueryObjMembers.ObjView import (ObjView)
 from deposit.commander.frames.QueryMembers.QueryObjMembers.RelView import (RelView)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class QueryObj(Frame, QtWidgets.QWidget):
 	

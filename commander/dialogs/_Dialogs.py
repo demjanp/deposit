@@ -16,7 +16,7 @@ from deposit.commander.dialogs.SaveAsDB import (SaveAsDB)
 from deposit.commander.dialogs.SaveAsDBRel import (SaveAsDBRel)
 from deposit.commander.dialogs.SetIdentifier import (SetIdentifier)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class Dialogs(CmdDict, ViewChild):
 	

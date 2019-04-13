@@ -15,7 +15,7 @@ from deposit.commander.menu.SetLocalFolder import (SetLocalFolder)
 from deposit.commander.menu.SaveHistory import (SaveHistory)
 from deposit.commander.menu.History import (History)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 import json
 import os
 

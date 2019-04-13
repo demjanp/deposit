@@ -2,7 +2,7 @@ from deposit.commander.ViewChild import (ViewChild)
 from deposit.commander.navigator.ClassWidget import (ClassWidget)
 from deposit.commander.navigator.DatabaseWidget import (DatabaseWidget)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class Navigator(ViewChild, QtWidgets.QToolBox):
 	

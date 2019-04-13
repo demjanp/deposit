@@ -1,6 +1,6 @@
 from deposit.store.Worldfiles import (save_worldfile)
 from deposit.store.Projections import (save_raster_projection)
-from PyQt5 import (QtWidgets, QtCore)
+from PySide2 import (QtWidgets, QtCore)
 import shutil
 import json
 import os

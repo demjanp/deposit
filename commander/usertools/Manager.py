@@ -9,7 +9,7 @@ from deposit.commander.usertools.EntryForm import (EntryForm)
 from deposit.commander.usertools.Query import (Query)
 from deposit.store.Conversions import (as_path)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class Manager(ViewChild, QtWidgets.QDialog):
 	

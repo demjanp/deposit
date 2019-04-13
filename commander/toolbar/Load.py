@@ -1,6 +1,6 @@
 from deposit.commander.toolbar._Tool import (Tool)
 from deposit.store.Conversions import (as_url)
-from PyQt5 import (QtWidgets)
+from PySide2 import (QtWidgets)
 import os
 
 class Load(Tool):

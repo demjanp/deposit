@@ -1,10 +1,10 @@
 from deposit.commander.usertools.DialogFrame import (DialogFrame)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class DialogMultiGroup(QtWidgets.QGroupBox):
 	
-	entry_added = QtCore.pyqtSignal()
+	entry_added = QtCore.Signal()
 	
 	def __init__(self, model, user_group):
 		# user_group = MultiGroup

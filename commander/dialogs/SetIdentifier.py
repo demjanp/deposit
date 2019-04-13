@@ -1,7 +1,7 @@
 from deposit.commander.dialogs._Dialog import (Dialog)
 from deposit.commander.toolbar.Save import (Save)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class SetIdentifier(Dialog):
 	

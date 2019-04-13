@@ -1,7 +1,7 @@
 from deposit.commander.toolbar._Tool import (Tool)
 from deposit.store.Conversions import (as_url)
 
-from PyQt5 import (QtWidgets, QtCore)
+from PySide2 import (QtWidgets, QtCore)
 import os
 
 class SaveAs(Tool):

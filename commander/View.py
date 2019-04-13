@@ -15,7 +15,7 @@ from deposit.commander.StatusBar import (StatusBar)
 from deposit.commander.QueryToolbar import (QueryToolbar)
 from deposit.commander.usertools._UserTools import (UserTools)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 import os
 
 class View(DModule, QtWidgets.QMainWindow):

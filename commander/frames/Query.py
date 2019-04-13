@@ -6,7 +6,7 @@ from deposit.commander.frames.QueryMembers.QueryImg import (QueryImgLazy, QueryI
 from deposit.commander.frames.QueryMembers.QueryGeo import (QueryGeoLazy, QueryGeo)
 from deposit.commander.frames.QueryMembers.QueryObj import (QueryObj)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class Query(Frame, QtWidgets.QWidget):
 
@@ -154,7 +154,7 @@ class Query(Frame, QtWidgets.QWidget):
 		else:
 			self.populate_obj = [obj, row]
 
-	@QtCore.pyqtSlot(int)
+	@QtCore.Slot(int)
 	def on_tab_changed(self, index):
 		
 		if index == 3: # tab_obj

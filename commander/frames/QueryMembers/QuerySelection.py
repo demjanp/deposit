@@ -1,6 +1,6 @@
 from deposit.commander.frames.QueryMembers.QueryItem import (QueryItem)
 
-from PyQt5 import QtCore
+from PySide2 import QtCore
 from collections import defaultdict
 
 class QuerySelectionRow(object):

@@ -4,7 +4,7 @@ from deposit.commander.frames._Frame import (Frame)
 from deposit.commander.frames.QueryMembers.QueryItem import (QueryItem)
 from deposit.commander.frames.QueryMembers.PrototypeDrag import (PrototypeDragView, PrototypeDragModel)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 from natsort import (natsorted)
 
 class ImageDelegate(QtWidgets.QStyledItemDelegate):
@@ -91,7 +91,7 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
 
 class ListModel(DModule, PrototypeDragModel, QtCore.QAbstractListModel):
 	
-	icon_loaded = QtCore.pyqtSignal(QtCore.QModelIndex)
+	icon_loaded = QtCore.Signal(QtCore.QModelIndex)
 	
 	def __init__(self, model, view, query, icon_size = 256):
 		

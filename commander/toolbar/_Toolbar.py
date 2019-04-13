@@ -19,7 +19,7 @@ from deposit.commander.toolbar.RemoveObject import (RemoveObject)
 from deposit.commander.toolbar.RemoveRelation import (RemoveRelation)
 from deposit.commander.toolbar.Save import (Save)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class Toolbar(CmdDict, ViewChild):
 

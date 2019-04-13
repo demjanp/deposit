@@ -1,6 +1,6 @@
 from deposit.DModule import (DModule)
 
-from PyQt5 import (QtCore, QtWidgets, QtGui, QtSvg)
+from PySide2 import (QtCore, QtWidgets, QtGui, QtSvg)
 
 class ResourceItem(DModule):
 	

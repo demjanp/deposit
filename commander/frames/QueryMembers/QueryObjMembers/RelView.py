@@ -2,7 +2,7 @@ from deposit.commander.frames._Frame import (Frame)
 from deposit.commander.frames.QueryMembers.QueryLst import (QueryLst)
 from natsort import (natsorted)
 
-from PyQt5 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class RelView(Frame, QtWidgets.QWidget):
 	

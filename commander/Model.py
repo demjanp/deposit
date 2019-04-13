@@ -1,7 +1,7 @@
 from deposit import Broadcasts
 from deposit import (Store)
 
-from PyQt5 import (QtCore)
+from PySide2 import (QtCore)
 
 class Model(Store):
 	
