@@ -5,9 +5,9 @@ from PySide2 import (QtCore)
 
 class Model(Store):
 	
-	def __init__(self, parent):
+	def __init__(self, parent, *args):
 		
-		Store.__init__(self, parent)
+		Store.__init__(self, *args, parent = parent)
 		
 		self.set_up()
 	

@@ -4,7 +4,7 @@ class Commander(object):
 
 	# main Deposit Commander class
 	
-	def __init__(self, model = None):
+	def __init__(self, *args, model = None):
 		
-		self.view = View(model)
+		self.view = View(model, *args)
 		self.view.show()

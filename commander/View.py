@@ -20,9 +20,10 @@ import os
 
 class View(DModule, QtWidgets.QMainWindow):
 
-	def __init__(self, model):
+	def __init__(self, model, *args):
 
 		self.model = model
+		self.args = args
 		self.populate_thread = None
 
 		self.navigator = None
@@ -47,7 +48,7 @@ class View(DModule, QtWidgets.QMainWindow):
 		
 		update_info = True
 		if self.model is None:
-			self.model = Model(self)
+			self.model = Model(self, *self.args)
 			update_info = False
 		
 		self.stop_broadcasts()

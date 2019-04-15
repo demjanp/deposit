@@ -18,8 +18,8 @@ import time
 
 class Store(DModule):
 
-	def __init__(self, parent = None):
-
+	def __init__(self, *args, parent = None):
+		
 		self.parent = parent
 
 		self.objects = None
@@ -70,6 +70,12 @@ class Store(DModule):
 		self.connect_broadcast(Broadcasts.ELEMENT_ADDED, self.on_data_changed)
 		self.connect_broadcast(Broadcasts.ELEMENT_CHANGED, self.on_data_changed)
 		self.connect_broadcast(Broadcasts.ELEMENT_DELETED, self.on_data_changed)
+		
+		if len(args) > 0:
+			if len(args[0]) == 2:
+				self.load(*args)
+			elif len(args[0]) == 1:
+				self.load(args[0][0])
 
 	@property
 	def identifier(self):
