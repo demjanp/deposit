@@ -45,6 +45,8 @@ class PrototypeDragModel(object):
 		for index in indexes:
 			item = index.data(QtCore.Qt.UserRole)
 			elements.append(item.element.to_dict())
+			elements[-1]["identifier"] = self.model.identifier
+			elements[-1]["connstr"] = self.model.connstr
 			if item.is_resource():
 				filename = item.element.label.filename
 				f_src = item.element.label.open()

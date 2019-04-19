@@ -83,6 +83,13 @@ class Store(DModule):
 		if self.data_source is None:
 			return None
 		return self.data_source.identifier
+	
+	@property
+	def connstr(self):
+		
+		if self.data_source is None:
+			return None
+		return self.data_source.connstr
 
 	def clear(self):
 
