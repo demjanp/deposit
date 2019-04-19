@@ -8,3 +8,7 @@ class Commander(object):
 		
 		self.view = View(model, *args)
 		self.view.show()
+	
+	def close(self):
+		
+		self.view.close()
