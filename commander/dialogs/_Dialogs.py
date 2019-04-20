@@ -15,6 +15,7 @@ from deposit.commander.dialogs.RenameClass import (RenameClass)
 from deposit.commander.dialogs.SaveAsDB import (SaveAsDB)
 from deposit.commander.dialogs.SaveAsDBRel import (SaveAsDBRel)
 from deposit.commander.dialogs.SetIdentifier import (SetIdentifier)
+from deposit.commander.dialogs.About import (About)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
@@ -24,7 +25,7 @@ class Dialogs(CmdDict, ViewChild):
 		
 		self.dialogs_open = []
 
-		CmdDict.__init__(self, AddClass, AddDescriptor, AddRelation, Connect, LinkDB, LoadDB, RemoveClass, RemoveObject, RemoveObjectsFromClass, RemoveRelation, RenameClass, SaveAsDB, SaveAsDBRel, SetIdentifier)
+		CmdDict.__init__(self, AddClass, AddDescriptor, AddRelation, Connect, LinkDB, LoadDB, RemoveClass, RemoveObject, RemoveObjectsFromClass, RemoveRelation, RenameClass, SaveAsDB, SaveAsDBRel, SetIdentifier, About)
 		ViewChild.__init__(self, model, view)
 		
 		self.set_up()

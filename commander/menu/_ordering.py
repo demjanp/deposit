@@ -10,6 +10,7 @@ ordering = [
 	["Resources",	"GenerateThumbnails"],
 	["Events",	"SaveHistory"],
 	["Events",	"History"],
+	["Help", "About"],
 ]
 
 recent = "Data"

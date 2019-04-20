@@ -15,6 +15,7 @@ from deposit.commander.menu.SetIdentifier import (SetIdentifier)
 from deposit.commander.menu.SetLocalFolder import (SetLocalFolder)
 from deposit.commander.menu.SaveHistory import (SaveHistory)
 from deposit.commander.menu.History import (History)
+from deposit.commander.menu.About import (About)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 import json
@@ -30,7 +31,7 @@ class Menu(CmdDict, ViewChild):
 		self.actions = {} # {name: Action, ...}
 		self.recent_menu = None
 
-		CmdDict.__init__(self, ClearLocalFolder, ClearRecent, Copy, SaveAs, SaveAsDB, SaveAsDBRel, SetIdentifier, SetLocalFolder, SaveHistory, History)
+		CmdDict.__init__(self, ClearLocalFolder, ClearRecent, Copy, SaveAs, SaveAsDB, SaveAsDBRel, SetIdentifier, SetLocalFolder, SaveHistory, History, About)
 		ViewChild.__init__(self, model, view)
 		
 		self.set_up()
@@ -38,19 +39,6 @@ class Menu(CmdDict, ViewChild):
 	def set_up(self):
 		
 		self.menubar = self.view.menuBar()
-		
-		self.menubar.setStyleSheet('''
-			QMenu::item {
-				padding: 2px 25px 2px 20px;
-				border: 1px solid transparent; /* reserve space for selection border */
-				font: 14px;
-			}
-
-			QMenu::item:selected {
-				border-color: darkblue;
-				background: rgba(100, 100, 100, 150);
-			}		
-		''')
 		
 		menus = {} # {name: QMenu, ...}
 		

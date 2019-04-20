@@ -227,6 +227,7 @@ class Store(DModule):
 							self.classes[class_name1].add_relation(rel, "!*")
 	
 	def on_data_changed(self, *args):
-
+		
 		self.changed = time.time()
 		self.broadcast(Broadcasts.STORE_DATA_CHANGED)
+
