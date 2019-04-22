@@ -18,6 +18,7 @@ from deposit.commander.menu.History import (History)
 from deposit.commander.menu.About import (About)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
+from pathlib import Path
 import json
 import os
 
@@ -86,10 +87,10 @@ class Menu(CmdDict, ViewChild):
 	
 	def load_recent(self):
 		
-		if not os.path.isfile(DC_RECENT):
+		path = os.path.join(str(Path.home()), "AppData", "Local", "Deposit", DC_RECENT)
+		if not os.path.isfile(path):
 			return
-		
-		with open(DC_RECENT, "r") as f:
+		with open(path, "r") as f:
 			for line in f.read().split("\n"):
 				if line:
 					data = json.loads(line)
@@ -100,7 +101,11 @@ class Menu(CmdDict, ViewChild):
 	
 	def save_recent(self):
 		
-		with open(DC_RECENT, "w") as f:
+		path = os.path.join(str(Path.home()), "AppData", "Local", "Deposit")
+		if not os.path.exists(path):
+			os.mkdir(path)
+		path = os.path.join(path, DC_RECENT)
+		with open(path, "w") as f:
 			for action in self.recent_menu.actions():
 				if not isinstance(action, Action):
 					continue
