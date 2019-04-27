@@ -6,6 +6,7 @@ from deposit.commander.Model import (Model)
 from deposit.commander.toolbar._Toolbar import (Toolbar)
 from deposit.commander.dialogs._Dialogs import (Dialogs)
 from deposit.commander.menu._Menu import (Menu)
+from deposit.commander.Registry import (Registry)
 
 from deposit import res
 
@@ -50,6 +51,8 @@ class View(DModule, QtWidgets.QMainWindow):
 		if self.model is None:
 			self.model = Model(self, *self.args)
 			update_info = False
+		
+		self.registry = Registry("Deposit")
 		
 		self.stop_broadcasts()
 		

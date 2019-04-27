@@ -1,4 +1,5 @@
 from deposit import Broadcasts
+
 from deposit.commander.CmdDict import (CmdDict)
 from deposit.commander.ViewChild import (ViewChild)
 from deposit.commander.menu._ordering import ordering as MENU_ORDERING
@@ -21,8 +22,6 @@ from PySide2 import (QtWidgets, QtCore, QtGui)
 from pathlib import Path
 import json
 import os
-
-DC_RECENT = "dc_recent.cfg"
 
 class Menu(CmdDict, ViewChild):
 	
@@ -87,31 +86,26 @@ class Menu(CmdDict, ViewChild):
 	
 	def load_recent(self):
 		
-		path = os.path.join(str(Path.home()), "AppData", "Local", "Deposit", DC_RECENT)
-		if not os.path.isfile(path):
+		rows = self.view.registry.get("recent")
+		if rows == "":
 			return
-		with open(path, "r") as f:
-			for line in f.read().split("\n"):
-				if line:
-					data = json.loads(line)
-					if len(data) == 1:
-						self.add_recent_url(data[0])
-					elif len(data) == 2:
-						self.add_recent_db(*data)
+		rows = json.loads(rows)
+		for row in rows:
+			if len(row) == 1:
+				self.add_recent_url(row[0])
+			elif len(row) == 2:
+				self.add_recent_db(*row)
 	
 	def save_recent(self):
 		
-		path = os.path.join(str(Path.home()), "AppData", "Local", "Deposit")
-		if not os.path.exists(path):
-			os.mkdir(path)
-		path = os.path.join(path, DC_RECENT)
-		with open(path, "w") as f:
-			for action in self.recent_menu.actions():
-				if not isinstance(action, Action):
-					continue
-				data = action.get_data()
-				if isinstance(data, list):
-					f.write(json.dumps(data) + "\n")
+		rows = []
+		for action in self.recent_menu.actions():
+			if not isinstance(action, Action):
+				continue
+			data = action.get_data()
+			if isinstance(data, list):
+				rows.append(data)
+		self.view.registry.set("recent", json.dumps(rows))
 	
 	def get_recent(self):
 		# return [[url], [identifier, connstr], ...]
