@@ -153,6 +153,7 @@ class Menu(CmdDict, ViewChild):
 		action = Action(self, name, "db")
 		action.set_data([identifier, connstr])
 		self.recent_menu.addAction(action)
+		self.save_recent()
 	
 	def on_recent_triggered(self, data):
 		
