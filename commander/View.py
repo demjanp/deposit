@@ -26,7 +26,8 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.model = model
 		self.args = args
 		self.populate_thread = None
-
+		self.registry = None
+		
 		self.navigator = None
 		self.mdiarea = None
 
