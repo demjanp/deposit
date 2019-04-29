@@ -55,7 +55,7 @@ class DDescriptor(DElement):
 		
 		value = self.__str__()
 		if not value is None:
-			value = value.encode("utf-8")
+			value = value.encode("utf-8").decode("utf-8")
 		return value
 
 class DDescriptors(DElements):

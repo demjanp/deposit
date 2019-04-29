@@ -106,6 +106,13 @@ class EditorGroup(QtWidgets.QGroupBox):
 		self.bold = state
 		self.update_stylesheet()
 	
+	def setParent(self, parent):
+		
+		if parent is None:
+			for element in self.findChildren(QtWidgets.QWidget):
+				element.setParent(None)
+		QtWidgets.QGroupBox.setParent(self, parent)
+	
 	def enterEvent(self, event):
 		
 		self.hovered = True

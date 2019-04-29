@@ -17,6 +17,6 @@ class StatusBar(ViewChild, QtWidgets.QStatusBar):
 
 	def message(self, text):
 
-		# self.showMessage(text)
-		pass   # DEBUG
+		self.showMessage(text)
 		# TODO: implement
+

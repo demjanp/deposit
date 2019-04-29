@@ -9,11 +9,13 @@ from deposit.commander.toolbar._Toolbar import (Action)
 from deposit.commander.menu.ClearLocalFolder import (ClearLocalFolder)
 from deposit.commander.menu.ClearRecent import (ClearRecent)
 from deposit.commander.menu.Copy import (Copy)
+from deposit.commander.menu.Paste import (Paste)
 from deposit.commander.menu.SaveAs import (SaveAs)
 from deposit.commander.menu.SaveAsDB import (SaveAsDB)
 from deposit.commander.menu.SaveAsDBRel import (SaveAsDBRel)
 from deposit.commander.menu.SetIdentifier import (SetIdentifier)
 from deposit.commander.menu.SetLocalFolder import (SetLocalFolder)
+from deposit.commander.menu.LocaliseResources import (LocaliseResources)
 from deposit.commander.menu.SaveHistory import (SaveHistory)
 from deposit.commander.menu.History import (History)
 from deposit.commander.menu.About import (About)
@@ -31,7 +33,7 @@ class Menu(CmdDict, ViewChild):
 		self.actions = {} # {name: Action, ...}
 		self.recent_menu = None
 
-		CmdDict.__init__(self, ClearLocalFolder, ClearRecent, Copy, SaveAs, SaveAsDB, SaveAsDBRel, SetIdentifier, SetLocalFolder, SaveHistory, History, About)
+		CmdDict.__init__(self, ClearLocalFolder, ClearRecent, Copy, Paste, SaveAs, SaveAsDB, SaveAsDBRel, SetIdentifier, SetLocalFolder, LocaliseResources, SaveHistory, History, About)
 		ViewChild.__init__(self, model, view)
 		
 		self.set_up()

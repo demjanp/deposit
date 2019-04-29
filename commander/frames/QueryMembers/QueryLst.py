@@ -250,6 +250,18 @@ class QueryLst(Frame, PrototypeDragView, QtWidgets.QTableView):
 		
 		return self.table_model.proxy_model.data(self.table_model.proxy_model.index(row, column), QtCore.Qt.UserRole)
 	
+	def set_query_item(self, row, column, value):
+		
+		self.table_model.proxy_model.setData(self.table_model.proxy_model.index(row, column), value)
+	
+	def get_mime_data(self, indexes):
+		
+		return self.table_model.mimeData(indexes)
+	
+	def process_drop(self, item, data):
+		
+		self.table_model.process_drop(item, data)
+	
 	def get_row_object(self, row):
 		
 		return self.table_model.proxy_model.data(self.table_model.proxy_model.index(row, 0), QtCore.Qt.UserRole).element
@@ -276,6 +288,10 @@ class QueryLst(Frame, PrototypeDragView, QtWidgets.QTableView):
 	def get_row_count(self):
 		
 		return self.table_model.proxy_model.rowCount()
+	
+	def get_column_count(self):
+		
+		return self.table_model.proxy_model.columnCount()
 	
 	def sizeHint(self):
 		

@@ -26,7 +26,6 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 		
 		self.central_widget = QtWidgets.QWidget(self)
 		self.central_widget.setLayout(QtWidgets.QVBoxLayout())
-		self.central_widget.layout().setContentsMargins(0, 0, 0, 0)
 		self.setCentralWidget(self.central_widget)
 		
 		self.setStyleSheet("font: 14px;")
@@ -218,10 +217,11 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 		title = self.title_edit.text()
 		if title:
 			form = Form(title, self.view)
-
 			for column in self.columns:
 				form.elements.append(column.user_element())
 				for element in column.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
+					if element.parent() != column:
+						continue
 					if isinstance(element, EditorGroup) or isinstance(element, EditorFrame):
 						form.elements.append(element.user_element())
 			for element in self.selects_frame.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):

@@ -62,14 +62,14 @@ class Images(DModule):
 		
 		os.utime(tgt_path, (ta, tm))
 	
-	def get_thumbnail(self, label, size = 256, local_folder = None):
+	def get_thumbnail(self, label, size = 256, root_folder = None):
 		# find or make thumbnail from image specified by label (DResource)
 		# return path
 		
-		if local_folder is None:
-			local_folder = self.store.local_folder
-		if not local_folder:
-			return None
+		if root_folder is None:
+			root_folder = self.store.local_folder
+		if not root_folder:
+			root_folder = self.store.files.get_temp_path()
 		
 		# thumbnail filename
 		filename = "%s_%s.jpg" % (hashlib.md5(label.value.encode("utf-8")).hexdigest(), size)
@@ -82,10 +82,10 @@ class Images(DModule):
 				if tm_orig == os.stat(self._thumbnails[filename]).st_mtime:
 					return self._thumbnails[filename]
 		
-		local_folder = os.path.join(local_folder, "_thumbnails")
-		if not os.path.exists(local_folder):
-			os.makedirs(local_folder)
-		tgt_path = os.path.join(self.store.files.get_new_dir(local_folder), filename)
+		root_folder = os.path.join(root_folder, "_thumbnails")
+		if not os.path.exists(root_folder):
+			os.makedirs(root_folder)
+		tgt_path = os.path.join(self.store.files.get_new_dir(root_folder), filename)
 		
 		src_format = self.get_format(label.filename)
 		if src_format is None:
@@ -121,16 +121,16 @@ class Images(DModule):
 		
 		return tgt_path
 		
-	def load_thumbnails(self, local_folder = None):
+	def load_thumbnails(self, root_folder = None):
 		
-		if local_folder is None:
-			local_folder = self.store.local_folder
-		if not local_folder:
-			return
-		local_folder = os.path.join(local_folder, "_thumbnails")
-		if os.path.exists(local_folder):
-			for dirname in os.listdir(local_folder):
-				dirname = os.path.join(local_folder, dirname)
+		if root_folder is None:
+			root_folder = self.store.local_folder
+		if not root_folder:
+			root_folder = self.store.files.get_temp_path()
+		root_folder = os.path.join(root_folder, "_thumbnails")
+		if os.path.exists(root_folder):
+			for dirname in os.listdir(root_folder):
+				dirname = os.path.join(root_folder, dirname)
 				if os.path.isdir(dirname):
 					for filename in os.listdir(dirname):
 						self._thumbnails[filename] = os.path.abspath(os.path.join(dirname, filename))

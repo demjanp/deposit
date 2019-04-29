@@ -70,6 +70,7 @@ class Store(DModule):
 		self.connect_broadcast(Broadcasts.ELEMENT_ADDED, self.on_data_changed)
 		self.connect_broadcast(Broadcasts.ELEMENT_CHANGED, self.on_data_changed)
 		self.connect_broadcast(Broadcasts.ELEMENT_DELETED, self.on_data_changed)
+		self.connect_broadcast(Broadcasts.STORE_LOCAL_FOLDER_CHANGED, self.on_data_changed)
 		
 		if len(args) > 0:
 			if len(args[0]) == 2:
@@ -115,7 +116,23 @@ class Store(DModule):
 
 		self.local_folder = path
 		self.broadcast(Broadcasts.STORE_LOCAL_FOLDER_CHANGED)
-
+	
+	def localise_resources(self):
+		
+		if self.local_folder is None:
+			return
+		for id in self.objects:
+			for descr in self.objects[id].descriptors:
+				descr = self.objects[id].descriptors[descr]
+				if descr.linked:
+					continue
+				if descr.label.__class__.__name__ != "DResource":
+					continue
+				if descr.label.is_stored():
+					continue
+				descr.label = self.files.store_local(descr.label.value)
+			self.broadcast(Broadcasts.ELEMENT_CHANGED, self.objects[id])
+	
 	@property
 	def class_names(self):
 

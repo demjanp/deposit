@@ -16,7 +16,7 @@ class ClearLocalFolder(Tool):
 	
 	def enabled(self):
 		
-		return True
+		return self.model.local_folder is not None
 	
 	def triggered(self, state):
 		

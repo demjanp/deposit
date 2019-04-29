@@ -138,15 +138,13 @@ class View(DModule, QtWidgets.QMainWindow):
 			directory = ""
 			if not self.model.local_folder is None:
 				directory = as_url(self.model.local_folder)
-			url, format = QtWidgets.QFileDialog.getSaveFileUrl(self, caption="Save Database As",
-															   filter="JSON (*.json);;Resource Description Framework (*.rdf)",
-															   directory=directory)
+			url, format = QtWidgets.QFileDialog.getSaveFileUrl(self, caption="Save Database As", filter="JSON (*.json)", directory=directory)
 			url = str(url.toString())
 			if url:
 				ds = None
-				if format == "Resource Description Framework (*.rdf)":
-					ds = self.model.datasources.RDFGraph(url=url)
-				elif format == "JSON (*.json)":
+#				if format == "Resource Description Framework (*.rdf)":
+#					ds = self.model.datasources.RDFGraph(url=url)
+				if format == "JSON (*.json)":
 					ds = self.model.datasources.JSON(url=url)
 				if (not ds is None) and ds.save():
 					self.model.set_datasource(ds)

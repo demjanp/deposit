@@ -26,6 +26,10 @@ class RemoveDescriptor(Tool):
 					return False
 		return False
 	
+	def shortcut(self):
+		
+		return "Del"
+	
 	def triggered(self, state):
 		
 		descriptors = []

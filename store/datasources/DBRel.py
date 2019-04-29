@@ -28,20 +28,39 @@
 			table = #identifier
 			columns:
 				url (text)
-
 		Changed:
 			table = #changed
 			columns:
 				timestamp (text)
-
+		
 		Local folder:
 			table = #local_folder
 			columns:
 				path (text)
 		
+		Events:
+			table = #events
+			columns:
+				time (text)
+				user_ (text)
+				delement (text)
+				key (text)
+				function (text)
+				args (text)
+		
+		User tools:
+			table = #user_tools
+			columns:
+				data (text)
+		
+		Deposit version:
+			table = #version
+			columns:
+				version (text)
+		
 '''
 
-from deposit import Broadcasts
+from deposit import Broadcasts, __version__
 from deposit.store.datasources.DB import (DB)
 from deposit.store.DLabel.DLabel import (DLabel)
 from deposit.store.DElements.DObjects import (DObject)
@@ -63,7 +82,7 @@ class DBRel(DB):
 		
 		cursor.connection.close()
 
-		for name in ["#identifier", "#changed", "#local_folder", "#geotags"]:
+		for name in ["#identifier", "#changed", "#local_folder", "#geotags", "#events", "#user_tools", "#version"]:
 			if not name in tables:
 				return False
 		
@@ -205,6 +224,40 @@ class DBRel(DB):
 		if not self.store.local_folder is None:
 			cursor.execute("INSERT INTO \"%s\" VALUES ('%s');" % (table, json.dumps(self.store.local_folder)))
 		
+		table = "#events"
+		event_type = "time TEXT, user_ TEXT, delement TEXT, key TEXT, function TEXT, args TEXT"
+		cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, event_type))
+		if self.store.save_events:
+			events = self.store.events.to_list()
+			if events:
+				data = []
+				for t, user, delement, key, function, args in events:
+					t, user, delement, key, function, args = [json.dumps(val) for val in [t, user, delement, key, function, args]]
+					data.append(dict(time = t, user_ = user, delement = delement, key = key, function = function, args = args))
+				cursor.execute("""
+					DROP TYPE IF EXISTS event_;
+					CREATE TYPE event_ as (%s);
+					INSERT INTO \"%s\" SELECT time, user_, delement, key, function, args FROM json_populate_recordset(null::event_, %%s);
+				""" % (event_type, table), (json.dumps(data),))
+		
+		table = "#user_tools"
+		user_tools_type = "data TEXT"
+		cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, user_tools_type))
+		data_user_tools = self.store.user_tools.to_list()
+		if data_user_tools:
+			data = []
+			for row in data_user_tools:
+				data.append(dict(data = json.dumps(row)))
+			cursor.execute("""
+				DROP TYPE IF EXISTS user_tool_;
+				CREATE TYPE user_tool_ as (%s);
+				INSERT INTO \"%s\" SELECT data FROM json_populate_recordset(null::user_tool_, %%s);
+			""" % (user_tools_type, table), (json.dumps(data),))
+		
+		table = "#version"
+		cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, "version TEXT"))
+		cursor.execute("INSERT INTO \"%s\" VALUES ('%s');" % (table, json.dumps(__version__)))
+
 		cursor.connection.commit()
 		cursor.connection.close()
 		
@@ -217,7 +270,7 @@ class DBRel(DB):
 		if cursor is None:
 			return False
 		
-		for name in ["#identifier", "#changed", "#local_folder", "#geotags"]:
+		for name in ["#identifier", "#changed", "#local_folder", "#geotags", "#events", "#user_tools", "#version"]:
 			if not name in tables:
 				return False
 		
@@ -276,7 +329,7 @@ class DBRel(DB):
 		
 		# load relations
 		for table in tables:
-			if table.startswith("#") and not (table in ["#classless", "#identifier", "#changed", "#local_folder", "#geotags"]):
+			if table.startswith("#") and not (table in ["#classless", "#identifier", "#changed", "#local_folder", "#geotags", "#events", "#user_tools", "#version"]):
 				if table.startswith("##classless#"):
 					if table.endswith("##classless"): #  ##classless#rel##classless
 						rel = table[12:].split("#")[0]
@@ -303,6 +356,26 @@ class DBRel(DB):
 		for row in rows:
 			id, descr, geotag = row
 			self.store.objects[id].descriptors[descr].geotag = json.loads(geotag)
+		
+		# load events
+		table = "#events"
+		cursor.execute("SELECT * FROM \"%s\";" % (table,))
+		rows = cursor.fetchall()
+		if rows:
+			data = []  # [[t, user, class_name, key, func_name, args], ...]
+			for row in rows:
+				data.append([json.loads(val) for val in row])
+			self.store.events.from_list(data)
+		
+		# load user tools
+		table = "#user_tools"
+		cursor.execute("SELECT * FROM \"%s\";" % (table,))
+		rows = cursor.fetchall()
+		if rows:
+			data = []
+			for row in rows:
+				data.append(json.loads(row[0]))
+			self.store.user_tools.from_list(data)
 		
 		self.store.images.load_thumbnails()
 		

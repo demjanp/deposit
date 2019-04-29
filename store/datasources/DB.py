@@ -323,7 +323,7 @@ class DB(DataSource):
 			self.store.linked[self.identifier].local_folder = json.loads(row[0])
 			break
 		
-		self.store.images.load_thumbnails(local_folder = self.store.linked[self.identifier].local_folder)
+		self.store.images.load_thumbnails(root_folder = self.store.linked[self.identifier].local_folder)
 		
 		self.store.events.resume_recording()
 		self.resume_broadcasts()

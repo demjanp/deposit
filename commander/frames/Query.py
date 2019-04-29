@@ -88,6 +88,9 @@ class Query(Frame, QtWidgets.QWidget):
 	def update_tabs_enabled(self):
 
 		for i, tab in enumerate([self.tab_img, self.tab_geo, self.tab_obj]):
+			if tab == self.tab_geo:  # TODO remove after implementing GEO view
+				self.tabs.setTabEnabled(i + 1, False)
+				continue
 			self.tabs.setTabEnabled(i + 1, (tab.get_row_count() > 0))
 	
 	def populate_tab_img(self):
@@ -142,7 +145,7 @@ class Query(Frame, QtWidgets.QWidget):
 			return
 
 		broadcaster = args[0][0]
-		if (broadcaster.__class__.__name__ != "QueryLst") or (broadcaster.relation is not None):
+		if (broadcaster.__class__.__name__ not in ["QueryLst", "QueryImg"]) or ((broadcaster.__class__.__name__ == "QueryLst") and (broadcaster.relation is not None)):
 			return
 
 		obj, row = self.tab_lst.get_first_selected()

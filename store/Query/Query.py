@@ -417,9 +417,15 @@ class QueryRow(object):
 
 	@property
 	def hash(self):
-
+		
+		def hash_obj_descr(obj, descriptor):
+			
+			if descriptor is None:
+				return str(obj.id)
+			return "%d%s" % (obj.id, str(descriptor.label.value))
+		
 		if self._hash is None:
-			self._hash = "".join([str(obj.id if (descriptor is None) else descriptor.label.value) for obj, _, descriptor in self._data])
+			self._hash = "".join([hash_obj_descr(obj, descriptor) for obj, _, descriptor in self._data])
 		return self._hash
 
 class QueryItem(object):

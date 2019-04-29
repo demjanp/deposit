@@ -39,7 +39,7 @@ class IconThread(QtCore.QThread):
 	
 	def run(self):
 		
-		path = self.parent.model.images.get_thumbnail(self.label, size = self.icon_size, local_folder = self.local_folder)
+		path = self.parent.model.images.get_thumbnail(self.label, size = self.icon_size, root_folder = self.local_folder)
 		self.parent.on_icon_thread(self.index, path)
 
 class QueryImgLazy(Frame, QtWidgets.QWidget):
@@ -275,9 +275,9 @@ class QueryImg(Frame, PrototypeDragView, QtWidgets.QListView):
 		
 	def selectionChanged(self, selected, deselected):
 		
+		super(QueryImg, self).selectionChanged(selected, deselected)
 		self.broadcast(Broadcasts.VIEW_SELECTED)
 		self.broadcast(Broadcasts.VIEW_ACTION)
-		super(QueryImg, self).selectionChanged(selected, deselected)
 	
 	def focusInEvent(self, event):
 		

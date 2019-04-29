@@ -139,9 +139,9 @@ class Files(DModule):
 			f.close()
 			os.remove(tmp_path)
 			return True
-
-		path, filename = os.path.split(url)
-		if not (path and filename):
+		
+		_, filename = os.path.split(url)
+		if not filename:
 			return default
 		filename = unidecode(filename.strip())
 		for i in range(len(filename)):

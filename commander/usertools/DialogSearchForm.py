@@ -12,13 +12,27 @@ class DialogSearchForm(DialogForm):
 	
 	def submit(self):
 		
-		query = "SELECT %s" % (", ".join([".".join(select) for select in self.selects]))
+		def value_to_str(value):
+			
+			try:
+				value = float(value)
+				if value - int(value) == 0:
+					value = int(value)
+			except:
+				value = str(value)
+			if isinstance(value, str):
+				return "'%s'" % (value)
+			return "%s" % str(value)
+		
 		conditions = []
 		frames, _ = self.frames()
 		for frame in frames:
 			value = frame.get_value()
 			if value:
-				conditions.append("(%s.%s == '%s')" % (frame.dclass, frame.descriptor, value))
+				conditions.append("(%s.%s == %s)" % (frame.dclass, frame.descriptor, value_to_str(value)))
+				if [frame.dclass, frame.descriptor] not in self.selects:
+					self.selects.append([frame.dclass, frame.descriptor])
+		query = "SELECT %s" % (", ".join([".".join(select) for select in self.selects]))
 		if conditions:
 			query += " WHERE %s" % (" and ".join(conditions))
 		self.view.mdiarea.create("Query", query)

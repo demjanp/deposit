@@ -6,7 +6,7 @@ ordering = [
 	["Data",	"ClearRecent"],
 	["Edit",	"Copy", "Paste"],
 	["Resources",	"SetLocalFolder", "ClearLocalFolder"],
-	["Resources",	"LocalizeAll", "LocalizeSelected"],
+	["Resources",	"LocaliseResources"],
 	["Resources",	"GenerateThumbnails"],
 	["Events",	"SaveHistory"],
 	["Events",	"History"],

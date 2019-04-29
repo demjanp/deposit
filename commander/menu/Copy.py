@@ -26,8 +26,9 @@ class Copy(Tool):
 		return "Ctrl+C"
 	
 	def triggered(self, state):
-
-		selected = self.view.mdiarea.get_current().get_selected() # [[QueryItem(), ...], ...]
+		
+		current = self.view.mdiarea.get_current()
+		selected = current.get_selected() # [[QueryItem(), ...], ...]
 		grid = []
 		for row in selected:
 			if row:
@@ -39,6 +40,12 @@ class Copy(Tool):
 					elif item.element.__class__.__name__ == "DDescriptor":
 						value = str(item.element.label.value)
 					grid[-1].append(value)
-		QtWidgets.QApplication.clipboard().setText("\n".join(["\t".join(row) for row in grid]))
-		
-		
+		text = "\n".join(["\t".join(row) for row in grid])
+		indexes = []
+		for row in selected.indexes:
+			for column in selected.indexes[row]:
+				indexes.append(selected.indexes[row][column])
+		data = current.get_mime_data(indexes)
+		data.setData("text/plain", bytes(text, "utf-8"))
+		QtWidgets.QApplication.clipboard().setMimeData(data)
+

@@ -38,14 +38,14 @@ class Load(Tool):
 		if not self.model.local_folder is None:
 			directory = as_url(self.model.local_folder)
 		
-		url, format = QtWidgets.QFileDialog.getOpenFileUrl(self.view, caption = "Load Data", filter = "(*.json *.rdf *.xlsx *.csv *.shp)", directory = directory)
+		url, format = QtWidgets.QFileDialog.getOpenFileUrl(self.view, caption = "Load Data", filter = "(*.json *.xlsx *.csv *.shp)", directory = directory)
 		url = str(url.toString())
 		format = url.split(".")[-1].lower()
 		if url:
 			ds = None
-			if format == "rdf":
-				ds = self.model.datasources.RDFGraph(url = url)
-			elif format == "json":
+#			if format == "rdf":
+#				ds = self.model.datasources.RDFGraph(url = url)
+			if format == "json":
 				ds = self.model.datasources.JSON(url = url)
 			
 			if (ds is not None) and ds.load():

@@ -92,7 +92,7 @@ class ObjView(Frame, PrototypeDragWidget, QtWidgets.QTableWidget):
 		
 	def drag_supported(self, item):
 		
-		return True # DEBUG
+		return False # DEBUG
 		
 	def drop_supported(self, item):
 		

@@ -393,7 +393,7 @@ class Condition(object):
 				if possible_cls_descr(wherestr[idx0 + 1:idx2], True):
 					descr = wherestr[idx0 + 1:idx2]
 					break
-			if descr is not None:
+			if (descr is not None) and not (cls.isnumeric() and descr.isnumeric()):
 				select = Select(self.store, "%s.%s" % (cls, descr), {})
 				if select.classes:
 					self.selects.append(select)

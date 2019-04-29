@@ -1,4 +1,4 @@
-from deposit import Broadcasts
+from deposit import Broadcasts, __version__
 from deposit.store.Conversions import (id_to_int, value_to_wkt, wktLiteral_to_wkt, wkt_to_wktLiteral, coords_to_wkt)
 from deposit.store.Namespaces import (RDF, RDFS, OGC, DEP)
 from deposit.store.DElements.DObjects import (DObject)

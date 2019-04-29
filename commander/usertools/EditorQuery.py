@@ -19,7 +19,6 @@ class EditorQuery(ViewChild, QtWidgets.QDialog):
 		self.setMinimumWidth(600)
 		self.setModal(True)
 		self.setLayout(QtWidgets.QVBoxLayout())
-		self.layout().setContentsMargins(0, 0, 0, 0)
 		
 		self.title_edit = QtWidgets.QLineEdit()
 		self.query_edit = QtWidgets.QPlainTextEdit()

@@ -50,8 +50,6 @@ class Dialogs(CmdDict, ViewChild):
 		
 		dialog.set_closed()
 		
-		print(self.dialogs_open, dialog.__class__.__name__)  # DEBUG
-		
 		self.dialogs_open.remove(dialog.__class__.__name__)
 		
 		if code == QtWidgets.QDialog.Accepted:	

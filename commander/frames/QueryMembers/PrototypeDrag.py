@@ -47,6 +47,8 @@ class PrototypeDragModel(object):
 			elements.append(item.element.to_dict())
 			elements[-1]["identifier"] = self.model.identifier
 			elements[-1]["connstr"] = self.model.connstr
+			elements[-1]["row"] = index.row()
+			elements[-1]["column"] = index.column()
 			if item.is_resource():
 				filename = item.element.label.filename
 				f_src = item.element.label.open()
@@ -150,7 +152,7 @@ class PrototypeDragView(object):
 		self.setDragDropMode(QtWidgets.QAbstractItemView.DragDrop)
 		self.setDefaultDropAction(QtCore.Qt.CopyAction)
 		self.setDropIndicatorShown(True)
-
+	
 class PrototypeDragWidget(PrototypeDragModel, PrototypeDragView):
 	
 	def get_drag_data(self, event):
