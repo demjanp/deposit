@@ -2,6 +2,7 @@ from deposit import Broadcasts
 from deposit.DModule import (DModule)
 from deposit.commander.frames._Frame import (Frame)
 from deposit.commander.frames.QueryMembers.QueryItem import (QueryItem)
+from deposit.commander.frames.QueryMembers.QuerySelection import (QuerySelection)
 from deposit.commander.frames.QueryMembers.PrototypeDrag import (PrototypeDragView, PrototypeDragModel)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
@@ -262,11 +263,16 @@ class QueryImg(Frame, PrototypeDragView, QtWidgets.QListView):
 	
 	def get_selected(self):
 		
-		return [[index.data(QtCore.Qt.UserRole) for index in self.selectionModel().selectedIndexes()]]
+		return QuerySelection(self.model, self.view, self.selectionModel().selectedIndexes())
+#		return [[index.data(QtCore.Qt.UserRole) for index in self.selectionModel().selectedIndexes()]]
 	
 	def get_row_count(self):
 		
 		return self.list_model.proxy_model.rowCount()
+	
+	def get_mime_data(self, indexes):
+		
+		return self.list_model.mimeData(indexes)
 	
 	def on_activated(self, index):
 		
@@ -276,8 +282,13 @@ class QueryImg(Frame, PrototypeDragView, QtWidgets.QListView):
 	def selectionChanged(self, selected, deselected):
 		
 		super(QueryImg, self).selectionChanged(selected, deselected)
-		self.broadcast(Broadcasts.VIEW_SELECTED)
-		self.broadcast(Broadcasts.VIEW_ACTION)
+		
+		selected = self.get_selected()
+		if len(selected):
+			self.parent.tab_lst.select_object(selected[0][0].element.target)
+		
+#		self.broadcast(Broadcasts.VIEW_SELECTED)
+#		self.broadcast(Broadcasts.VIEW_ACTION)
 	
 	def focusInEvent(self, event):
 		

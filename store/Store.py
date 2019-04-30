@@ -15,6 +15,7 @@ from deposit.store.externalsources._ExternalSources import (ExternalSources)
 from deposit.store.Conversions import (as_url, to_unique)
 
 import time
+import os
 
 class Store(DModule):
 
@@ -188,41 +189,99 @@ class Store(DModule):
 
 		return Query(self, querystr)
 	
-	def load(self, identifier = None, connstr = None):
-		# convenience function & used by MRUD
+	def get_datasource(self, identifier, connstr, store = None):
+		
+		if store is None:
+			store = self
 		
 		if identifier:
 			identifier = as_url(identifier)
 		
 		if not connstr is None:
 			
-			ds = self.datasources.DBRel()
+			ds = store.datasources.DBRel()
 			if ds.set_connstr(connstr) and ds.is_valid() and ds.load():
-				self.set_datasource(ds)
-				return True
+				return ds
 			
 			if not identifier is None:
-				ds = self.datasources.DB(identifier = identifier, connstr = connstr)
+				ds = store.datasources.DB(identifier = identifier, connstr = connstr)
 				if ds.load():
-					self.set_datasource(ds)
-					return True
+					return ds
 			
 		elif not identifier is None:
-			ds = None
+			
 			if identifier[-1] == "#":
-				# TODO no extension given - find .json or .rdf file
-				return True # DEBUG
-			else:
-				ext = identifier.split(".")[-1].lower().strip()
-				if ext == "json":
-					ds = self.datasources.JSON(url = identifier)
-				elif ext == "rdf":
-					ds = self.datasources.RDFGraph(url = identifier)
-			if (not ds is None) and ds.load():
-				self.set_datasource(ds)
-				return True
+				ds = store.datasources.JSON(url = "%s.json" % (identifier[:-1]))
+				if (ds is not None) and ds.load():
+					return ds
+				ds = store.datasources.RDFGraph(url = "%s.rdf" % (identifier[:-1]))
+				if (ds is not None) and ds.load():
+					return ds
+			
+			ext = identifier.split(".")[-1].lower().strip()
+			if ext == "json":
+				ds = store.datasources.JSON(url = identifier)
+			elif ext == "rdf":
+				ds = store.datasources.RDFGraph(url = identifier)
+			if (ds is not None) and ds.load():
+				return ds
 		
-		return False
+		return None
+
+	def load(self, identifier = None, connstr = None):
+		# convenience function & used by MRUD
+		
+		ds = self.get_datasource(identifier, connstr)
+		if ds is None:
+			return False
+		self.set_datasource(ds)
+		return True
+	
+	def add_objects(self, identifier, connstr, ids):
+		# add objects from a different store, specified by identifier and connstr
+		
+		def collect_ids(id, store, found = []):
+			
+			if id in found:
+				return
+			found.append(id)
+			obj = store.objects[id]
+			for rel in obj.relations:
+				for id2 in obj.relations[rel]:
+					collect_ids(id2, store, found)
+		
+		if (identifier == self.identifier) and (connstr == self.connstr):
+			return
+		store = Store()
+		ds = self.get_datasource(identifier, connstr, store)
+		if ds is None:
+			return
+		store.set_datasource(ds)
+		found_ids = []
+		for id in ids:
+			collect_ids(id, store, found_ids)
+		id_lookup = {} # {orig_id: new_id, ...}
+		for id_orig in found_ids:
+			id_lookup[id_orig] = self.objects.add().id
+		for id_orig in found_ids:
+			obj_orig = store.objects[id_orig]
+			obj_new = self.objects[id_lookup[id_orig]]
+			for cls in obj_orig.classes:
+				obj_new.classes.add(cls)
+			for rel in obj_orig.relations:
+				if rel.startswith("~"):
+					continue
+				for id2 in obj_orig.relations[rel]:
+					weight = obj_orig.relations[rel].weight(id2)
+					obj_new.relations.add(rel, id_lookup[id2], weight)
+			for descr in obj_orig.descriptors:
+				label = obj_orig.descriptors[descr].label
+				if label.__class__.__name__ == "DResource":
+					if label.is_stored():
+						label._value = label._path
+						label._path = None
+				descr = obj_new.descriptors.add(descr, label)
+				descr.geotag = obj_orig.descriptors[descr].geotag
 	
 	def populate_descriptor_names(self):  # TODO will be obsolete for new databases
 

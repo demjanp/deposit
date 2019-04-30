@@ -39,7 +39,6 @@ class PrototypeDragModel(object):
 	
 	def mimeData(self, indexes):
 		
-		data = QtCore.QMimeData()
 		paths = []
 		elements = []
 		for index in indexes:
@@ -49,6 +48,7 @@ class PrototypeDragModel(object):
 			elements[-1]["connstr"] = self.model.connstr
 			elements[-1]["row"] = index.row()
 			elements[-1]["column"] = index.column()
+			
 			if item.is_resource():
 				filename = item.element.label.filename
 				f_src = item.element.label.open()
@@ -70,10 +70,15 @@ class PrototypeDragModel(object):
 			elif item.is_geometry():
 				pass # TODO handle also geometry (generate shapefile + prj)
 		
+		data = QtCore.QMimeData()
+		if elements:
+			data.setData("application/deposit", bytes(json.dumps(elements), "utf-8"))
+			data_cb = QtCore.QMimeData() # workaround if deposit data gets reset while dragging
+			data_cb.setData("application/deposit", bytes(json.dumps(elements), "utf-8"))
+			cb = QtWidgets.QApplication.clipboard()
+			cb.setMimeData(data_cb)
 		if paths:
 			data.setUrls([QtCore.QUrl().fromLocalFile(path) for path in paths])
-		
-		data.setData("application/deposit", bytes(json.dumps(elements), "utf-8"))
 		
 		return data
 	

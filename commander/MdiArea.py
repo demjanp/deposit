@@ -4,6 +4,8 @@ from deposit.commander.ViewChild import (ViewChild)
 from deposit.commander.frames import FRAMES
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
+from collections import defaultdict
+import json
 
 class MdiSubWindow(ViewChild, QtWidgets.QMdiSubWindow):
 
@@ -40,6 +42,8 @@ class MdiArea(ViewChild, QtWidgets.QMdiArea):
 		self.set_up()
 	
 	def set_up(self):
+		
+		self.setAcceptDrops(True)
 		
 		self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn	)
 		self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn	)
@@ -110,6 +114,83 @@ class MdiArea(ViewChild, QtWidgets.QMdiArea):
 			td.drawContents(painter)
 			
 			painter.end()
+	
+	def get_drag_data(self, event):
+		
+		mimedata = event.mimeData()
+		if "application/deposit" in mimedata.formats():
+			rows = mimedata.data("application/deposit")
+			rows = rows.data().decode("utf-8").strip()
+			if not rows:
+				cb = QtWidgets.QApplication.clipboard()
+				mimedata = cb.mimeData()
+				if "application/deposit" in mimedata.formats():
+					rows = mimedata.data("application/deposit")
+					rows = rows.data().decode("utf-8").strip()
+			if rows:
+				rows = json.loads(rows)
+				objects = []
+				for row in rows:
+					id = None
+					if row["delement"] == "DObject":
+						id, identifier, connstr = int(row["id"]), row["identifier"], row["connstr"]
+					elif row["delement"] == "DDescriptor":
+						id, identifier, connstr = int(row["target"]), row["identifier"], row["connstr"]
+					if id is not None:
+						if (identifier != self.model.identifier) or (connstr != self.model.connstr):
+							objects.append([id, identifier, connstr])					
+				if objects:
+					return "objects", objects
+		if mimedata.hasUrls():
+			for url in mimedata.urls():
+				url = str(url.toString())
+				if url.split(".")[-1].lower() in ["json", "xlsx", "csv", "shp"]:
+					return "url", url
+		return None, None
+	
+	def dragEnterEvent(self, event):
+		
+#		typ, data = self.get_drag_data(event)
+#		if typ is None:
+#			event.ignore()
+#			return
+		event.accept()
+	
+	def dragMoveEvent(self, event):
+		
+#		typ, data = self.get_drag_data(event)
+#		if typ is None:
+#			event.ignore()
+#			return
+		event.accept()
+	
+	def dropEvent(self, event):
+		
+		typ, data = self.get_drag_data(event)
+		if typ == "url":
+			ext = data.split(".")[-1].lower()
+			if ext == "json":
+				if self.model.load("%s" % (data)):
+					self.view.menu.add_recent_url(data)
+				return
+			es = None
+			if ext == "xlsx":
+				es = self.model.externalsources.XLSX(data)
+			elif ext == "csv":
+				es = self.model.externalsources.CSV(data)
+			elif ext == "shp":
+				es = self.model.externalsources.Shapefile(data)
+			if (es is not None) and es.load():
+				self.create(es.name, es)
+			return
+		
+		if typ == "objects":
+			groups = defaultdict(lambda: defaultdict(list)) # {identifier: {connstr: [id, ...], ...}, ...}
+			for id, identifier, connstr in data:
+				groups[identifier][connstr].append(id)
+			for identifier in groups:
+				for connstr in groups[identifier]:
+					self.model.add_objects(identifier, connstr, groups[identifier][connstr])
 	
 	def on_activated(self):
 

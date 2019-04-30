@@ -9,7 +9,7 @@ class ExternalHeader(QtWidgets.QTableWidget):
 		self.es = es  # ExternalSource()
 		self.sheet = sheet
 		
-		QtWidgets.QTableView.__init__(self, parent)
+		QtWidgets.QTableWidget.__init__(self, parent)
 		
 		self.set_up()
 	

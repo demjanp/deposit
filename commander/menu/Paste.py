@@ -35,7 +35,7 @@ class Paste(Tool):
 						return False
 			return False
 		
-		return is_selected() and ((QtWidgets.QApplication.clipboard().text() != "") or self.get_mime_formats(QtWidgets.QApplication.clipboard().mimeData()))
+		return is_selected() and ((QtWidgets.QApplication.clipboard().text() != "") or (self.get_mime_formats(QtWidgets.QApplication.clipboard().mimeData()) != []))
 	
 	def shortcut(self):
 		
@@ -69,30 +69,36 @@ class Paste(Tool):
 			return data
 		
 		data = []
-		mime_data = QtWidgets.QApplication.clipboard().mimeData()
+		cb = QtWidgets.QApplication.clipboard()
+		mime_data = cb.mimeData()
 		formats = self.get_mime_formats(mime_data)
 		if formats:
+			found_elements = False
 			if "application/deposit" in formats:
 				elements = json.loads(mime_data.data("application/deposit").data().decode("utf-8"))
 				collect = defaultdict(dict)
 				row_min, column_min = None, None
 				row_max, column_max = 0, 0
 				for element in elements:
+					if [element["identifier"], element["connstr"]] != [self.model.identifier, self.model.connstr]:
+						continue
 					row, column = element["row"], element["column"]
 					row_min = row if (row_min is None) else min(row_min, row)
 					column_min = column if (column_min is None) else min(column_min, column)
 					row_max = max(row_max, row)
 					column_max = max(column_max, column)
 					collect[row][column] = deposit_to_mime(element)
+					found_elements = True
 				
-				for r in range(row_max - row_min + 1):
-					data.append([])
-					for c in range(column_max - column_min + 1):
-						if (column_min + c) in collect[row_min + r]:
-							data[-1].append(collect[row_min + r][column_min + c])
-						else:
-							data[-1].append(None)
-			elif mime_data.hasUrls():
+				if found_elements:
+					for r in range(row_max - row_min + 1):
+						data.append([])
+						for c in range(column_max - column_min + 1):
+							if (column_min + c) in collect[row_min + r]:
+								data[-1].append(collect[row_min + r][column_min + c])
+							else:
+								data[-1].append(None)
+			if (not found_elements) and mime_data.hasUrls():
 				data = [[url_to_mime(url)] for url in mime_data.urls()]
 		else:
 			text = QtWidgets.QApplication.clipboard().text()

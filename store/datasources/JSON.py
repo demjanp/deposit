@@ -42,6 +42,10 @@ class JSON(DataSource):
 		with open(path, "r") as f:
 			data = json.load(f)
 		
+		for name in ["classes", "objects", "changed", "local_folder"]:
+			if name not in data:
+				return False
+		
 		# fix for json encoding of integer dict keys
 		data["objects"] = dict([(int(id), data["objects"][id]) for id in data["objects"]])
 		

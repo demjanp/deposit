@@ -56,9 +56,9 @@ class Load(Tool):
 			es = None
 			if format == "xlsx":
 				es = self.model.externalsources.XLSX(url)
-			if format == "csv":
+			elif format == "csv":
 				es = self.model.externalsources.CSV(url)
-			if format == "shp":
+			elif format == "shp":
 				es = self.model.externalsources.Shapefile(url)
 			if (es is not None) and es.load():
 				self.view.mdiarea.create(es.name, es)

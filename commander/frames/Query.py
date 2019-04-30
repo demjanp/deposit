@@ -145,9 +145,9 @@ class Query(Frame, QtWidgets.QWidget):
 			return
 
 		broadcaster = args[0][0]
-		if (broadcaster.__class__.__name__ not in ["QueryLst", "QueryImg"]) or ((broadcaster.__class__.__name__ == "QueryLst") and (broadcaster.relation is not None)):
+		if (broadcaster.__class__.__name__ != "QueryLst") or (broadcaster.relation is not None):
 			return
-
+		
 		obj, row = self.tab_lst.get_first_selected()
 		if obj is None:
 			return
