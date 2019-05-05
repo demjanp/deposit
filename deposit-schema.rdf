@@ -3,7 +3,7 @@
 	RDF Schema declaration for Deposit (DEP) 1.1
 	<http://future_url/2019/03/deposit-schema#>
 	Peter Demján <peter.demjan@gmail.com>
-	19-03-2019
+	05-05-2019
 -->
 <rdf:RDF
 	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -122,6 +122,8 @@
 		<rdfs:subClassOf rdf:resource="#Event"/>
 	</rdfs:Class>
 	
+	<rdfs:Class rdf:ID="Query" rdfs:label="Query" rdfs:comment="User defined Query."/>
+	
 	<rdfs:Class rdf:ID="UserTool" rdfs:label="UserTool" rdfs:comment="User tool."/>
 
 	<rdfs:Class rdf:ID="UserElement" rdfs:label="UserElement" rdfs:comment="User tool element."/>
@@ -131,7 +133,7 @@
 		<rdfs:subClassOf rdf:resource="#UserTool"/>
 	</rdfs:Class>
 
-	<rdfs:Class rdf:ID="Query" rdfs:label="Query" rdfs:comment="Query user tool.">
+	<rdfs:Class rdf:ID="QueryTool" rdfs:label="QueryTool" rdfs:comment="Query user tool.">
 		<rdfs:subClassOf rdf:resource="#UserTool"/>
 	</rdfs:Class>
 

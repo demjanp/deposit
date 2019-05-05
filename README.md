@@ -79,13 +79,15 @@ dep:Event_add_class - Add Class to Object. Arguments: name.
 
 dep:Event_del_class - Delete Class from Object. Arguments: name.
 
+dep:Query - User defined Query.
+
 dep:UserTool - User tool.
 
 dep:UserElement - User tool element.
 
 dep:UserElementList - User tool containing multiple elements.
 
-dep:Query - Query user tool.
+dep:QueryTool - Query user tool.
 
 dep:SearchForm - Search Form user tool.
 
@@ -345,6 +347,12 @@ Locally stored file:
 	
 	the original name of localy stored file [local name].[ext] is [name].[ext]
 
+Query:
+	
+	gra:[id_qry]	rdf:type	dep:Query
+	gra:[id_qry]	rdfs:label	Literal(label)
+	gra:[id_qry]	rdf:value	Literal(querystring)
+
 UserElement:
 	
 	gra:[id_uel]	rdf:type	dep:UserElement
@@ -410,9 +418,9 @@ UserTool:
 	gra:[id_utl]	rdf:type	dep:UserTool
 	gra:[id_utl]	rdfs:label	Literal(label)
 
-Query:
+QueryTool:
 
-	gra:[id_utl]	rdf:type	dep:Query
+	gra:[id_utl]	rdf:type	dep:QueryTool
 	gra:[id_utl]	rdfs:label	Literal(label)
 	gra:[id_utl]	rdf:value	Literal(querystring)
 
