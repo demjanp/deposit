@@ -1,5 +1,6 @@
 from deposit.commander.ViewChild import (ViewChild)
 from deposit.commander.navigator.ClassWidget import (ClassWidget)
+from deposit.commander.navigator.QueryWidget import (QueryWidget)
 from deposit.commander.navigator.DatabaseWidget import (DatabaseWidget)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
@@ -9,6 +10,7 @@ class Navigator(ViewChild, QtWidgets.QToolBox):
 	def __init__(self, model, view):
 		
 		self.classwidget = None
+		self.querywidget = None
 		self.databasewidget = None
 		
 		ViewChild.__init__(self, model, view)
@@ -29,9 +31,11 @@ class Navigator(ViewChild, QtWidgets.QToolBox):
 		''')
 		
 		self.classwidget = ClassWidget(self.model, self.view, self)
+		self.querywidget = QueryWidget(self.model, self.view, self)
 		self.databasewidget = DatabaseWidget(self.model, self.view, self)
 		
 		self.addItem(self.classwidget, self.view.get_icon("class.svg"), "Classes")
+		self.addItem(self.querywidget, self.view.get_icon("query.svg"), "Queries")
 		self.addItem(self.databasewidget, self.view.get_icon("link_db.svg"), "Linked Databases")
 		
 		size = self.size()

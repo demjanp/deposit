@@ -159,6 +159,20 @@ class DB(DataSource):
 				INSERT INTO \"%s\" SELECT data FROM json_populate_recordset(null::user_tool_, %%s);
 			""" % (user_tool_type, table), (json.dumps(data),))
 		
+		table = self.identifier + "queries"
+		queries_type = "title TEXT, querystr TEXT"
+		create_table(table, queries_type, tables, cursor)
+		data_queries = self.store.queries.to_dict()
+		if data_queries:
+			data = []
+			for title in data_queries:
+				data.append(dict(title = title, querystr = json.dumps(data_queries[title])))
+			cursor.execute("""
+				DROP TYPE IF EXISTS queries_;
+				CREATE TYPE queries_ as (%s);
+				INSERT INTO \"%s\" SELECT title, querystr FROM json_populate_recordset(null::queries_, %%s);
+			""" % (queries_type, table), (json.dumps(data),))
+		
 		cursor.connection.commit()
 		cursor.connection.close()
 		
@@ -245,6 +259,16 @@ class DB(DataSource):
 				for row in rows:
 					data.append(json.loads(row[0]))
 				self.store.user_tools.from_list(data)
+		
+		table = self.identifier + "queries"
+		if table in tables: # TODO will be obsolete for new databases
+			cursor.execute("SELECT * FROM \"%s\";" % (table,))
+			rows = cursor.fetchall()
+			if rows:
+				data = {}  # {title: querystr, ...}
+				for row in rows:
+					data[row[0]] = json.loads(row[1])
+				self.store.queries.from_dict(data)
 		
 		self.store.images.load_thumbnails()
 		

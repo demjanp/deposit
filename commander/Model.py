@@ -18,6 +18,10 @@ class Model(Store):
 		self.connect_broadcast(Broadcasts.STORE_LOADED, self.on_loaded)
 		self.connect_broadcast(Broadcasts.STORE_SAVED, self.on_saved)
 
+	def save_store(self):
+		
+		Store.save(self)
+	
 	def save(self):
 
 		self.save_thread.wait()
@@ -49,5 +53,4 @@ class SaveThread(QtCore.QThread):
 	
 	def run(self):
 		
-		if not self.model.data_source is None:
-			self.model.data_source.save()
+		self.model.save_store()

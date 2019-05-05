@@ -258,10 +258,7 @@ class UserTools(ViewChild):
 			idx1 = querystr.lower().find(SELECTED_STR)
 			idx2 = idx1 + len(SELECTED_STR)
 			querystr = querystr[:idx1] + id + querystr[idx2:]
-		if querystr.startswith("SELECT "):
-			self.view.mdiarea.create("Query", querystr)
-		else:
-			self.model.query(querystr)
+		self.view.query(querystr)
 	
 	def open_search_form(self, form_tool):
 		

@@ -1,13 +1,10 @@
 from deposit.commander.toolbar._Tool import (Tool)
-from deposit.store.Conversions import (as_url)
-
-from PySide2 import (QtWidgets, QtCore)
 
 class Save(Tool):
 
 	def name(self):
 
-		return self.__class__.__name__
+		return "Save Database"
 
 	def icon(self):
 

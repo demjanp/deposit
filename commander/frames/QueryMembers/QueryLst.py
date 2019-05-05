@@ -307,7 +307,7 @@ class QueryLst(Frame, PrototypeDragView, QtWidgets.QTableView):
 		if item.element.__class__.__name__ == "DObject":
 			if self.relation:
 				cls = item.element.first_class()
-				self.view.mdiarea.create("Query", "SELECT %s.* WHERE id(%s) == %d" % (cls, cls, item.element.id))
+				self.view.query("SELECT %s.* WHERE id(%s) == %d" % (cls, cls, item.element.id))
 				return
 			self.broadcast(Broadcasts.VIEW_OBJECT_ACTIVATED)
 			return

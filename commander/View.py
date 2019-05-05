@@ -155,7 +155,16 @@ class View(DModule, QtWidgets.QMainWindow):
 				self.dialogs.open("SetIdentifier", True)
 				return
 			self.model.save()
-
+	
+	def query(self, querystr):
+		
+		querystr = querystr.strip()
+		if querystr:
+			if querystr.lower().startswith("select "):
+				self.mdiarea.create("Query", querystr)
+			else:
+				self.model.query(querystr)
+	
 	def on_data_source_changed(self, args):
 		
 		self.update_model_info()

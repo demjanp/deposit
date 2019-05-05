@@ -32,10 +32,10 @@ class DialogSearchForm(DialogForm):
 				conditions.append("(%s.%s == %s)" % (frame.dclass, frame.descriptor, value_to_str(value)))
 				if [frame.dclass, frame.descriptor] not in self.selects:
 					self.selects.append([frame.dclass, frame.descriptor])
-		query = "SELECT %s" % (", ".join([".".join(select) for select in self.selects]))
+		querystr = "SELECT %s" % (", ".join([".".join(select) for select in self.selects]))
 		if conditions:
-			query += " WHERE %s" % (" and ".join(conditions))
-		self.view.mdiarea.create("Query", query)
+			querystr += " WHERE %s" % (" and ".join(conditions))
+		self.view.query(querystr)
 	
 	def clear(self):
 		

@@ -203,7 +203,7 @@ class DObject(DElement):
 		
 		return self._descriptors
 	
-	def add_descriptor(self, cls, label, dtype):
+	def add_descriptor(self, cls, label, dtype = "DString"):
 		
 		return self.descriptors.add(cls, label, dtype)
 	
@@ -215,7 +215,7 @@ class DObject(DElement):
 		
 		del self.descriptors[name]
 	
-	def add_relation(self, name, target, weight):
+	def add_relation(self, name, target, weight = None):
 		
 		return self.relations.add(name, target, weight)
 	

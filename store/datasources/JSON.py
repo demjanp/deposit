@@ -39,6 +39,8 @@ class JSON(DataSource):
 		path = os.path.normpath(os.path.abspath(parsed.path.strip("//")))
 		
 		data = None
+		if not os.path.isfile(path):
+			return False
 		with open(path, "r") as f:
 			data = json.load(f)
 		
@@ -77,6 +79,9 @@ class JSON(DataSource):
 		if "user_tools" in data:  # TODO will be obsolete for new databases
 			self.store.user_tools.from_list(data["user_tools"])
 		
+		if "queries" in data:  # TODO will be obsolete for new databases
+			self.store.queries.from_dict(data["queries"])
+		
 		self.store.images.load_thumbnails()
 		
 		self.store.set_datasource(self)
@@ -100,6 +105,7 @@ class JSON(DataSource):
 			local_folder = self.store.local_folder,
 			events = self.store.events.to_list() if self.store.save_events else [],
 			user_tools = self.store.user_tools.to_list(),
+			queries = self.store.queries.to_dict(),
 			deposit_version = __version__,
 		)
 		

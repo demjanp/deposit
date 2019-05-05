@@ -103,13 +103,13 @@ class ClassList(Frame, QtWidgets.QTreeWidget):
 		name = item.data(0, QtCore.Qt.UserRole)
 
 		if name == "!*":
-			self.view.mdiarea.create("Query", "SELECT !*.*")
+			self.view.query("SELECT !*.*")
 		elif name in self.class_names:
 			if ("." in name) or (" " in name):
 				name = "\"%s\"" % name
-			self.view.mdiarea.create("Query", "SELECT %s.*" % (name))
+			self.view.query("SELECT %s.*" % (name))
 		else:
-			self.view.mdiarea.create("Query", "SELECT *.%s" % (name))
+			self.view.query("SELECT *.%s" % (name))
 	
 	def on_loaded(self, args):
 		

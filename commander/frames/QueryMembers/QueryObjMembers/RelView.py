@@ -172,5 +172,5 @@ class RelView(Frame, QtWidgets.QWidget):
 		
 		table_widget = self.layout.itemAt(idx * 2 + 1).widget()
 		if table_widget.layout().count():
-			self.view.mdiarea.create("Query", table_widget.layout().itemAt(0).widget().query.querystr)
+			self.view.query(table_widget.layout().itemAt(0).widget().query.querystr)
 

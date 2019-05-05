@@ -8,6 +8,7 @@ from deposit.store.Files import (Files)
 from deposit.store.Images import (Images)
 from deposit.store.Events import (Events)
 from deposit.store.UserTools import (UserTools)
+from deposit.store.Queries import (Queries)
 from deposit.store.Query.Query import (Query)
 from deposit.store.datasources._DataSources import (DataSources)
 from deposit.store.datasources._DataSource import (DataSource)
@@ -35,6 +36,7 @@ class Store(DModule):
 		self.images = None
 		self.events = None
 		self.user_tools = None
+		self.queries = None
 
 		self.local_folder = None
 		self.changed = None
@@ -55,6 +57,7 @@ class Store(DModule):
 		self.images = Images(self)
 		self.events = Events(self)
 		self.user_tools = UserTools(self)
+		self.queries = Queries(self)
 		
 		from deposit.store.DElements.DClasses import (DClass)
 		from deposit.store.DElements.DObjects import (DObject)
@@ -103,6 +106,7 @@ class Store(DModule):
 		self._local_resource_uris = []
 		self.events.clear()
 		self.user_tools.clear()
+		self.queries.clear()
 
 		self.broadcast(Broadcasts.STORE_LOADED)
 
@@ -236,6 +240,12 @@ class Store(DModule):
 			return False
 		self.set_datasource(ds)
 		return True
+	
+	def save(self):
+		# convenience function
+		
+		if self.data_source is not None:
+			self.data_source.save()
 	
 	def add_objects(self, identifier, connstr, ids):
 		# add objects from a different store, specified by identifier and connstr

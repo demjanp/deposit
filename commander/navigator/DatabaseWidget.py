@@ -98,7 +98,7 @@ class DatabaseFooter(DModule, QtWidgets.QFrame):
 		self.button_link_file.setIcon(self.parent.view.get_icon("link_file.svg"))
 		self.button_link_file.setIconSize(QtCore.QSize(32, 32))
 		self.button_link_file.setToolTip("Link File")
-		self.button_link_db.clicked.connect(self.on_link_file)
+		self.button_link_file.clicked.connect(self.on_link_file)
 		self.layout.addWidget(self.button_link_file)
 		
 		self.button_merge = QtWidgets.QToolButton(self)

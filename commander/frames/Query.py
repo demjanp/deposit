@@ -280,7 +280,7 @@ class QueryFooter(DModule, QtWidgets.QFrame):
 		self.layout.addWidget(self.add_object_button, 0, 0)
 
 		self.zoom_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-		self.zoom_slider.setMinimum(24)
+		self.zoom_slider.setMinimum(64)
 		self.zoom_slider.setMaximum(256)
 		self.zoom_slider.valueChanged.connect(self.queryframe.on_zoom)
 		self.set_zoom_enabled(False)

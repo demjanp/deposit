@@ -111,7 +111,7 @@ class Descriptor(Frame, QtWidgets.QMainWindow):
 			cls = list(cls.keys())[0]
 		else:
 			cls = "!*"
-		self.view.mdiarea.create("Query", "SELECT %s.* WHERE id(%s) == %d" % (cls, cls, self.descriptor.target.id))
+		self.view.query("SELECT %s.* WHERE id(%s) == %d" % (cls, cls, self.descriptor.target.id))
 	
 	def on_polygon(self):
 		
