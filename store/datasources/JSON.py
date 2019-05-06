@@ -137,5 +137,9 @@ class JSON(DataSource):
 		with open(path, "w") as f:
 			json.dump(data, f)
 		
+		new_local_folder = os.path.split(path)[0]
+		if new_local_folder != self.store.local_folder:
+			self.store.set_local_folder(new_local_folder)
+		
 		self.broadcast(Broadcasts.STORE_SAVED)
 		return True

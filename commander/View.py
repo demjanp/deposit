@@ -88,7 +88,7 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.menu.load_recent()
 		
 		self.connect_broadcast(Broadcasts.STORE_LOADED, self.on_data_source_changed)
-		self.connect_broadcast(Broadcasts.STORE_LOCAL_FOLDER_CHANGED, self.on_data_source_changed)
+		self.connect_broadcast(Broadcasts.STORE_LOCAL_FOLDER_CHANGED, self.on_local_folder_changed)
 		self.connect_broadcast(Broadcasts.STORE_DATA_SOURCE_CHANGED, self.on_data_source_changed)
 		self.connect_broadcast(Broadcasts.STORE_SAVED, self.on_saved)
 		self.connect_broadcast(Broadcasts.STORE_SAVE_FAILED, self.on_save_failed)
@@ -155,6 +155,7 @@ class View(DModule, QtWidgets.QMainWindow):
 				self.dialogs.open("SetIdentifier", True)
 				return
 			self.model.save()
+			self.menu.add_recent_db(self.model.data_source.identifier, self.model.data_source.connstr)
 	
 	def query(self, querystr):
 		
@@ -168,6 +169,13 @@ class View(DModule, QtWidgets.QMainWindow):
 	def on_data_source_changed(self, args):
 		
 		self.update_model_info()
+	
+	def on_local_folder_changed(self, *args):
+		
+		self.update_model_info()
+		reply = QtWidgets.QMessageBox.question(self, "Localise Resources", "Move all resources to the new Local Folder?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+		if reply == QtWidgets.QMessageBox.Yes:
+			self.model.localise_resources()
 	
 	def on_saved(self, args):
 		

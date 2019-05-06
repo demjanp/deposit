@@ -263,7 +263,7 @@ class DBRel(DB):
 
 		table = "#queries"
 		queries_type = "title TEXT, querystr TEXT"
-		create_table(table, queries_type, tables, cursor)
+		cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, queries_type))
 		data_queries = self.store.queries.to_dict()
 		if data_queries:
 			data = []

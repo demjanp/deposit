@@ -12,7 +12,7 @@ class DB(DataSource):
 
 		DataSource.__init__(self, store)
 		
-		if not identifier.endswith("#"):
+		if isinstance(identifier, str) and (not identifier.endswith("#")):
 			identifier = identifier + "#"
 		
 		self.identifier = identifier

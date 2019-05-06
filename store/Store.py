@@ -296,6 +296,8 @@ class Store(DModule):
 		self.resume_broadcasts()
 		self.populate_descriptor_names()
 		self.populate_relation_names()
+		for id_orig in id_lookup:
+			self.broadcast(Broadcasts.ELEMENT_CHANGED, self.objects[id_lookup[id_orig]])
 	
 	def populate_descriptor_names(self):
 

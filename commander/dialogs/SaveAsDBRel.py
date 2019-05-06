@@ -1,5 +1,4 @@
 from deposit.commander.dialogs._Dialog import (Dialog)
-from deposit.commander.toolbar.Save import (Save)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
@@ -55,6 +54,5 @@ class SaveAsDBRel(Dialog):
 			cursor, _ = ds.connect()
 			if cursor:
 				self.model.set_datasource(ds)
-				self.save = Save(self.model, self.view)
-				self.save.triggered(True)
+				self.view.save()
 
