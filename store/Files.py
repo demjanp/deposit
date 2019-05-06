@@ -78,7 +78,10 @@ class Files(DModule):
 			
 			new_dir = os.path.abspath(os.path.join(local_folder, tgt_dir))
 			if not os.path.isdir(new_dir):
-				os.makedirs(new_dir)
+				try:
+					os.makedirs(new_dir)
+				except:
+					print("Dir not created: %s" % new_dir)
 		else:
 			tgt_dir = dirs[0][0]
 		
@@ -88,8 +91,11 @@ class Files(DModule):
 		# return temporary path
 		
 		tempdir = os.path.normpath(os.path.abspath(os.path.join(tempfile.gettempdir(), "deposit", subdir)))
-		if not os.path.exists(tempdir):
-			os.makedirs(tempdir)
+		if not os.path.isdir(tempdir):
+			try:
+				os.makedirs(tempdir)
+			except:
+				print("Dir not created: %s" % tempdir)
 		return tempdir
 	
 	def get_deleted_path(self, name = "_deleted"):

@@ -266,6 +266,7 @@ class Store(DModule):
 		ds = self.get_datasource(identifier, connstr, store)
 		if ds is None:
 			return
+		self.stop_broadcasts()
 		store.set_datasource(ds)
 		found_ids = []
 		for id in ids:
@@ -288,19 +289,22 @@ class Store(DModule):
 				label = obj_orig.descriptors[descr].label
 				if label.__class__.__name__ == "DResource":
 					if label.is_stored():
-						label._value = label._path
+						label._value = as_url(label._path)
 						label._path = None
 				descr = obj_new.descriptors.add(descr, label)
 				descr.geotag = obj_orig.descriptors[descr].geotag
+		self.resume_broadcasts()
+		self.populate_descriptor_names()
+		self.populate_relation_names()
 	
-	def populate_descriptor_names(self):  # TODO will be obsolete for new databases
+	def populate_descriptor_names(self):
 
 		for class_name in self.classes:
 			for id in self.classes[class_name].objects:
 				for descr in self.objects[id].descriptors:
 					self.classes[class_name].add_descriptor(descr)
 
-	def populate_relation_names(self):  # TODO will be obsolete for new databases
+	def populate_relation_names(self):
 
 		for class_name1 in self.classes:
 			for id1 in self.classes[class_name1].objects:

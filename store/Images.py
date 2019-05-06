@@ -84,7 +84,10 @@ class Images(DModule):
 		
 		root_folder = os.path.join(root_folder, "_thumbnails")
 		if not os.path.exists(root_folder):
-			os.makedirs(root_folder)
+			try:
+				os.makedirs(root_folder)
+			except:
+				print("Dir not created: %s" % root_folder)
 		tgt_path = os.path.join(self.store.files.get_new_dir(root_folder), filename)
 		
 		src_format = self.get_format(label.filename)

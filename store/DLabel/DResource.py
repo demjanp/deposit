@@ -81,8 +81,8 @@ class DResource(DLabel):
 			self._worldfile = values.copy()
 
 	def open(self):
-
-		if not self._path is None:
+		
+		if self._path is not None:
 			return open(self._path, "rb")
 		parsed = urlparse(self._value)
 		if parsed.scheme == "file":
