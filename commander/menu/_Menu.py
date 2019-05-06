@@ -152,6 +152,8 @@ class Menu(CmdDict, ViewChild):
 
 		if self.has_recent([identifier, connstr]):
 			return
+		if (not identifier) or (not connstr):
+			return
 		name = "%s (%s)" % (identifier, os.path.split(connstr)[1])
 		action = Action(self, name, "db")
 		action.set_data([identifier, connstr])
