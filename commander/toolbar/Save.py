@@ -4,7 +4,7 @@ class Save(Tool):
 
 	def name(self):
 
-		return "Save Database"
+		return "Save"
 
 	def icon(self):
 
