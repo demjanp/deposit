@@ -252,14 +252,14 @@ class Related(object):
 					if cls == "!*":
 						collect.update([id for id in get_classless_object_ids(self.store) if not id in ids])
 					else:
-						collect.update([id for id in self.store.classes[cls] if id not in ids])
+						collect.update([id for id in self.store.classes[cls].objects if id not in ids])
 				ids = collect
 		else:
 			rel = self.relation.strip("!")
 			if rel in obj1.relations:
 				ids = set(obj1.relations[rel].keys())
 				if self.relation[0] == "!":
-					ids = set([id for id in store.objects if id not in ids])
+					ids = set([id for id in self.store.objects if id not in ids])
 		ids = [self.store.objects[id] for id in ids]
 		return [obj for obj in ids if check_classes(obj, self.classes2)]
 		
@@ -275,14 +275,14 @@ class Related(object):
 					if cls == "!*":
 						collect.update([id for id in get_classless_object_ids(self.store) if not id in ids])
 					else:
-						collect.update([id for id in self.store.classes[cls] if id not in ids])
+						collect.update([id for id in self.store.classes[cls].objects if id not in ids])
 				ids = collect
 		else:
 			rel = self.store.reverse_relation(self.relation.strip("!"))
 			if rel in obj2.relations:
 				ids = set(obj2.relations[rel].keys())
 				if self.relation[0] == "!":
-					ids = set([id for id in store.objects if id not in ids])
+					ids = set([id for id in self.store.objects if id not in ids])
 		ids = [self.store.objects[id] for id in ids]
 		return [obj for obj in ids if check_classes(obj, self.classes1)]
 		
@@ -438,6 +438,7 @@ class Condition(object):
 					self.classes.update(weight.related.classes2)
 					extracted.append([idx0, idx1+1, 3])
 		
+		extracted = sorted(extracted)
 		idx0 = 0
 		cnt_selects = 0
 		cnt_object_ids = 0
@@ -455,7 +456,7 @@ class Condition(object):
 				cnt_weights += 1
 			idx0 = idx2
 		self.eval_str += wherestr[idx0:] % quotes
-	
+		
 	def eval(self, objects):
 		# objects = {classstr: {index: DObject, ...}, ...}
 		
@@ -581,7 +582,7 @@ class Parse(object):
 		
 		# find quotes
 		qry, quotes = find_quotes(qry) # quotes = {"q0": "[text]", "q1": "[text]", ...}
-				
+		
 		# find segments
 		segments = self.find_segments(qry) # [[reserved_word, text], ...]
 		if not segments:

@@ -14,9 +14,9 @@ from deposit.store.Query.Parse import (find_quotes)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
-SELECTED_STR = "{selected}"
-
 class UserTools(ViewChild):
+	
+	SELECTED_STR = "{selected}"
 	
 	def __init__(self, model, view):
 		
@@ -254,9 +254,9 @@ class UserTools(ViewChild):
 		
 		querystr = form_tool.value
 		id = str(self.get_selected_id())
-		while SELECTED_STR in querystr:
-			idx1 = querystr.lower().find(SELECTED_STR)
-			idx2 = idx1 + len(SELECTED_STR)
+		while self.SELECTED_STR in querystr:
+			idx1 = querystr.lower().find(self.SELECTED_STR)
+			idx2 = idx1 + len(self.SELECTED_STR)
 			querystr = querystr[:idx1] + id + querystr[idx2:]
 		self.view.query(querystr)
 	

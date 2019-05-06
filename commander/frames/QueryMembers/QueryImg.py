@@ -261,10 +261,23 @@ class QueryImg(Frame, PrototypeDragView, QtWidgets.QListView):
 		
 		self.setIconSize(QtCore.QSize(value, value))
 	
+	def get_row_object(self, row):
+		
+		element = self.list_model.proxy_model.data(self.list_model.proxy_model.index(row, 0), QtCore.Qt.UserRole).element
+		if element.__class__.__name__ == "DObject":
+			return element
+		if element.__class__.__name__ == "DDescriptor":
+			return element.target
+	
 	def get_selected(self):
 		
 		return QuerySelection(self.model, self.view, self.selectionModel().selectedIndexes())
 #		return [[index.data(QtCore.Qt.UserRole) for index in self.selectionModel().selectedIndexes()]]
+	
+	def get_selected_objects(self):
+		# return {row: DObject, ...}
+		
+		return dict([(row, self.get_row_object(row)) for row in self.get_selected().rows()])
 	
 	def get_row_count(self):
 		
