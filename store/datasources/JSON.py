@@ -1,5 +1,6 @@
 from deposit import Broadcasts, __version__
 from deposit.store.datasources._DataSource import (DataSource)
+from deposit.store.Conversions import (as_url)
 
 from urllib.parse import urlparse
 import datetime, time
@@ -51,6 +52,17 @@ class JSON(DataSource):
 		# fix for json encoding of integer dict keys
 		data["objects"] = dict([(int(id), data["objects"][id]) for id in data["objects"]])
 		
+		self.store.local_folder = os.path.split(path)[0]
+		
+		for id in data["objects"]:
+			for name in data["objects"][id]["descriptors"]:
+				if (data["objects"][id]["descriptors"][name]["label"]["dtype"] == "DResource") and (not data["objects"][id]["descriptors"][name]["label"]["path"] is None):
+					path = data["objects"][id]["descriptors"][name]["label"]["path"]
+					path, fname = os.path.split(path)
+					path = os.path.split(path)[1]
+					data["objects"][id]["descriptors"][name]["label"]["value"] = as_url(os.path.join(self.store.local_folder, path, fname))
+					data["objects"][id]["descriptors"][name]["label"]["path"] = None
+		
 		self.store.classes.from_dict(data["classes"])
 		self.store.objects.from_dict(data["objects"])
 
@@ -71,7 +83,6 @@ class JSON(DataSource):
 			self.store.populate_relation_names()  # TODO will be obsolete for new databases
 
 		self.store.changed = data["changed"]
-		self.store.local_folder = os.path.split(path)[0]
 		
 		if "events" in data:  # TODO will be obsolete for new databases
 			self.store.events.from_list(data["events"])
