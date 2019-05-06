@@ -44,7 +44,7 @@ class JSON(DataSource):
 		with open(path, "r") as f:
 			data = json.load(f)
 		
-		for name in ["classes", "objects", "changed", "local_folder"]:
+		for name in ["classes", "objects", "changed"]:
 			if name not in data:
 				return False
 		
@@ -71,7 +71,7 @@ class JSON(DataSource):
 			self.store.populate_relation_names()  # TODO will be obsolete for new databases
 
 		self.store.changed = data["changed"]
-		self.store.local_folder = data["local_folder"]
+		self.store.local_folder = os.path.split(path)[0]
 		
 		if "events" in data:  # TODO will be obsolete for new databases
 			self.store.events.from_list(data["events"])
@@ -102,7 +102,6 @@ class JSON(DataSource):
 			classes = self.store.classes.to_dict(), # {name: class data, ...}
 			objects = self.store.objects.to_dict(), # {id: object data, ...}
 			changed = self.store.changed,
-			local_folder = self.store.local_folder,
 			events = self.store.events.to_list() if self.store.save_events else [],
 			user_tools = self.store.user_tools.to_list(),
 			queries = self.store.queries.to_dict(),
