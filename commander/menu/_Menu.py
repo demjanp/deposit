@@ -128,6 +128,7 @@ class Menu(CmdDict, ViewChild):
 				continue
 			if isinstance(action.get_data(), list):
 				action.setParent(None)
+		self.save_recent()
 	
 	def has_recent(self, data):
 		
