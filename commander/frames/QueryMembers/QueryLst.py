@@ -10,7 +10,9 @@ from natsort import (natsorted)
 
 class ProxyModel(QtCore.QSortFilterProxyModel):
 	
-	def __init__(self):
+	def __init__(self, table_view):
+		
+		self.table_view = table_view
 		
 		super(ProxyModel, self).__init__()
 	
@@ -19,10 +21,16 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
 		values = [("" if val is None else val) for val in [source_left.data(QtCore.Qt.DisplayRole), source_right.data(QtCore.Qt.DisplayRole)]]
 		
 		return values == natsorted(values)
+	
+	def sort(self, *args):
+		
+		QtCore.QSortFilterProxyModel.sort(self, *args)
+		
+		self.table_view.on_sorted()
 
 class TableModel(DModule, PrototypeDragModel, QtCore.QAbstractTableModel):
 	
-	def __init__(self, model, view, query, relation):
+	def __init__(self, model, view, query, relation, table_view):
 		
 		self.model = model
 		self.view = view
@@ -34,10 +42,6 @@ class TableModel(DModule, PrototypeDragModel, QtCore.QAbstractTableModel):
 
 		DModule.__init__(self)
 		QtCore.QAbstractTableModel.__init__(self)
-		
-		self.set_up()
-		
-	def set_up(self):
 		
 		self.icons = dict(
 			obj = self.view.get_icon("object.svg"),
@@ -53,7 +57,7 @@ class TableModel(DModule, PrototypeDragModel, QtCore.QAbstractTableModel):
 		if self.query.classes:
 			self.class_name = self.query.classes[0]
 		
-		self.proxy_model = ProxyModel()
+		self.proxy_model = ProxyModel(table_view)
 		self.proxy_model.setSourceModel(self)
 	
 	def get_query_item(self, index):
@@ -169,7 +173,7 @@ class QueryLst(Frame, PrototypeDragView, QtWidgets.QTableView):
 	
 	def set_up(self):
 		
-		self.table_model = TableModel(self.model, self.view, self.query, self.relation)
+		self.table_model = TableModel(self.model, self.view, self.query, self.relation, self)
 		
 		self.setSortingEnabled(True)
 		self.horizontalHeader().setSortIndicator(0, QtCore.Qt.AscendingOrder)
@@ -266,6 +270,11 @@ class QueryLst(Frame, PrototypeDragView, QtWidgets.QTableView):
 		
 		return self.table_model.proxy_model.data(self.table_model.proxy_model.index(row, 0), QtCore.Qt.UserRole).element
 	
+	def get_row_ids(self):
+		# returns {object id: row, ...}
+		
+		return dict([(self.get_row_object(row).id, row) for row in range(self.get_row_count())])
+	
 	def get_selected(self):
 		# return [[QueryItem, ...], ...]; for every column & row in selected range
 		# return QuerySelection instance
@@ -314,6 +323,10 @@ class QueryLst(Frame, PrototypeDragView, QtWidgets.QTableView):
 		if item.element.__class__.__name__ == "DDescriptor":
 			self.broadcast(Broadcasts.VIEW_DESCRIPTOR_ACTIVATED, item.element)
 			return
+	
+	def on_sorted(self):
+		
+		self.parent.on_sorted()
 	
 	def selectionChanged(self, selected, deselected):
 

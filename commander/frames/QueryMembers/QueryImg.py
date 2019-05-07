@@ -53,10 +53,6 @@ class QueryImgLazy(Frame, QtWidgets.QWidget):
 		Frame.__init__(self, model, view, parent)
 		QtWidgets.QWidget.__init__(self, parent)
 		
-		self.set_up()
-	
-	def set_up(self):
-		
 		def has_image():
 			
 			for row in self.query:
@@ -80,21 +76,40 @@ class QueryImgLazy(Frame, QtWidgets.QWidget):
 	
 class ProxyModel(QtCore.QSortFilterProxyModel):
 	
-	def __init__(self):
+	def __init__(self, list_view):
+		
+		self.list_view = list_view
 		
 		super(ProxyModel, self).__init__()
 	
 	def lessThan(self, source_left, source_right):
 		
-		values = [("" if val is None else val) for val in [source_left.data(QtCore.Qt.DisplayRole), source_right.data(QtCore.Qt.DisplayRole)]]
+		def get_row(source):
+			
+			obj_id = None
+			element = source.data(QtCore.Qt.UserRole).element
+			if element.__class__.__name__ == "DObject":
+				obj_id = element.id
+			elif element.__class__.__name__ == "DDescriptor":
+				obj_id = element.target.id
+			if (obj_id is not None) and (obj_id in self.list_view.row_ids):
+				return self.list_view.row_ids[obj_id]
+			return source.data(QtCore.Qt.DisplayRole)
+		
+		values = [("" if val is None else val) for val in [get_row(source_left), get_row(source_right)]]
 		
 		return values == natsorted(values)
-
+	
+	def sort(self):
+		
+		QtCore.QSortFilterProxyModel.sort(self, 0, QtCore.Qt.DescendingOrder)
+		QtCore.QSortFilterProxyModel.sort(self, 0, QtCore.Qt.AscendingOrder)
+	
 class ListModel(DModule, PrototypeDragModel, QtCore.QAbstractListModel):
 	
 	icon_loaded = QtCore.Signal(QtCore.QModelIndex)
 	
-	def __init__(self, model, view, query, icon_size = 256):
+	def __init__(self, model, view, query, list_view, icon_size = 256):
 		
 		self.model = model
 		self.view = view
@@ -109,10 +124,6 @@ class ListModel(DModule, PrototypeDragModel, QtCore.QAbstractListModel):
 
 		DModule.__init__(self)
 		QtCore.QAbstractListModel.__init__(self)
-		
-		self.set_up()
-	
-	def set_up(self):
 		
 		for row in self.threads:
 			self.threads[row].terminate()
@@ -132,10 +143,10 @@ class ListModel(DModule, PrototypeDragModel, QtCore.QAbstractListModel):
 						self.images.append(descriptor)
 		self.icons = [None] * len(self.images)
 		
-		self.proxy_model = ProxyModel()
+		self.proxy_model = ProxyModel(list_view)
 		self.proxy_model.setSourceModel(self)
 		
-		self.proxy_model.sort(0)
+		self.proxy_model.sort()
 		
 	def rowCount(self, parent):
 		
@@ -214,6 +225,7 @@ class QueryImg(Frame, PrototypeDragView, QtWidgets.QListView):
 		self.query = query
 		self.icon_size = icon_size
 		self.list_model = None
+		self.row_ids = {}  # {object id: row, ...}
 		
 		Frame.__init__(self, model, view, parent)
 		QtWidgets.QListView.__init__(self, parent)
@@ -225,7 +237,7 @@ class QueryImg(Frame, PrototypeDragView, QtWidgets.QListView):
 		
 		self.setItemDelegate(ImageDelegate(self))
 		
-		self.list_model = ListModel(self.model, self.view, self.query, self.icon_size)
+		self.list_model = ListModel(self.model, self.view, self.query, self, self.icon_size)
 		
 		self.setViewMode(QtWidgets.QListView.IconMode)
 		self.setUniformItemSizes(True)
@@ -256,6 +268,12 @@ class QueryImg(Frame, PrototypeDragView, QtWidgets.QListView):
 		else:
 			self.list_model.proxy_model.setFilterRegExp(QtCore.QRegExp(".*%s.*" % text, QtCore.Qt.CaseInsensitive))
 		self.list_model.proxy_model.setFilterKeyColumn(-1)
+	
+	def set_row_ids(self, row_ids):
+		
+		self.row_ids = row_ids.copy()
+		
+		self.list_model.proxy_model.sort()
 	
 	def set_thumbnail_size(self, value):
 		

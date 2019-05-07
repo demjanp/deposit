@@ -103,6 +103,8 @@ class Query(Frame, QtWidgets.QWidget):
 		self.tabs.insertTab(1, self.tab_img, "IMG")
 		self.tabs.removeTab(2)
 		self.tabs.setCurrentIndex(1)
+		
+		self.on_sorted()
 	
 	def populate_tab_geo(self):
 		
@@ -130,6 +132,7 @@ class Query(Frame, QtWidgets.QWidget):
 			self.tab_obj.update()
 
 		self.on_filter_timer()
+		self.on_sorted()
 
 	def name(self):
 
@@ -186,6 +189,7 @@ class Query(Frame, QtWidgets.QWidget):
 		self.footer.set_add_object_enabled(state)
 
 		self.update_tabs_enabled()
+		self.on_sorted()
 		
 	def on_filter(self):
 		
@@ -195,6 +199,13 @@ class Query(Frame, QtWidgets.QWidget):
 		
 		self.get_current().filter(self.footer.filter_edit.text())
 		self.footer.set_count(self.get_current().get_row_count())
+	
+	def on_sorted(self):
+		
+		if isinstance(self.tab_img, QueryImgLazy):
+			return
+		row_ids = self.tab_lst.get_row_ids()  # {object id: row, ...}
+		self.tab_img.set_row_ids(row_ids)
 	
 	def on_zoom(self, value):
 
@@ -248,7 +259,7 @@ class Query(Frame, QtWidgets.QWidget):
 						self.view.mdiarea.create_descriptor(element)
 						return
 					self.model.files.open(element.label)
-		
+	
 class QueryFooter(DModule, QtWidgets.QFrame):
 
 	def __init__(self, queryframe):
