@@ -225,15 +225,20 @@ class Query(object):
 		
 		# add counts as aliases
 		for count_ in self.parse.counts:
+			if count_.alias not in self._columns:
+				self._columns.append(count_.alias)
 			for row in self._rows:
 				cnt = 0
 				for chain in chains:
 					if (chain[classstr0][index0].id == row.object.id) and count_.eval(chain):
 						cnt += 1
 				row.add_alias(count_.alias, cnt)
+				
 		
 		# add sums as aliases
 		for sum_ in self.parse.sums:
+			if sum_.alias not in self._columns:
+				self._columns.append(sum_.alias)
 			for row in self._rows:
 				summed = 0
 				for chain in chains:

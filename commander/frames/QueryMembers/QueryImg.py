@@ -65,6 +65,10 @@ class QueryImgLazy(Frame, QtWidgets.QWidget):
 
 		self.has_image = has_image()
 	
+	def set_up(self):
+		
+		pass
+	
 	def set_query(self, query):
 		
 		self.query = query
@@ -135,12 +139,17 @@ class ListModel(DModule, PrototypeDragModel, QtCore.QAbstractListModel):
 		self.empty_icon = QtGui.QIcon(pixmap)
 		
 		self.images = []
+		done = set()
 		for row in self.query:
 			for column in row:
 				descriptor = row[column].descriptor
-				if not descriptor is None:
-					if (descriptor.label.__class__.__name__ == "DResource") and descriptor.label.is_image():
-						self.images.append(descriptor)
+				if descriptor is None:
+					continue
+				if descriptor.label.value in done:
+					continue
+				if (descriptor.label.__class__.__name__ == "DResource") and descriptor.label.is_image():
+					self.images.append(descriptor)
+					done.add(descriptor.label.value)
 		self.icons = [None] * len(self.images)
 		
 		self.proxy_model = ProxyModel(list_view)
