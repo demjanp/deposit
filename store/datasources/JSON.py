@@ -61,7 +61,7 @@ class JSON(DataSource):
 					path, fname = os.path.split(path)
 					path = os.path.split(path)[1]
 					data["objects"][id]["descriptors"][name]["label"]["value"] = as_url(os.path.join(self.store.local_folder, path, fname))
-					data["objects"][id]["descriptors"][name]["label"]["path"] = None
+					data["objects"][id]["descriptors"][name]["label"]["path"] = os.path.join(self.store.local_folder, path, fname)
 		
 		self.store.classes.from_dict(data["classes"])
 		self.store.objects.from_dict(data["objects"])

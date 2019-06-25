@@ -137,6 +137,7 @@ class Store(DModule):
 					continue
 				if descr.label.is_stored():
 					path = descr.label._path
+					self.del_local_resource_uri(descr.label.value)
 				else:
 					path = descr.label.value
 				descr.label = self.files.store_local(path)
