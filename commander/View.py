@@ -173,9 +173,9 @@ class View(DModule, QtWidgets.QMainWindow):
 	def on_local_folder_changed(self, *args):
 		
 		self.update_model_info()
-		reply = QtWidgets.QMessageBox.question(self, "Localise Resources", "Move all resources to the new Local Folder?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+		reply = QtWidgets.QMessageBox.question(self, "Localise Resources", "Store all resources in the new Local Folder?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 		if reply == QtWidgets.QMessageBox.Yes:
-			self.model.localise_resources()
+			self.model.localise_resources(force = True)
 	
 	def on_saved(self, args):
 		

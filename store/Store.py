@@ -122,7 +122,7 @@ class Store(DModule):
 		self.local_folder = path
 		self.broadcast(Broadcasts.STORE_LOCAL_FOLDER_CHANGED)
 	
-	def localise_resources(self):
+	def localise_resources(self, force = False):
 		
 		if self.local_folder is None:
 			return
@@ -133,9 +133,13 @@ class Store(DModule):
 					continue
 				if descr.label.__class__.__name__ != "DResource":
 					continue
-				if descr.label.is_stored():
+				if (not force) and descr.label.is_stored():
 					continue
-				descr.label = self.files.store_local(descr.label.value)
+				if descr.label.is_stored():
+					path = descr.label._path
+				else:
+					path = descr.label.value
+				descr.label = self.files.store_local(path)
 			self.broadcast(Broadcasts.ELEMENT_CHANGED, self.objects[id])
 	
 	@property
