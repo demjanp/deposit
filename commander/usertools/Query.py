@@ -24,6 +24,8 @@ class Query(DModule, UserTool):
 	
 	def update(self):
 		
+		if self.view.usertools is None:
+			return
 		if (self.view.usertools.SELECTED_STR not in self.value) or (self.view.usertools.get_selected_id() is not None):
 			self.setEnabled(True)
 		else:

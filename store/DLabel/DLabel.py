@@ -16,6 +16,10 @@ class DLabel(object):
 			value = value.encode("utf-8")
 		return value
 
+	def __eq__(self, other):
+
+		return self._value == other._value
+
 	@property
 	def value(self):
 		# string format
