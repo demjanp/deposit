@@ -84,6 +84,8 @@ class DResource(DLabel):
 		
 		if self._path is not None:
 			return open(self._path, "rb")
+		if (self._value is not None) and os.path.isfile(self._value):
+			return open(self._value, "rb")
 		parsed = urlparse(self._value)
 		if parsed.scheme == "file":
 			path = os.path.normpath(parsed.path.strip("/").strip("\\"))
