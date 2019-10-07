@@ -18,7 +18,7 @@ class DLabel(object):
 
 	def __eq__(self, other):
 
-		return self._value == other._value
+		return isinstance(other, DLabel) and (self._value == other._value)
 
 	@property
 	def value(self):
