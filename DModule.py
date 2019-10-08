@@ -22,11 +22,11 @@ class DModule(object):
 
 	def stop_broadcasts(self):
 
-		Broadcasts._BROADCAST_HOOK.stop()
+		Broadcasts._BROADCAST_HOOK.stop(id(self))
 
 	def resume_broadcasts(self):
 
-		Broadcasts._BROADCAST_HOOK.resume()
+		Broadcasts._BROADCAST_HOOK.resume(id(self))
 
 	def process_broadcasts(self):
 

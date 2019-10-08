@@ -87,13 +87,15 @@ class BroadcastHook(object):
 		for func, args in to_exec:
 			func(args)
 
-	def stop(self):
-
-		self._stopped = True
-
-	def resume(self):
+	def stop(self, module_id):
 
 		if self._stopped:
+			return
+		self._stopped = module_id
+
+	def resume(self, module_id):
+
+		if self._stopped == module_id:
 			self._stopped = False
 			if self._on_broadcast is None:
 				self.broadcast()
