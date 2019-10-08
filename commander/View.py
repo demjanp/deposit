@@ -155,7 +155,10 @@ class View(DModule, QtWidgets.QMainWindow):
 				self.dialogs.open("SetIdentifier", True)
 				return
 			self.model.save()
-			self.menu.add_recent_db(self.model.data_source.identifier, self.model.data_source.connstr)
+			if self.model.data_source.connstr is None:
+				self.menu.add_recent_url(self.model.data_source.url)
+			else:
+				self.menu.add_recent_db(self.model.data_source.identifier, self.model.data_source.connstr)
 	
 	def query(self, querystr):
 		
