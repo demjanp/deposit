@@ -97,9 +97,5 @@ class BroadcastHook(object):
 
 		if self._stopped == module_id:
 			self._stopped = False
-			if self._on_broadcast is None:
-				self.broadcast()
-			else:
-				self._on_broadcast(list(self._broadcasts.keys()))
 
 _BROADCAST_HOOK = BroadcastHook()
