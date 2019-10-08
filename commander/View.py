@@ -199,21 +199,30 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.process_broadcasts()
 
 	def closeEvent(self, event):
-		
-		if not self.model.is_saved():
-			reply = QtWidgets.QMessageBox.question(self, "Exit", "Save changes to database?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
-			if reply == QtWidgets.QMessageBox.Yes:
-				self.save()
-			elif reply == QtWidgets.QMessageBox.No:
-				pass
-			else:
-				event.ignore()
 
-		if not self.populate_thread is None:
-			self.populate_thread.terminate()
-			self.populate_thread.wait()
-		self.menu.save_recent()
-		self.mdiarea.close_all()
-		self.usertools.on_close()
-		self.model.on_close()
+		if isinstance(self.model, Model):
+			if not self.model.is_saved():
+				reply = QtWidgets.QMessageBox.question(self, "Exit", "Save changes to database?",
+													   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
+				if reply == QtWidgets.QMessageBox.Yes:
+					self.save()
+				elif reply == QtWidgets.QMessageBox.No:
+					pass
+				else:
+					event.ignore()
+
+			if not self.populate_thread is None:
+				self.populate_thread.terminate()
+				self.populate_thread.wait()
+			self.menu.save_recent()
+			self.mdiarea.close_all()
+			self.usertools.on_close()
+			self.model.on_close()
+
+		else:  # Commander started with an external Model
+			if not self.populate_thread is None:
+				self.populate_thread.terminate()
+				self.populate_thread.wait()
+			self.mdiarea.close_all()
+			self.usertools.on_close()
 
