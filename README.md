@@ -5,6 +5,7 @@ Created on 29. 4. 2013
 
 ### Author of the code:
 Peter Demján (peter.demjan@gmail.com)
+
 Institute of Archaeology of the Czech Academy of Sciences, Prague, v.v.i.
 
 ## Table of Contents
