@@ -5,6 +5,7 @@ Created on 29. 4. 2013
 
 ### Author of the code:
 Peter Demján (peter.demjan@gmail.com)
+Institute of Archaeology of the Czech Academy of Sciences, Prague, v.v.i.
 
 ## Table of Contents
 1. [Deposit (DEP) RDF Schema](#rdf_schema)
@@ -13,7 +14,8 @@ Peter Demján (peter.demjan@gmail.com)
 4. [RDFLib definitions](#rdflib_definitions)
 5. [Deposit graph RDF definitions](#graph_rdf_definitions)
 6. [Querying](#querying)
-7. [License](#license)
+7. [Acknowledgements](#acknowledgements)
+8. [License](#license)
 
 ## Deposit (DEP) RDF Schema: <a name="rdf_schema"></a>
 
@@ -497,6 +499,10 @@ Column name under which to display the quantity. If an alias has the same name a
 ### Quoting:
 Parts of the query string can be quoted using double quotes to allow class names with a dot e.g. "Cls.1", "Class.One". 
 Single quotes denote string constants e.g. "cls1.descr1 == 'one'".
+
+## Acknowledgements: <a name="acknowledgements"></a>
+
+Development of this software was supported by OP RDE, MEYS, under the project "Ultra-trace isotope research in social and environmental studies using accelerator mass spectrometry", Reg. No. CZ.02.1.01/0.0/0.0/16_019/0000728.
 
 ## License: <a name="license"></a>
 
