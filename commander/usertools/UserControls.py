@@ -60,4 +60,3 @@ class Select(UserSelect):
 			label = "",
 			**UserSelect.to_dict(self),
 		)
-

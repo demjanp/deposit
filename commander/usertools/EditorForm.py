@@ -2,6 +2,7 @@ from deposit.commander.ViewChild import (ViewChild)
 from deposit.commander.usertools.EditorFrame import (EditorFrame)
 from deposit.commander.usertools.EditorGroup import (EditorGroup)
 from deposit.commander.usertools.EditorSelect import (EditorSelect)
+from deposit.commander.usertools.EditorUnique import (EditorUnique)
 from deposit.commander.usertools.EditorColumn import (EditorColumn)
 from deposit.commander.usertools.EditorActions import (Action)
 from deposit.commander.usertools import (EditorActions)
@@ -55,6 +56,15 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 			self.selects_frame.layout().addWidget(QtWidgets.QLabel("SELECT"))
 			self.selects_frame.layout().addStretch()
 		self.central_widget.layout().addWidget(self.selects_frame)
+		
+		self.unique_frame = QtWidgets.QFrame()
+		self.unique_frame.setLayout(QtWidgets.QHBoxLayout())
+		self.unique_frame.layout().setContentsMargins(10, 10, 10, 10)
+		if self.entry:
+			self.unique_frame.layout().addWidget(QtWidgets.QLabel("Unique:"))
+			self.unique_frame.layout().addStretch()
+			self.add_unique()
+		self.central_widget.layout().addWidget(self.unique_frame)
 		
 		self.setWindowTitle("Entry Form Editor")
 		self.setWindowIcon(self.view.get_icon("form.svg"))
@@ -119,6 +129,10 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 							return element
 		for element in self.selects_frame.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
 			if isinstance(element, EditorSelect):
+				if element.selected:
+					return element
+		for element in self.unique_frame.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
+			if isinstance(element, EditorUnique):
 				if element.selected:
 					return element
 		return None
@@ -187,6 +201,15 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 		else:
 			idx = self.selects_frame.layout().count() - 1
 		self.selects_frame.layout().insertWidget(idx, EditorSelect(self, user_select))
+	
+	def add_unique(self):
+		
+		selected = self.get_selected()
+		if selected is not None:
+			idx = self.unique_frame.layout().indexOf(selected)
+		else:
+			idx = self.unique_frame.layout().count() - 1
+		self.unique_frame.layout().insertWidget(idx, EditorUnique(self))
 	
 	def remove_control(self, element):
 		
