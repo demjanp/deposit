@@ -8,7 +8,7 @@ from deposit.commander.usertools.EditorActions import (Action)
 from deposit.commander.usertools import (EditorActions)
 from deposit.commander.usertools.SearchForm import (SearchForm)
 from deposit.commander.usertools.EntryForm import (EntryForm)
-from deposit.commander.usertools.UserControls import (UserControl, Select)
+from deposit.commander.usertools.UserControls import (UserControl, Select, Unique)
 from deposit.commander.usertools.ColumnBreak import (ColumnBreak)
 from deposit.commander.usertools.UserGroups import (Group)
 
@@ -60,10 +60,18 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 		self.unique_frame = QtWidgets.QFrame()
 		self.unique_frame.setLayout(QtWidgets.QHBoxLayout())
 		self.unique_frame.layout().setContentsMargins(10, 10, 10, 10)
+		
+		button_unique = QtWidgets.QToolButton()
+		button_unique.setIcon(self.view.get_icon("add.svg"))
+		button_unique.setIconSize(QtCore.QSize(24, 24))
+		button_unique.setAutoRaise(True)
+		button_unique.setToolTip("Add Class with unique objects")
+		button_unique.clicked.connect(self.on_add_unique)
+		
 		if self.entry:
 			self.unique_frame.layout().addWidget(QtWidgets.QLabel("Unique:"))
+			self.unique_frame.layout().addWidget(button_unique)
 			self.unique_frame.layout().addStretch()
-			self.add_unique()
 		self.central_widget.layout().addWidget(self.unique_frame)
 		
 		self.setWindowTitle("Entry Form Editor")
@@ -104,6 +112,8 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 			for element in self.form_tool.elements:
 				if issubclass(element.__class__, Select):
 					self.add_select(element)
+				elif isinstance(element, Unique):
+					self.add_unique(element)
 				elif isinstance(element, ColumnBreak):
 					self.add_column()
 				elif issubclass(element.__class__, UserControl):
@@ -146,6 +156,9 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 					element.deselect_all()
 		for element in self.selects_frame.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
 			if isinstance(element, EditorSelect):
+				element.setSelected(False)
+		for element in self.unique_frame.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
+			if isinstance(element, EditorUnique):
 				element.setSelected(False)
 	
 	def update_toolbar(self):
@@ -202,14 +215,14 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 			idx = self.selects_frame.layout().count() - 1
 		self.selects_frame.layout().insertWidget(idx, EditorSelect(self, user_select))
 	
-	def add_unique(self):
+	def add_unique(self, user_unique = None):
 		
 		selected = self.get_selected()
 		if selected is not None:
 			idx = self.unique_frame.layout().indexOf(selected)
 		else:
-			idx = self.unique_frame.layout().count() - 1
-		self.unique_frame.layout().insertWidget(idx, EditorUnique(self))
+			idx = self.unique_frame.layout().count() - 2
+		self.unique_frame.layout().insertWidget(idx, EditorUnique(self, user_unique))
 	
 	def remove_control(self, element):
 		
@@ -227,6 +240,8 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 			self.remove_control(selected)
 		elif isinstance(selected, EditorSelect):
 			self.selects_frame.layout().removeWidget(selected)
+		elif isinstance(selected, EditorUnique):
+			self.unique_frame.layout().removeWidget(selected)
 		selected.selected = False
 		selected.setParent(None)
 		self.update_toolbar()
@@ -250,6 +265,9 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 			for element in self.selects_frame.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
 				if isinstance(element, EditorSelect):
 					form.elements.append(element.user_element())
+			for element in self.unique_frame.findChildren(QtWidgets.QWidget, options = QtCore.Qt.FindDirectChildrenOnly):
+				if isinstance(element, EditorUnique):
+					form.elements.append(element.user_element())
 			if self.form_tool is None:
 				self.view.usertools.add_tool(form)
 			else:
@@ -266,6 +284,10 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 	def on_selection_changed(self):
 		
 		self.update_toolbar()
+	
+	def on_add_unique(self):
+		
+		self.add_unique()
 	
 	def on_save(self, *args):
 		

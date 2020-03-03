@@ -1,6 +1,7 @@
 from deposit.commander.usertools.UserElement import (UserElement)
 from deposit.commander.usertools.UserLabeledElement import (UserLabeledElement)
 from deposit.commander.usertools.UserSelect import (UserSelect)
+from deposit.commander.usertools.UserUnique import (UserUnique)
 
 class UserControl(UserLabeledElement, UserSelect):
 	
@@ -60,3 +61,22 @@ class Select(UserSelect):
 			label = "",
 			**UserSelect.to_dict(self),
 		)
+
+class Unique(UserUnique):
+	
+	def __init__(self, stylesheet, label, dclass):
+		
+		UserUnique.__init__(self, dclass)
+	
+	def to_markup(self):
+		
+		return "<%s %s/>" % (self.__class__.__name__, self.dclass)
+	
+	def to_dict(self):
+		
+		return dict(
+			stylesheet = "",
+			label = "",
+			**UserUnique.to_dict(self),
+		)
+

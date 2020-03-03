@@ -4,7 +4,7 @@ from deposit.commander.usertools.DialogFrame import (DialogFrame)
 from deposit.commander.usertools.DialogGroup import (DialogGroup)
 from deposit.commander.usertools.DialogMultiGroup import (DialogMultiGroup)
 from deposit.commander.usertools.UserGroups import (Group, MultiGroup)
-from deposit.commander.usertools.UserControls import (UserControl, Select)
+from deposit.commander.usertools.UserControls import (UserControl, Select, Unique)
 from deposit.commander.usertools.ColumnBreak import (ColumnBreak)
 from deposit.commander.usertools.VerticalScrollArea import (VerticalScrollArea)
 from deposit.commander.usertools.DialogControls import (DialogControl)
@@ -19,6 +19,7 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 		self.buttonBox = None
 		self.columns = []  # [DialogColumn(), ...]
 		self.selects = []  # [[class, descriptor], ...]
+		self.unique = []  # [class, ...]
 		
 		ViewChild.__init__(self, model, view)
 		QtWidgets.QDialog.__init__(self, self.view)
@@ -56,6 +57,8 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 		for element in self.form_tool.elements:
 			if issubclass(element.__class__, Select):
 				self.add_select(element)
+			elif isinstance(element, Unique):
+				self.add_unique(element)
 			elif isinstance(element, ColumnBreak):
 				self.add_column()
 			elif issubclass(element.__class__, UserControl):
@@ -64,8 +67,6 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 				self.add_group(element)
 		
 		self.adjust_labels()
-		
-		pass
 	
 	def set_enabled(self, state):
 		
@@ -96,6 +97,10 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 	def add_select(self, user_select):
 	
 		self.selects.append([user_select.dclass, user_select.descriptor])
+	
+	def add_unique(self, user_unique):
+		
+		self.unique.append(user_unique.dclass)
 	
 	def multigroups(self):
 		# returns [DialogMultiGroup(), ...]

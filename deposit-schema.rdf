@@ -3,12 +3,12 @@
 	RDF Schema declaration for Deposit (DEP) 1.1
 	<http://future_url/2019/03/deposit-schema#>
 	Peter Demján <peter.demjan@gmail.com>
-	05-05-2019
+	03-03-2020
 -->
 <rdf:RDF
 	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-	xmlns:dep="http://future_url/2019/03/deposit-schema#">
+	xmlns:dep="http://future_url/2020/03/deposit-schema#">
 
 	<rdfs:Class rdf:ID="Node" rdfs:label="Node" rdfs:comment="Node of a graph."/>
 
@@ -152,6 +152,10 @@
 	<rdfs:Class rdf:ID="UserSelect" rdfs:label="UserSelect" rdfs:comment="User tool element specifying a Class and Descriptor.">
 		<rdfs:subClassOf rdf:resource="#UserElement"/>
 	</rdfs:Class>
+	
+	<rdfs:Class rdf:ID="UserUnique" rdfs:label="UserUnique" rdfs:comment="User tool element specifying a Class for which to always create unique objects.">
+		<rdfs:subClassOf rdf:resource="#UserElement"/>
+	</rdfs:Class>
 
 	<rdfs:Class rdf:ID="UserControl" rdfs:label="UserControl" rdfs:comment="Control user tool element.">
 		<rdfs:subClassOf rdf:resource="#UserLabeledElement"/>
@@ -189,6 +193,10 @@
 
 	<rdfs:Class rdf:ID="Select" rdfs:label="Select" rdfs:comment="Select user tool element.">
 		<rdfs:subClassOf rdf:resource="#UserSelect"/>
+	</rdfs:Class>
+	
+	<rdfs:Class rdf:ID="Unique" rdfs:label="Unique" rdfs:comment="Unique user tool element.">
+		<rdfs:subClassOf rdf:resource="#UserUnique"/>
 	</rdfs:Class>
 	
 	<rdf:Property rdf:ID="label" rdfs:label="label" rdfs:comment="Label of a Node or Edge. Can be numeric, string, resource or geometry.">

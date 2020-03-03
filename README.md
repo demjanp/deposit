@@ -100,6 +100,8 @@ dep:UserLabeledElement - Labeled user tool element.
 
 dep:UserSelect - User tool element specifying a Class and Descriptor.
 
+dep:UserUnique - User tool element specifying a Class for which to always create unique objects.
+
 dep:UserControl - Control user tool element.
 
 dep:LineEdit - Line Edit user tool element.
@@ -117,6 +119,8 @@ dep:MultiGroup - Group of user tool elements allowing to specify multiple Object
 dep:ColumnBreak - Column Break user tool element.
 
 dep:Select - Select user tool element.
+
+dep:Unique - Unique user tool element.
 
 ### Deposit properties:
 

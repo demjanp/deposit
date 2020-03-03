@@ -8,7 +8,6 @@ class DialogEntryForm(DialogForm):
 	def __init__(self, model, view, form_tool, selected_id):
 		
 		self.selected_id = selected_id
-		self.selects = []
 		
 		DialogForm.__init__(self, model, view, form_tool)
 		
@@ -154,15 +153,16 @@ class DialogEntryForm(DialogForm):
 				if not (True in [(value is not None) for value in values[cls][idx].values()]):
 					continue
 				found = False
-				for id in self.model.classes[cls].objects:
-					obj = self.model.objects[id]
-					found = True
-					for descr in values[cls][idx]:
-						if obj.descriptors[descr].label.value != values[cls][idx][descr]:
-							found = False
+				if cls not in self.unique:
+					for id in self.model.classes[cls].objects:
+						obj = self.model.objects[id]
+						found = True
+						for descr in values[cls][idx]:
+							if obj.descriptors[descr].label.value != values[cls][idx][descr]:
+								found = False
+								break
+						if found:
 							break
-					if found:
-						break
 				if found:
 					objects[cls][idx] = id
 				else:
@@ -199,7 +199,6 @@ class DialogEntryForm(DialogForm):
 	def on_reset(self, *args):
 		
 		self.clear()
-
 	
 	def closeEvent(self, event):
 		

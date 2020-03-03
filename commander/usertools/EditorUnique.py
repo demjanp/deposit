@@ -1,20 +1,27 @@
+from deposit.commander.usertools.UserControls import (Unique)
+
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class EditorUnique(QtWidgets.QFrame):
 	
-	def __init__(self, form_editor):
+	def __init__(self, form_editor, user_unique = None):
 		
 		self.label_edit = None
+		self.user_unique = None
 		self.selected = False
 		self.form_editor = form_editor
 		
 		QtWidgets.QFrame.__init__(self)
 		
+		if user_unique is None:
+			user_unique = Unique("", "", "")
+		self.user_unique = user_unique
+
 		self.setStyleSheet("%s:hover {background: grey;}" % (self.__class__.__name__))
 		self.setLayout(QtWidgets.QHBoxLayout())
 		self.layout().setContentsMargins(10, 10, 10, 10)
 		
-		self.unique = QtWidgets.QLineEdit()
+		self.unique = QtWidgets.QLineEdit(self.user_unique.dclass)
 		self.layout().addWidget(self.unique)
 	
 	def select_text(self):
@@ -26,13 +33,9 @@ class EditorUnique(QtWidgets.QFrame):
 		unique = self.select_text()
 		if not unique:
 			return None
-		unique = unique.split(".")
-		if len(unique) != 2:
-			return None
 		
-		self.user_select.dclass = unique[0]
-		self.user_select.descriptor = unique[1]
-		return self.user_select
+		self.user_unique.dclass = unique
+		return self.user_unique
 	
 	def setSelected(self, state):
 		

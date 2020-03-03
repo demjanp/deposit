@@ -209,29 +209,6 @@ class Select(Action):
 		
 		self.form_editor.add_select()
 
-class Unique(Action):
-	
-	def __init__(self, form_editor):
-		
-		Action.__init__(self, form_editor)
-	
-	def icon(self):
-		
-		return "unique.svg"
-	
-	def enabled(self):
-		
-		return self.form_editor.entry
-		
-	def visible(self):
-		
-		return self.form_editor.entry
-
-	def on_triggered(self, state):
-		
-		self.form_editor.add_unique()
-
-
 class _Separator1(): pass
 
 class Bold(Action):

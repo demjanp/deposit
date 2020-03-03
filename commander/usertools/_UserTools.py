@@ -81,6 +81,8 @@ class UserTools(ViewChild):
 								user_tool.elements[-1].members.append(getattr(UserControls, member["typ"])(member["stylesheet"], member["label"], member["dclass"], member["descriptor"]))
 						elif element["typ"] == "ColumnBreak":
 							user_tool.elements.append(ColumnBreak())
+						elif element["typ"] == "Unique":
+							user_tool.elements.append(getattr(UserControls, element["typ"])(element["stylesheet"], element["label"], element["dclass"]))
 						else:
 							user_tool.elements.append(getattr(UserControls, element["typ"])(element["stylesheet"], element["label"], element["dclass"], element["descriptor"]))
 				return user_tool
@@ -98,7 +100,7 @@ class UserTools(ViewChild):
 			markup = f.read()
 		
 		elements = []
-		# elements = [["Title", title], ["Type", type], tag, group, multigroup, select, ...]
+		# elements = [["Title", title], ["Type", type], tag, group, multigroup, select, unique, ...]
 		#	type = "Query" / "SearchForm" / "EntryForm"
 		# 	tag = [control type, class.descriptor, label, stylesheet]
 		# 	group = [["Group", label], tag, ...], multigroup = [["MultiGroup", label], tag, ...]
@@ -190,6 +192,14 @@ class UserTools(ViewChild):
 						typ = "Select",
 						dclass = dclass,
 						descriptor = descriptor,
+						label = "",
+						stylesheet = "",
+					))
+				elif element[0] == "Unique":
+					dclass = element[1]
+					data["elements"].append(dict(
+						typ = "Unique",
+						dclass = dclass,
 						label = "",
 						stylesheet = "",
 					))
