@@ -6,13 +6,11 @@ class DialogControl(object):
 		
 		self.model = model
 		self.user_control = user_control
+		self.obj_id = None
 	
 	def set_object(self, id):
 		
-		value = self.model.objects[id].descriptors[self.user_control.descriptor].label.value
-		if value is None:
-			value = ""
-		self.set_value(value)
+		self.obj_id = id
 	
 	def set_value(self, value):
 		

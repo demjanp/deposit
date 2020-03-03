@@ -99,7 +99,7 @@ class DialogEntryForm(DialogForm):
 				continue
 			obj_id = next(iter(data[frame.dclass]))
 			if frame.descriptor in data[frame.dclass][obj_id]:
-				frame.set_value(data[frame.dclass][obj_id][frame.descriptor])
+				frame.set_value(data[frame.dclass][obj_id][frame.descriptor], obj_id)
 		
 		# fill multi entry fields
 		group_ids = defaultdict(set)  # {obj_id: set(group, ...), ...}
@@ -118,7 +118,7 @@ class DialogEntryForm(DialogForm):
 				frameset = group.framesets()[-1]
 				for frame in frameset:
 					if (frame.dclass in frameset_values[obj_id]) and (frame.descriptor in frameset_values[obj_id][frame.dclass]):
-						frame.set_value(frameset_values[obj_id][frame.dclass][frame.descriptor])
+						frame.set_value(frameset_values[obj_id][frame.dclass][frame.descriptor], obj_id)
 				group.add_entry()
 		self.adjust_labels()
 		
@@ -132,11 +132,15 @@ class DialogEntryForm(DialogForm):
 		
 		# collect values from form
 		values = defaultdict(lambda: defaultdict(dict)) # {cls: {idx: {descr: value, ...}, ...}, ...}
+		objects_existing = defaultdict(dict)  # {cls: {idx: obj_id, ...}, ...}
 		for frame in frames:
 			value = frame.get_value()
 			if value == "":
 				value = None
 			values[frame.dclass][0][frame.descriptor] = value
+			obj_id = frame.get_object()
+			if obj_id is not None:
+				objects_existing[frame.dclass][0] = obj_id
 		idx = -1
 		for frameset in framesets:
 			idx += 1
@@ -145,6 +149,9 @@ class DialogEntryForm(DialogForm):
 				if value == "":
 					value = None
 				values[frame.dclass][idx][frame.descriptor] = value
+				obj_id = frame.get_object()
+				if obj_id is not None:
+					objects_existing[frame.dclass][idx] = obj_id
 		
 		# create / find objects
 		objects = defaultdict(dict) # {cls: {idx: obj_id, ...}, ...}
@@ -166,7 +173,10 @@ class DialogEntryForm(DialogForm):
 				if found:
 					objects[cls][idx] = id
 				else:
-					objects[cls][idx] = self.model.classes.add(cls).objects.add().id
+					if idx in objects_existing[cls]:
+						objects[cls][idx] = objects_existing[cls][idx]
+					else:
+						objects[cls][idx] = self.model.classes.add(cls).objects.add().id
 					for descr in values[cls][idx]:
 						value = values[cls][idx][descr]
 						self.model.objects[objects[cls][idx]].descriptors.add(descr, value)

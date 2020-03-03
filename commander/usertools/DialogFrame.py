@@ -32,11 +32,16 @@ class DialogFrame(QtWidgets.QFrame):
 		
 		return self.user_control.descriptor
 	
-	def set_value(self, value):
+	def set_value(self, value, obj_id = None):
 		
 		self.ctrl.set_value(value)
+		self.ctrl.set_object(obj_id)
 	
 	def get_value(self):
 		
 		return self.ctrl.get_value()
+	
+	def get_object(self):
+		
+		return self.ctrl.obj_id
 
