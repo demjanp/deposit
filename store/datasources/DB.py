@@ -1,3 +1,60 @@
+'''
+	
+	Save Deposit database in a PostgreSQL database
+	
+	Schema:
+		
+		Classes:
+			table = [identifier]#classes
+			columns:
+				name (text)
+				data (text)
+		
+		Objects:
+			table = [identifier]#objects
+			columns:
+				id (integer)
+				data (text)
+		
+		Queries:
+			table = [identifier]#queries
+			columns:
+				title (text)
+				querystr (text)
+		
+		User tools:
+			table = [identifier]#user_tools
+			columns:
+				data (text)
+		
+		Events:
+			table = [identifier]#events
+			columns:
+				time (text)
+				user_ (text)
+				delement (text)
+				key (text)
+				function (text)
+				args (text)
+		
+		Local folder:
+			table = [identifier]#local_folder
+			columns:
+				path (text)
+		
+		Changed:
+			table = [identifier]#changed
+			columns:
+				timestamp (text)
+		
+		Deposit version:
+			table = [identifier]#deposit_version
+			columns:
+				version (text)
+	
+'''
+
+
 from deposit import Broadcasts, __version__
 from deposit.store.datasources._DataSource import (DataSource)
 from deposit.store.LinkedStore import (LinkedStore)

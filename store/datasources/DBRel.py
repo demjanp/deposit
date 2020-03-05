@@ -10,7 +10,12 @@
 				#obj_id (int)
 				[descriptor name] = json(dlabel) or "" (text)
 			
-
+		Order:
+			table = "#order"
+			columns:
+				name (text)
+				order_nr (int)
+		
 		Relations:
 			table = #class1#relation#class2 or ##classless#relation#class2 (etc.)
 			columns:
@@ -74,6 +79,8 @@ from deposit.store.DElements.DObjects import (DObject)
 from collections import defaultdict
 import json
 
+RESERVED_TABLES = ["#identifier", "#changed", "#local_folder", "#geotags", "#events", "#user_tools", "#queries", "#classless", "#version", "#order"]
+
 class DBRel(DB):
 	
 	def __init__(self, store, connstr = None):
@@ -88,7 +95,7 @@ class DBRel(DB):
 		
 		cursor.connection.close()
 
-		for name in ["#identifier", "#changed", "#local_folder", "#geotags", "#events", "#user_tools", "#queries", "#version"]:
+		for name in RESERVED_TABLES:
 			if not name in tables:
 				return False
 		
@@ -154,9 +161,24 @@ class DBRel(DB):
 					INSERT INTO \"%s\" SELECT %s FROM json_populate_recordset(null::class_, %%s);
 				""" % (class_type, table, columns), (json.dumps(data),))
 		
+		pure_descriptors = set([descr_name for descr_name in self.store.descriptor_names if not self.store.classes[descr_name].objects])
+		
+		class_order = []
 		for class_name in self.store.classes:
 			cls = self.store.classes[class_name]
-			save_class(class_name, cls.descriptors, [cls.objects[id] for id in cls.objects])
+			class_order.append({"name": class_name, "order_nr": cls.order})
+			if class_name not in pure_descriptors:
+				save_class(class_name, cls.descriptors, [cls.objects[id] for id in cls.objects])
+		
+		table = "#order"
+		order_type = "name TEXT, order_nr INTEGER"
+		cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, order_type))
+		if class_order:
+			cursor.execute("""
+				DROP TYPE IF EXISTS order_;
+				CREATE TYPE order_ as (%s);
+				INSERT INTO \"%s\" SELECT name, order_nr FROM json_populate_recordset(null::order_, %%s);
+			""" % (order_type, table), (json.dumps(class_order),))
 		
 		class_name = "#classless"
 		descriptor_names = []
@@ -178,6 +200,8 @@ class DBRel(DB):
 		data = defaultdict(list) # {#[src class]#[rel]#[tgt class]: [{source_id: id, target_id: id}, ...], ...}
 		for cls1 in self.store.classes:
 			for rel in self.store.classes[cls1].relations:
+				if rel.startswith("~"):
+					continue
 				for cls2 in self.store.classes[cls1].relations[rel]:
 					table = "#%s#%s#%s" % (cls1, rel, cls2)
 					data[table] = []
@@ -291,7 +315,7 @@ class DBRel(DB):
 		if cursor is None:
 			return False
 		
-		for name in ["#identifier", "#changed", "#local_folder", "#geotags", "#events", "#user_tools", "#queries", "#version"]:
+		for name in RESERVED_TABLES:
 			if not name in tables:
 				return False
 		
@@ -350,7 +374,7 @@ class DBRel(DB):
 		
 		# load relations
 		for table in tables:
-			if table.startswith("#") and not (table in ["#classless", "#identifier", "#changed", "#local_folder", "#geotags", "#events", "#user_tools", "#version"]):
+			if table.startswith("#") and not (table in RESERVED_TABLES):
 				if table.startswith("##classless#"):
 					if table.endswith("##classless"): #  ##classless#rel##classless
 						rel = table[12:].split("#")[0]
@@ -407,6 +431,16 @@ class DBRel(DB):
 			for row in rows:
 				data[row[0]] = json.loads(row[1])
 			self.store.queries.from_dict(data)
+		
+		# load class order
+		table = "#order"
+		cursor.execute("SELECT * FROM \"%s\";" % (table,))
+		rows = cursor.fetchall()
+		if rows:
+			data = {}  # {name: order_nr, ...}
+			for row in rows:
+				data[row[0]] = int(row[1])
+			self.store.classes.set_order(data)
 		
 		self.store.images.load_thumbnails()
 		

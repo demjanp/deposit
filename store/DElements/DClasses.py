@@ -316,19 +316,30 @@ class DClasses(DElements):
 		
 		if DElements.switch_order(self, name1, name2):
 			self[name1].order, self[name2].order = self[name2].order, self[name1].order
-			for name in self:
-				self[name].descriptors = sorted(self[name].descriptors, key = lambda descr: self[descr].order)
-				for rel in self[name].relations:
-					self[name].relations[rel] = sorted(self[name].relations[rel], key = lambda class_name: self[class_name].order)
-			for id in self.store.objects:
-				self.store.objects[id].classes.update_order()
-				self.store.objects[id].descriptors.update_order()
+			self.update_order_deep()
 			self.broadcast(Broadcasts.ELEMENT_CHANGED, self[name1])
 			self.broadcast(Broadcasts.ELEMENT_CHANGED, self[name2])
-
+	
+	def set_order(self, data):
+		# data = {name:, order_nr, ...}
+		
+		for name in data:
+			self[name].order = data[name]
+		self.update_order_deep()
+	
 	def update_order(self):
 		
 		self._keys = sorted(self._keys, key = lambda key: self[key].order)
+	
+	def update_order_deep(self):
+		
+		for name in self:
+			self[name].descriptors = sorted(self[name].descriptors, key = lambda descr: self[descr].order)
+			for rel in self[name].relations:
+				self[name].relations[rel] = sorted(self[name].relations[rel], key = lambda class_name: self[class_name].order)
+		for id in self.store.objects:
+			self.store.objects[id].classes.update_order()
+			self.store.objects[id].descriptors.update_order()
 	
 	def from_dict(self, data):
 		
