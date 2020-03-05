@@ -22,6 +22,9 @@ class Query(object):
 		
 		self.hash = [] # hash of the query rows (to quickly check whether query has changed)
 		
+		self._columns_sorted = False
+		self._rows_sorted = False
+		
 		self.process()
 	
 	def add(self, row):
@@ -247,18 +250,40 @@ class Query(object):
 				row.add_alias(sum_.alias, summed)
 		
 		self.hash = self.columns + [row.hash for row in self._rows]
-
-	@property
-	def columns(self):
-
-		if len(self._rows):
-			return self._columns.copy()
+	
+	def get_sorted_columns(self):
+		
 		collect = []
 		for cls in self._classes:
 			if "*" not in cls:
 				for descr in self.store.classes[cls].descriptors:
 					collect.append("%s.%s" % (cls, descr))
 		return collect
+	
+	def _sort_columns(self):
+		
+		if self._columns_sorted:
+			return
+		sorted_columns = self.get_sorted_columns()
+		self._columns = sorted(self._columns, key = lambda name: sorted_columns.index(name) if name in sorted_columns else len(self._columns))
+		self._columns_sorted = True
+	
+	def _sort_rows(self):
+		
+		if self._rows_sorted:
+			return
+		sorted_columns = self.get_sorted_columns()
+		for row in self._rows:
+			row._keys = sorted(row._keys, key = lambda name: sorted_columns.index(name) if name in sorted_columns else len(row._keys))
+		self._rows_sorted = True
+	
+	@property
+	def columns(self):
+
+		if len(self._rows):
+			self._sort_columns()
+			return self._columns.copy()
+		return self.get_sorted_columns()
 
 	@property
 	def classes(self):
@@ -282,6 +307,7 @@ class Query(object):
 	def __getitem__(self, idx):
 
 		if idx < len(self._rows):
+			self._sort_rows()
 			return self._rows[idx]
 		raise IndexError()
 
@@ -291,6 +317,7 @@ class Query(object):
 
 	def __iter__(self):
 
+		self._sort_rows()
 		for row in self._rows:
 			yield row
 
