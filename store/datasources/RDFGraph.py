@@ -375,3 +375,4 @@ class RDFGraph(DataSource):
 		
 		self.broadcast(Broadcasts.STORE_SAVED)
 		return True
+

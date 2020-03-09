@@ -31,7 +31,7 @@ class About(Dialog):
 <h2>Deposit</h2>
 <h4>Graph-based data storage and exchange</h4>
 <p>Version %s</p>
-<p>Copyright © <a href="mailto:peter.demjan@gmail.com">Peter Demján</a> 2013 - 2019</p>
+<p>Copyright © <a href="mailto:peter.demjan@gmail.com">Peter Demján</a> 2013 - 2020</p>
 <p>&nbsp;</p>
 <p>Licensed under the <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">GNU General Public License</a></p>
 <p><a href="https://github.com/demjanp/deposit">Home page</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="%s">Third party libraries</a></p>
