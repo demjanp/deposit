@@ -42,9 +42,15 @@ class Copy(Tool):
 					grid[-1].append(value)
 		text = "\n".join(["\t".join(row) for row in grid])
 		indexes = []
-		for row in selected.indexes:
-			for column in selected.indexes[row]:
-				indexes.append(selected.indexes[row][column])
+		sets = selected
+		if not isinstance(selected, list):
+			sets = [selected]
+		for selected in sets:
+			if not selected:
+				continue
+			for row in selected.indexes:
+				for column in selected.indexes[row]:
+					indexes.append(selected.indexes[row][column])
 		data = current.get_mime_data(indexes)
 		data.setData("text/plain", bytes(text, "utf-8"))
 		QtWidgets.QApplication.clipboard().setMimeData(data)

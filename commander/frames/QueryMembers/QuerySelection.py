@@ -14,7 +14,12 @@ class QuerySelectionRow(object):
 		self._col_min = col_min
 		self._col_max = col_max
 		self._pos = 0
-
+	
+	@property
+	def indexes(self):		
+		
+		return {0:self._indexes}
+	
 	def __len__(self):
 
 		return self._col_max - self._col_min + 1

@@ -49,6 +49,10 @@ class QueryObj(Frame, QtWidgets.QWidget):
 		
 		pass
 	
+	def get_mime_data(self, indexes):
+		
+		return self.parent.get_mime_data(indexes)
+	
 	def get_selected(self):
 		
 		return self.obj_view.get_selected() + self.rel_view.get_selected()

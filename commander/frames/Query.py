@@ -137,7 +137,11 @@ class Query(Frame, QtWidgets.QWidget):
 	def name(self):
 
 		return self.querystr
-
+	
+	def get_mime_data(self, indexes):
+		
+		return self.tab_lst.table_model.mimeData(indexes)
+	
 	def get_current(self):
 
 		return [self.tab_lst, self.tab_img, self.tab_geo, self.tab_obj][self.tabs.currentIndex()]
@@ -159,7 +163,7 @@ class Query(Frame, QtWidgets.QWidget):
 			self.populate_obj = []
 		else:
 			self.populate_obj = [obj, row]
-
+	
 	@QtCore.Slot(int)
 	def on_tab_changed(self, index):
 		
@@ -190,7 +194,7 @@ class Query(Frame, QtWidgets.QWidget):
 
 		self.update_tabs_enabled()
 		self.on_sorted()
-		
+	
 	def on_filter(self):
 		
 		self._filter_timer.start(1000)
