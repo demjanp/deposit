@@ -137,7 +137,10 @@ class RelView(Frame, QtWidgets.QWidget):
 					cls0 = "!*"
 				else:
 					cls0 = cls0[0]
-				querystr = "SELECT %s.* WHERE id(%s) == %d" % (cls, cls0, obj.id)
+				if cls0 == cls:
+					querystr = "SELECT %s.* WHERE id(%s) in {%s}" % (cls, cls, ",".join([str(obj_id) for obj_id in obj.relations[rel].keys()]))
+				else:
+					querystr = "SELECT %s.* WHERE id(%s) == %d" % (cls, cls0, obj.id)
 				query = self.model.query(querystr)
 				if len(query):
 					found = True
