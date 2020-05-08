@@ -129,7 +129,8 @@ class RelView(Frame, QtWidgets.QWidget):
 			header_widget = self.layout.itemAt(i * 2).widget()
 
 			rel, cls = self.relations[i]
-			visible = self.visible_widgets["%s_%s" % (rel, cls)]
+			key = "%s_%s" % (rel, cls)
+			visible = (key in self.visible_widgets) and self.visible_widgets[key]
 			found = False
 			if rel in obj.relations:
 				cls0 = list(obj.classes.keys())
