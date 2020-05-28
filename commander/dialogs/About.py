@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 import deposit
-from deposit import __version__
+from deposit import (__version__, __date__)
 from deposit.commander.dialogs._Dialog import (Dialog)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
@@ -30,12 +30,12 @@ class About(Dialog):
 		self.label = QtWidgets.QLabel('''
 <h2>Deposit</h2>
 <h4>Graph-based data storage and exchange</h4>
-<p>Version %s</p>
-<p>Copyright © <a href="mailto:peter.demjan@gmail.com">Peter Demján</a> 2013 - 2020</p>
+<p>Version %s (%s)</p>
+<p>Copyright © <a href="mailto:peter.demjan@gmail.com">Peter Demján</a> 2013 - %s</p>
 <p>&nbsp;</p>
 <p>Licensed under the <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">GNU General Public License</a></p>
 <p><a href="https://github.com/demjanp/deposit">Home page</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="%s">Third party libraries</a></p>
-		''' % (__version__, path))
+		''' % (__version__, __date__, __date__.split(".")[-1], path))
 		self.label.setOpenExternalLinks(True)
 		self.content.layout().addWidget(self.logo)
 		self.content.layout().addWidget(self.label)

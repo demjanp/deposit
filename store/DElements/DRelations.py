@@ -48,6 +48,7 @@ class DRelation(DElement):
 		
 		if target_id.__class__.__name__ == "DObject":
 			target_id = target_id.id
+		target_id = int(target_id)
 		if target_id in self._weights:
 			return self._weights[target_id]
 		return None
@@ -56,10 +57,12 @@ class DRelation(DElement):
 		
 		if target_id.__class__.__name__ == "DObject":
 			target_id = target_id.id
+		target_id = int(target_id)
 		self._weights[target_id] = weight
 	
 	def set_weight(self, target_id, weight):
 		
+		target_id = int(target_id)
 		self._set_weight(target_id, weight)
 		self.store.objects[target_id].relations[self.store.reverse_relation(self.name)]._set_weight(self.source.id, weight)
 		
@@ -131,6 +134,7 @@ class DRelation(DElement):
 		
 		self._objects = data["objects"]
 		self._weights = data["weights"] if "weights" in data else {}  # DEBUG to ensure compatibility with previous version
+		self._weights = dict([(int(target_id), self._weights[target_id]) for target_id in self._weights])
 		return self
 
 class DRelations(DElements):
