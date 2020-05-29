@@ -1,7 +1,7 @@
 from deposit import Broadcasts
 
+from deposit.commander.menu._MRUDMenu import (MRUDMenu)
 from deposit.commander.CmdDict import (CmdDict)
-from deposit.commander.ViewChild import (ViewChild)
 from deposit.commander.menu._ordering import ordering as MENU_ORDERING
 from deposit.commander.menu._ordering import recent as MENU_RECENT
 from deposit.commander.toolbar._Toolbar import (Action)
@@ -25,18 +25,15 @@ from pathlib import Path
 import json
 import os
 
-class Menu(CmdDict, ViewChild):
+class Menu(CmdDict, MRUDMenu):
 	
 	def __init__(self, model, view):
 		
 		self.menubar = None
 		self.actions = {} # {name: Action, ...}
-		self.recent_menu = None
-
-		CmdDict.__init__(self, ClearLocalFolder, ClearRecent, Copy, Paste, SaveAs, SaveAsDB, SaveAsDBRel, SetIdentifier, SetLocalFolder, LocaliseResources, SaveHistory, History, About)
-		ViewChild.__init__(self, model, view)
 		
-		self.set_up()
+		CmdDict.__init__(self, ClearLocalFolder, ClearRecent, Copy, Paste, SaveAs, SaveAsDB, SaveAsDBRel, SetIdentifier, SetLocalFolder, LocaliseResources, SaveHistory, History, About)
+		MRUDMenu.__init__(self, model, view)
 		
 	def set_up(self):
 		
@@ -86,96 +83,11 @@ class Menu(CmdDict, ViewChild):
 			self.actions[name].setChecked(self[name].checked())
 			self.actions[name].setEnabled(self[name].enabled())
 	
-	def load_recent(self):
-		
-		rows = self.view.registry.get("recent")
-		if rows == "":
-			return
-		rows = json.loads(rows)
-		for row in rows:
-			if len(row) == 1:
-				self.add_recent_url(row[0])
-			elif len(row) == 2:
-				self.add_recent_db(*row)
-	
-	def save_recent(self):
-		
-		rows = []
-		for action in self.recent_menu.actions():
-			if not isinstance(action, Action):
-				continue
-			data = action.get_data()
-			if isinstance(data, list):
-				rows.append(data)
-		self.view.registry.set("recent", json.dumps(rows))
-	
-	def get_recent(self):
-		# return [[url], [identifier, connstr], ...]
-		
-		collect = []
-		for action in self.recent_menu.actions():
-			if not isinstance(action, Action):
-				continue
-			data = action.get_data()
-			if isinstance(data, list):
-				collect.append(data)
-		return collect
-	
-	def clear_recent(self):
-		
-		for action in self.recent_menu.actions():
-			if not isinstance(action, Action):
-				continue
-			if isinstance(action.get_data(), list):
-				action.setParent(None)
-		self.save_recent()
-	
-	def has_recent(self, data):
-		
-		for action in self.recent_menu.actions():
-			if not isinstance(action, Action):
-				continue
-			if action.get_data() == data:
-				return True
-		return False
-	
-	def add_recent_url(self, url):
-		
-		if self.has_recent([url]):
-			return
-		action = Action(self, url, "url")
-		action.set_data([url])
-		self.recent_menu.addAction(action)
-		self.save_recent()
-	
-	def add_recent_db(self, identifier, connstr):
-
-		if self.has_recent([identifier, connstr]):
-			return
-		if (not identifier) or (not connstr):
-			return
-		name = "%s (%s)" % (identifier, os.path.split(connstr)[1])
-		action = Action(self, name, "db")
-		action.set_data([identifier, connstr])
-		self.recent_menu.addAction(action)
-		self.save_recent()
-	
-	def on_recent_triggered(self, data):
-		
-		if len(data) == 1:
-			url = data[0]
-			self.model.load(url)
-		elif len(data) == 2:
-			identifier, connstr = data
-			self.model.load(identifier, connstr)
-	
 	def on_triggered(self, action):
 		
-		data = action.get_data()
-		if isinstance(data, list):
-			self.on_recent_triggered(data)
+		if self.check_recent_triggered(action):
 			return
-		self[str(data)].triggered(action.isChecked())
+		self[str(action.get_data())].triggered(action.isChecked())
 		self.update_tools()
 	
 	def on_action_hovered(self, action):

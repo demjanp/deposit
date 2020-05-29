@@ -85,8 +85,6 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.set_title()
 		self.setStyleSheet("font: 14px;")
 		
-		self.menu.load_recent()
-		
 		self.connect_broadcast(Broadcasts.STORE_LOADED, self.on_data_source_changed)
 		self.connect_broadcast(Broadcasts.STORE_LOCAL_FOLDER_CHANGED, self.on_local_folder_changed)
 		self.connect_broadcast(Broadcasts.STORE_DATA_SOURCE_CHANGED, self.on_data_source_changed)
