@@ -114,3 +114,8 @@ class MRUDMenu(ViewChild):
 		
 		if self.check_recent_triggered(action):
 			return
+	
+	def on_action_hovered(self, action):
+		
+		pass
+
