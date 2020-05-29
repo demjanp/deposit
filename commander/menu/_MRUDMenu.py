@@ -109,4 +109,8 @@ class MRUDMenu(ViewChild):
 				self.model.load(identifier, connstr)
 				return True
 		return False
-
+	
+	def on_triggered(self, action):
+		
+		if self.check_recent_triggered(action):
+			return
