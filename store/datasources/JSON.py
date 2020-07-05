@@ -41,7 +41,7 @@ class JSON(DataSource):
 		
 		data = None
 		if not os.path.isfile(path):
-			return False
+			self.save()
 		with open(path, "r") as f:
 			data = json.load(f)
 		
@@ -138,6 +138,9 @@ class JSON(DataSource):
 				n += 1
 			shutil.move(path, os.path.join(back_path, tgt_path))
 		
+		tgt_dir = os.path.split(path)[0]
+		if not os.path.isdir(tgt_dir):
+			os.mkdir(tgt_dir)
 		os.rename(saved_path, path)
 		
 		new_local_folder = os.path.split(path)[0]

@@ -225,19 +225,8 @@ class RDFGraph(DataSource):
 		parsed = urlparse(self.url)
 		path = os.path.normpath(os.path.abspath(parsed.path.strip("//")))
 		
-		if os.path.isfile(path):
-			back_path = self.store.files.get_backup_path()
-			tgt_file, ext = os.path.splitext(os.path.split(path)[1])
-			tgt_file = "%s_%s" % (tgt_file, datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d'))
-			n = 1
-			while True:
-				tgt_path = os.path.join(back_path, "%s_%d%s" % (tgt_file, n, ext))
-				if not os.path.isfile(tgt_path):
-					break
-				n += 1
-			shutil.move(path, os.path.join(back_path, tgt_path))
-		
-		with open(path, "w", encoding = "utf-8") as f:
+		saved_path = os.path.join(self.store.files.get_temp_path(), os.path.split(path)[1])
+		with open(saved_path, "w", encoding = "utf-8") as f:
 			
 			# header
 			f.write('''<?xml version="1.0" encoding="UTF-8"?>\n''')
@@ -372,6 +361,23 @@ class RDFGraph(DataSource):
 			f.write('''\t</dep:Changed>\n''')
 			
 			f.write('''</rdf:RDF>\n''')
+		
+		if os.path.isfile(path):
+			back_path = self.store.files.get_backup_path()
+			tgt_file, ext = os.path.splitext(os.path.split(path)[1])
+			tgt_file = "%s_%s" % (tgt_file, datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d'))
+			n = 1
+			while True:
+				tgt_path = os.path.join(back_path, "%s_%d%s" % (tgt_file, n, ext))
+				if not os.path.isfile(tgt_path):
+					break
+				n += 1
+			shutil.move(path, os.path.join(back_path, tgt_path))
+		
+		tgt_dir = os.path.split(path)[0]
+		if not os.path.isdir(tgt_dir):
+			os.mkdir(tgt_dir)
+		os.rename(saved_path, path)
 		
 		self.broadcast(Broadcasts.STORE_SAVED)
 		return True

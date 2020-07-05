@@ -55,6 +55,11 @@ class View(DModule, QtWidgets.QMainWindow):
 		
 		self.registry = Registry("Deposit")
 		
+		geometry = self.registry.get("window_geometry")
+		if geometry:
+			geometry = geometry[1:].strip("'")
+			self.restoreGeometry(QtCore.QByteArray().fromPercentEncoding(bytearray(geometry, "utf-8")))
+		
 		self.stop_broadcasts()
 		
 		self.central_widget = QtWidgets.QWidget(self)
@@ -98,6 +103,8 @@ class View(DModule, QtWidgets.QMainWindow):
 		
 		if update_info:
 			self.update_model_info()
+		
+		self.dialogs.open("Open")
 	
 	def get_icon(self, name):
 
@@ -200,7 +207,9 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.process_broadcasts()
 
 	def closeEvent(self, event):
-
+		
+		self.registry.set("window_geometry", str(self.saveGeometry().toPercentEncoding()))
+		
 		if isinstance(self.model, Model):
 			if not self.model.is_saved():
 				reply = QtWidgets.QMessageBox.question(self, "Exit", "Save changes to database?",

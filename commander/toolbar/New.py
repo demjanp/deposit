@@ -20,7 +20,5 @@ class New(Tool):
 	
 	def triggered(self, state):
 		
-		self.model.clear()
-		
+		self.view.dialogs.open("Open")
 
-		

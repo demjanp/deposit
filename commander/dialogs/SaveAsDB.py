@@ -1,4 +1,5 @@
 from deposit.commander.dialogs._Dialog import (Dialog)
+from deposit.store.Conversions import (as_url)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
@@ -49,6 +50,7 @@ class SaveAsDB(Dialog):
 		connstr = self.connstr.currentText()
 		identifier = self.identifier.currentText()
 		if connstr and identifier:
+			identifier = as_url(identifier)
 			ds = self.model.datasources.DB(identifier = identifier, connstr = connstr)
 			cursor, _ = ds.connect()
 			if cursor:

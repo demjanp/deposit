@@ -1,6 +1,6 @@
 
-__version__ = "1.1.1"
-__date__ = "29.5.2020"
+__version__ = "1.1.2"
+__date__ = "6.7.2020"
 
 INVALID_CHARACTERS_NAME = "#@"  # invalid characters for Class and Relation labels
 

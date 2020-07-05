@@ -101,6 +101,13 @@ def as_url(value):
 		return pathlib.Path(os.path.normpath(os.path.abspath(value))).as_uri()
 	return value
 
+def as_identifier(value):
+	
+	value = as_url(value)
+	if value[-1] != "#":
+		value = value + "#"
+	return value
+
 def as_path(url, check_if_exists = True):
 	# convert file url to path
 	
