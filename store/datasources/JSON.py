@@ -122,6 +122,10 @@ class JSON(DataSource):
 		parsed = urlparse(self.url)
 		path = os.path.normpath(os.path.abspath(parsed.path.strip("//")))
 		
+		saved_path = os.path.join(self.store.files.get_temp_path(), os.path.split(path)[1])
+		with open(saved_path, "w") as f:
+			json.dump(data, f)
+		
 		if os.path.isfile(path):
 			back_path = self.store.files.get_backup_path()
 			tgt_file, ext = os.path.splitext(os.path.split(path)[1])
@@ -134,8 +138,7 @@ class JSON(DataSource):
 				n += 1
 			shutil.move(path, os.path.join(back_path, tgt_path))
 		
-		with open(path, "w") as f:
-			json.dump(data, f)
+		os.rename(saved_path, path)
 		
 		new_local_folder = os.path.split(path)[0]
 		if new_local_folder != self.store.local_folder:
