@@ -104,7 +104,8 @@ class View(DModule, QtWidgets.QMainWindow):
 		if update_info:
 			self.update_model_info()
 		
-		self.dialogs.open("Open")
+		if not update_info:
+			self.dialogs.open("Open")
 	
 	def get_icon(self, name):
 

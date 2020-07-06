@@ -72,3 +72,7 @@ class Dialog(DModule, QtWidgets.QDialog):
 		
 		pass
 	
+	def cancel(self):
+		# re-implement
+		
+		pass
