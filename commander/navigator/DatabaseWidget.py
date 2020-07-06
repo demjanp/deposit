@@ -3,7 +3,6 @@ from deposit.DModule import (DModule)
 from deposit.commander.frames._Frame import (Frame)
 from deposit.commander.navigator.DatabaseList import (DatabaseList)
 from deposit.store.Conversions import (as_url)
-from deposit.store.Store import (Store)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 

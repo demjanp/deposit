@@ -6,7 +6,7 @@ from PySide2 import (QtWidgets, QtCore, QtGui)
 from pathlib import Path
 import os
 
-class OpenJSON(DModule, QtWidgets.QFrame):
+class DataSourceJSON(DModule, QtWidgets.QFrame):
 	
 	def __init__(self, model, view, parent):
 		
@@ -41,7 +41,7 @@ class OpenJSON(DModule, QtWidgets.QFrame):
 		self.path_edit = QtWidgets.QLineEdit()
 		self.path_edit.textChanged.connect(self.on_path_changed)
 		
-		self.connect_button = QtWidgets.QPushButton("Connect")
+		self.connect_button = QtWidgets.QPushButton(self.parent.connect_caption())
 		self.connect_button.clicked.connect(self.on_connect)
 		
 		self.layout().addWidget(self.tree)
@@ -65,11 +65,14 @@ class OpenJSON(DModule, QtWidgets.QFrame):
 	def update(self):
 		
 		path = self.get_path()
+		is_valid = False
 		if os.path.isfile(path):
-			self.connect_button.setText("Connect")
-		else:
+			self.connect_button.setText(self.parent.connect_caption())
+			is_valid = True
+		elif self.parent.creating_enabled():
 			self.connect_button.setText("Create")
-		self.connect_button.setEnabled(path != "")
+			is_valid = True
+		self.connect_button.setEnabled(is_valid and (path != ""))
 	
 	def on_selected(self):
 		
@@ -89,10 +92,12 @@ class OpenJSON(DModule, QtWidgets.QFrame):
 		
 		self.view.registry.set("recent_dir", os.path.split(path)[0])
 		
-		url = as_url(path)
-		self.model.load(url)
+		if (not os.path.isfile(path)) and (not self.parent.creating_enabled()):
+			QtWidgets.QMessageBox.critical(self, "Error", "Could not create database.")
+			return None
 		
-		self.parent.close()
+		url = as_url(path)
+		self.parent.on_connect(url, None)
 
 class FileTree(QtWidgets.QTreeView):
 	

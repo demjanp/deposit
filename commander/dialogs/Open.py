@@ -1,45 +1,34 @@
 
 import deposit
 from deposit import (__version__, __date__)
-from deposit.commander.dialogs._Dialog import (Dialog)
-from deposit.commander.dialogs.OpenMembers.OpenRecent import (OpenRecent)
-from deposit.commander.dialogs.OpenMembers.OpenJSON import (OpenJSON)
-from deposit.commander.dialogs.OpenMembers.OpenDB import (OpenDB)
-from deposit.commander.dialogs.OpenMembers.OpenDBRel import (OpenDBRel)
-from deposit.commander.dialogs.OpenMembers.OpenMemory import (OpenMemory)
+from deposit.commander.dialogs.DataSource import (DataSource)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 import os
 
-class Open(Dialog):
+class Open(DataSource):
 	
 	def title(self):
 		
 		return "Select Data Source"
 	
-	def set_up(self):
+	def creating_enabled(self):
 		
-		self.setMinimumWidth(600)
-		self.setMinimumHeight(400)
-		self.setModal(True)
-		self.setLayout(QtWidgets.QVBoxLayout())
-		self.layout().setContentsMargins(0, 0, 0, 0)
+		return True
+
+	def on_connect(self, identifier, connstr, local_folder = None, created = False):
 		
-		self.tab_recent = OpenRecent(self.model, self.view, self)
-		self.tab_json = OpenJSON(self.model, self.view, self)
-		self.tab_db = OpenDB(self.model, self.view, self)
-		self.tab_dbrel = OpenDBRel(self.model, self.view, self)
-		self.tab_memory = OpenMemory(self.model, self.view, self)
-		
-		self.tabs = QtWidgets.QTabWidget()
-		self.tabs.addTab(self.tab_recent, "Recent")
-		self.tabs.addTab(self.tab_json, "File")
-		self.tabs.addTab(self.tab_db, "PostgreSQL")
-		self.tabs.addTab(self.tab_dbrel, "PostgreSQL Relational")
-		self.tabs.addTab(self.tab_memory, "Memory")
-		
-		self.layout().addWidget(self.tabs)
-	
-	def button_box(self):
-		
-		return False, False
+		if identifier is None:
+			self.model.clear()
+			self.model.set_datasource(None)
+		else:
+			self.model.load(identifier, connstr)
+			if local_folder:
+				if created:
+					self.model.set_local_folder(local_folder)
+				elif self.model.local_folder != local_folder:
+					reply = QtWidgets.QMessageBox.question(self, "Change Local Folder?", "Change Local Folder from %s to %s?" % (self.model.local_folder, local_folder), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+					if reply == QtWidgets.QMessageBox.Yes:
+						self.model.set_local_folder(local_folder)
+		self.close()
+

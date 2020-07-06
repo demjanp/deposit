@@ -5,7 +5,7 @@ from PySide2 import (QtWidgets, QtCore, QtGui)
 
 import os
 
-class OpenRecent(DModule, QtWidgets.QFrame):
+class DataSourceRecent(DModule, QtWidgets.QFrame):
 	
 	def __init__(self, model, view, parent):
 		
@@ -37,7 +37,7 @@ class OpenRecent(DModule, QtWidgets.QFrame):
 		self.recent_list.itemSelectionChanged.connect(self.on_selected)
 		self.recent_list.activated.connect(self.on_connect)
 		
-		self.connect_button = QtWidgets.QPushButton("Connect")
+		self.connect_button = QtWidgets.QPushButton(self.parent.connect_caption())
 		self.connect_button.clicked.connect(self.on_connect)
 		
 		self.layout().addWidget(self.recent_list)
@@ -62,11 +62,9 @@ class OpenRecent(DModule, QtWidgets.QFrame):
 		if len(row) == 1:
 			url = row[0]
 			self.view.registry.set("recent_dir", os.path.split(as_path(url))[0])
-			self.model.load(url)
+			self.parent.on_connect(url, None)
 			
 		elif len(row) == 2:
 			identifier, connstr = row
-			self.model.load(identifier, connstr)
-		
-		self.parent.close()
+			self.parent.on_connect(identifier, connstr)
 

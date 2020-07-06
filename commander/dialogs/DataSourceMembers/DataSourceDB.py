@@ -1,10 +1,11 @@
 from deposit.DModule import (DModule)
 from deposit.store.Conversions import (as_identifier)
+from deposit import (Store)
 
 import os
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
-class OpenDB(DModule, QtWidgets.QFrame):
+class DataSourceDB(DModule, QtWidgets.QFrame):
 	
 	def __init__(self, model, view, parent):
 		
@@ -46,7 +47,8 @@ class OpenDB(DModule, QtWidgets.QFrame):
 		lf_container.layout().addWidget(self.local_folder_edit)
 		lf_container.layout().addWidget(self.lf_browse_button)
 		
-		self.db = self.model.datasources.DB()
+		self.temp_store = Store()
+		self.db = self.temp_store.datasources.DB()
 		servers = []
 		logins = []
 		names = {}  # {server: [name, ...], ...}
@@ -70,7 +72,7 @@ class OpenDB(DModule, QtWidgets.QFrame):
 		self.name_combo.editTextChanged.connect(self.update)
 		self.identifier_combo.editTextChanged.connect(self.update)
 		
-		self.connect_button = QtWidgets.QPushButton("Connect")
+		self.connect_button = QtWidgets.QPushButton(self.parent.connect_caption())
 		self.connect_button.clicked.connect(self.on_connect)
 		
 		self.form.layout().addRow("Server[:port]:", self.server_combo)
@@ -126,20 +128,22 @@ class OpenDB(DModule, QtWidgets.QFrame):
 		
 		self.load_identifiers()
 		server, name, user, password, identifier, _ = self.get_values()
+		is_valid = False
 		if as_identifier(identifier) in self._identifiers:
-			self.connect_button.setText("Connect")
-		else:
+			self.connect_button.setText(self.parent.connect_caption())
+			is_valid = True
+		elif self.parent.creating_enabled():
 			self.connect_button.setText("Create")
-		self.connect_button.setEnabled(self._valid_db and ("" not in [server, name, user, password, identifier]))
+			is_valid = True
+		self.connect_button.setEnabled(is_valid and self._valid_db and ("" not in [server, name, user, password, identifier]))
 	
-	def create_db(self, connstr, identifier, local_folder):
+	def create_db(self, connstr, identifier):
 		
-		ds = self.model.datasources.DB(identifier = identifier, connstr = connstr)
+		if not self.parent.creating_enabled():
+			return False
+		ds = self.temp_store.datasources.DB(identifier = identifier, connstr = connstr)
 		cursor, _ = ds.connect()
 		if cursor:
-			self.model.set_datasource(ds)
-			if local_folder:
-				self.model.set_local_folder(local_folder)
 			return ds.save()
 		return False
 	
@@ -181,15 +185,13 @@ class OpenDB(DModule, QtWidgets.QFrame):
 		connstr = "postgres://%s:%s@%s/%s" % (user, password, server, name)
 		identifier = as_identifier(identifier)
 		if identifier in self._identifiers:
-			self.model.load(identifier, connstr)
-			if local_folder and (self.model.local_folder != local_folder):
-				reply = QtWidgets.QMessageBox.question(self, "Change Local Folder?", "Change Local Folder from %s to %s?" % (self.model.local_folder, local_folder), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-				if reply == QtWidgets.QMessageBox.Yes:
-					self.model.set_local_folder(local_folder)
-			self.parent.close()
+			if self.temp_store.get_datasource(identifier, connstr):
+				self.parent.on_connect(identifier, connstr, local_folder, created = False)
+			else:
+				QtWidgets.QMessageBox.critical(self, "Error", "Could not connect to database.")
 		else:
-			if self.create_db(connstr, identifier, local_folder):
-				self.parent.close()
+			if self.create_db(connstr, identifier):
+				self.parent.on_connect(identifier, connstr, local_folder, created = True)
 			else:
 				QtWidgets.QMessageBox.critical(self, "Error", "Could not create database.")
 

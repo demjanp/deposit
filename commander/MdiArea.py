@@ -170,8 +170,8 @@ class MdiArea(ViewChild, QtWidgets.QMdiArea):
 		if typ == "url":
 			ext = data.split(".")[-1].lower()
 			if ext == "json":
-				if self.model.load("%s" % (data)):
-					self.view.menu.add_recent_url(data)
+				url = "%s" % (data)
+				self.view.dialogs.open("OpenOrImport", url)
 				return
 			es = None
 			if ext == "xlsx":

@@ -254,8 +254,9 @@ class Store(DModule):
 		if self.data_source is not None:
 			self.data_source.save()
 	
-	def add_objects(self, identifier, connstr, ids):
+	def add_objects(self, identifier, connstr, ids = None):
 		# add objects from a different store, specified by identifier and connstr
+		# if ids == None: import all objects
 		
 		def collect_ids(id, store, found = []):
 			
@@ -276,6 +277,8 @@ class Store(DModule):
 		self.stop_broadcasts()
 		store.set_datasource(ds)
 		found_ids = []
+		if ids is None:
+			ids = store.objects.keys()
 		for id in ids:
 			collect_ids(id, store, found_ids)
 		id_lookup = {} # {orig_id: new_id, ...}

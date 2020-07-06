@@ -6,7 +6,7 @@ from deposit.store.Conversions import (as_identifier)
 
 import os
 
-class OpenMemory(DModule, QtWidgets.QFrame):
+class DataSourceMemory(DModule, QtWidgets.QFrame):
 	
 	def __init__(self, model, view, parent):
 		
@@ -33,7 +33,5 @@ class OpenMemory(DModule, QtWidgets.QFrame):
 		
 	def on_connect(self):
 		
-		self.model.clear()
-		self.model.set_datasource(None)
-		self.parent.close()
+		self.parent.on_connect(None, None, None, created = False)
 

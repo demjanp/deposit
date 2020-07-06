@@ -5,5 +5,5 @@ ordering = [
 	["AddDescriptor", "RemoveDescriptor"],
 	["AddRelation", "RelationName", "RemoveRelation"],
 	["FieldCalculator", "Merge", "MergeIdentical", "Duplicate"],
-	["Import", "Export"],
+	["Import", "Export", "ImportDeposit"],
 ]

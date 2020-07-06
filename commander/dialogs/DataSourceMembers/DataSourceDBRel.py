@@ -1,10 +1,11 @@
 from deposit.DModule import (DModule)
 from deposit.store.Conversions import (as_identifier)
+from deposit import (Store)
 
 import os
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
-class OpenDBRel(DModule, QtWidgets.QFrame):
+class DataSourceDBRel(DModule, QtWidgets.QFrame):
 	
 	def __init__(self, model, view, parent):
 		
@@ -46,7 +47,8 @@ class OpenDBRel(DModule, QtWidgets.QFrame):
 		lf_container.layout().addWidget(self.local_folder_edit)
 		lf_container.layout().addWidget(self.lf_browse_button)
 		
-		self.dbrel = self.model.datasources.DBRel()
+		self.temp_store = Store()
+		self.dbrel = self.temp_store.datasources.DBRel()
 		servers = []
 		logins = []
 		names = {}  # {server: [name, ...], ...}
@@ -69,7 +71,7 @@ class OpenDBRel(DModule, QtWidgets.QFrame):
 		self.server_combo.editTextChanged.connect(self.on_server_changed)
 		self.name_combo.editTextChanged.connect(self.update)
 		
-		self.connect_button = QtWidgets.QPushButton("Connect")
+		self.connect_button = QtWidgets.QPushButton(self.parent.connect_caption())
 		self.connect_button.clicked.connect(self.on_connect)
 		
 		self.form.layout().addRow("Server[:port]:", self.server_combo)
@@ -121,24 +123,27 @@ class OpenDBRel(DModule, QtWidgets.QFrame):
 		
 		self.check_db()
 		server, name, user, password, identifier, _ = self.get_values()
+		is_valid = False
 		if as_identifier(identifier) == self._identifier:
-			self.connect_button.setText("Connect")
-		elif self._identifier: 
+			self.connect_button.setText(self.parent.connect_caption())
+			is_valid = True
+		elif self.parent.creating_enabled() and self._identifier: 
 			self.connect_button.setText("Overwrite")
-		else:
+			is_valid = True
+		elif self.parent.creating_enabled():
 			self.connect_button.setText("Create")
-		self.connect_button.setEnabled(self._valid_db and ("" not in [server, name, user, password, identifier]))
+			is_valid = True
+		self.connect_button.setEnabled(is_valid and self._valid_db and ("" not in [server, name, user, password, identifier]))
 	
 	def create_db(self, connstr, identifier, local_folder):
 		
-		self.dbrel.set_connstr(connstr)
-		self.dbrel.set_identifier(identifier)
-		cursor, _ = self.dbrel.connect()
+		if not self.parent.creating_enabled():
+			return False
+		ds = self.temp_store.datasources.DBRel(connstr = connstr)
+		ds.set_identifier(identifier)
+		cursor, _ = ds.connect()
 		if cursor:
-			self.model.set_datasource(self.dbrel)
-			if local_folder:
-				self.model.set_local_folder(local_folder)
-			return self.dbrel.save()
+			return ds.save()
 		return False
 	
 	def on_server_changed(self):
@@ -178,20 +183,14 @@ class OpenDBRel(DModule, QtWidgets.QFrame):
 			return
 		connstr = "postgres://%s:%s@%s/%s" % (user, password, server, name)
 		identifier = as_identifier(identifier)
-		print(identifier, self._identifier) # DEBUG
 		if identifier == self._identifier:
-			self.model.load(identifier, connstr)
-			if local_folder and (self.model.local_folder != local_folder):
-				reply = QtWidgets.QMessageBox.question(self, "Change Local Folder?", "Change Local Folder from %s to %s?" % (self.model.local_folder, local_folder), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-				if reply == QtWidgets.QMessageBox.Yes:
-					self.model.set_local_folder(local_folder)
-			self.parent.close()
+			if self.temp_store.get_datasource(identifier, connstr):
+				self.parent.on_connect(identifier, connstr, local_folder, created = False)
+			else:
+				QtWidgets.QMessageBox.critical(self, "Error", "Could not connect to database.")
 		else:
-			reply = QtWidgets.QMessageBox.question(self, "Overwrite Data?", "All existing data in database %s will be lost. Proceed?" % (name), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-			if reply != QtWidgets.QMessageBox.Yes:
-				return
-			if self.create_db(connstr, identifier, local_folder):
-				self.parent.close()
+			if self.create_db(connstr, identifier):
+				self.parent.on_connect(identifier, connstr, local_folder, created = True)
 			else:
 				QtWidgets.QMessageBox.critical(self, "Error", "Could not create database.")
 

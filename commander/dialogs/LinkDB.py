@@ -1,4 +1,5 @@
 from deposit.commander.dialogs._Dialog import (Dialog)
+from deposit import (Store)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
@@ -20,8 +21,9 @@ class LinkDB(Dialog):
 		self.form.setLayout(self.form_layout)
 		self.layout.addWidget(self.form)
 		
-		self.db = self.model.datasources.DB()
-		self.dbrel = self.model.datasources.DBRel()
+		self.temp_store = Store()
+		self.db = self.temp_store.datasources.DB()
+		self.dbrel = self.temp_store.datasources.DBRel()
 		self.ds = None
 		
 		connstrings = []

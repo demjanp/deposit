@@ -7,7 +7,7 @@ class Import(Tool):
 	
 	def name(self):
 		
-		return "Import"
+		return "Import External"
 	
 	def icon(self):
 		
@@ -15,7 +15,7 @@ class Import(Tool):
 	
 	def help(self):
 		
-		return "Import Data"
+		return "Import External Data"
 	
 	def enabled(self):
 
@@ -23,7 +23,7 @@ class Import(Tool):
 	
 	def triggered(self, state):
 		
-		reply = QtWidgets.QMessageBox.question(self.view, "Import Data", "Import into database?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
+		reply = QtWidgets.QMessageBox.question(self.view, "Import External Data", "Import external data into database?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
 		if reply == QtWidgets.QMessageBox.Yes:
 			current = self.view.mdiarea.get_current()
 			current.import_data()
