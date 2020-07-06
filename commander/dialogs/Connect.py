@@ -1,50 +1,34 @@
-from deposit.commander.dialogs._Dialog import (Dialog)
+
+import deposit
+from deposit import (__version__, __date__)
+from deposit.commander.dialogs.DataSource import (DataSource)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
+import os
 
-class Connect(Dialog):
+class Connect(DataSource):
 	
 	def title(self):
 		
-		return "Connect to Database"
+		return "Select Data Source"
 	
-	def set_up(self):
+	def creating_enabled(self):
 		
-		self.setMinimumWidth(600)
-		self.setModal(True)
-		self.layout = QtWidgets.QVBoxLayout()
-		self.setLayout(self.layout)
+		return True
+
+	def on_connect(self, identifier, connstr, local_folder = None, created = False):
 		
-		self.form_layout = QtWidgets.QFormLayout()
-		self.form = QtWidgets.QWidget()
-		self.form.setLayout(self.form_layout)
-		self.layout.addWidget(self.form)
-		
-		connstrings = []
-		for row in self.view.menu.get_recent(): # [[url], [identifier, connstr], ...]
-			if len(row) == 2:
-				connstrings.append(row[1])
-		
-		self.connstr = QtWidgets.QComboBox()
-		if connstrings:
-			self.connstr.addItems(connstrings)
-		self.connstr.setEditable(True)
-		
-		self.form_layout.addRow("Connect string:", self.connstr)
-	
-	def process(self):
-		
-		connstr = self.connstr.currentText()
-		if connstr:
-			ds = self.model.datasources.DBRel(connstr = connstr)
-			if ds.is_valid():
-				self.model.set_datasource(ds)
-				return
-			
-			ds = self.model.datasources.DB(connstr = connstr)
-			if ds.is_valid():
-				self.model.set_datasource(ds)
-				return
-	
-	
-	
+		if identifier is None:
+			self.model.clear()
+			self.model.set_datasource(None)
+		else:
+			self.model.load(identifier, connstr)
+			if local_folder:
+				if created:
+					self.model.set_local_folder(local_folder)
+				elif self.model.local_folder != local_folder:
+					reply = QtWidgets.QMessageBox.question(self, "Change Local Folder?", "Change Local Folder from %s to %s?" % (self.model.local_folder, local_folder), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+					if reply == QtWidgets.QMessageBox.Yes:
+						self.model.set_local_folder(local_folder)
+		self.close()
+

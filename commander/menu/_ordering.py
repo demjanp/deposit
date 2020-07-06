@@ -1,7 +1,7 @@
 
 ordering = [
-	["Data",	"New", "Load", "Save", "SaveAs", "SaveAsDB", "SaveAsDBRel"],
-	["Data",	"Connect", "SetIdentifier"],
+	["Data",	"Connect", "Save", "SaveAs", "SaveAsDB", "SaveAsDBRel"],
+	["Data",	"SetIdentifier"],
 	["Data",	"Import", "ImportDeposit", "Export"],
 	["Data",	"ClearRecent"],
 	["Edit",	"Copy", "Paste"],

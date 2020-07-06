@@ -1,5 +1,5 @@
 ordering = [
-	["New", "Load", "Connect", "Save"],
+	["Connect", "Save"],
 	["AddClass", "RemoveClass"],
 	["AddObject", "RemoveObject"],
 	["AddDescriptor", "RemoveDescriptor"],
