@@ -118,7 +118,9 @@ class Store(DModule):
 		self.broadcast(Broadcasts.STORE_DATA_SOURCE_CHANGED)
 
 	def set_local_folder(self, path):
-
+		
+		if not os.path.isdir(path):
+			os.mkdir(path)
 		self.local_folder = path
 		self.broadcast(Broadcasts.STORE_LOCAL_FOLDER_CHANGED)
 	

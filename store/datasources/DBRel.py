@@ -117,6 +117,23 @@ class DBRel(DB):
 		
 		return identifier
 	
+	def get_local_folder(self):
+		
+		cursor, tables = self.connect()
+		if cursor is None:
+			return ""
+		
+		if "#local_folder" not in tables:
+			return ""
+		local_folder = ""
+		cursor.execute("SELECT * FROM \"%s\";" % ("#local_folder",))
+		for row in cursor.fetchall():
+			local_folder = json.loads(row[0])
+			break
+		cursor.connection.close()
+		
+		return local_folder
+	
 	def save(self):
 		
 		if self.identifier is None:

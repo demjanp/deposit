@@ -130,6 +130,21 @@ class DB(DataSource):
 			return True
 		return False
 	
+	def get_local_folder(self, identifier):
+		
+		cursor, tables = self.connect()
+		if cursor is None:
+			return ""
+		if (identifier + "local_folder") not in tables:
+			return ""
+		cursor.execute("SELECT * FROM \"%s\";" % (identifier + "local_folder",))
+		local_folder = ""
+		for row in cursor.fetchall():
+			local_folder = json.loads(row[0])
+			break
+		cursor.connection.close()
+		return local_folder
+	
 	def save(self):
 	
 		def create_table(name, columns, tables, cursor):

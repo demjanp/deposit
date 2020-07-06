@@ -35,6 +35,7 @@ class OpenRecent(DModule, QtWidgets.QFrame):
 			self.recent_list.addItem(item)
 		self.recent_list.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
 		self.recent_list.itemSelectionChanged.connect(self.on_selected)
+		self.recent_list.activated.connect(self.on_connect)
 		
 		self.connect_button = QtWidgets.QPushButton("Connect")
 		self.connect_button.clicked.connect(self.on_connect)

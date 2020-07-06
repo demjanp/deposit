@@ -1,6 +1,7 @@
 from deposit.DModule import (DModule)
 from deposit.store.Conversions import (as_identifier)
 
+import os
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class OpenDBRel(DModule, QtWidgets.QFrame):
@@ -35,6 +36,15 @@ class OpenDBRel(DModule, QtWidgets.QFrame):
 		self.pass_edit.textChanged.connect(self.update)
 		self.identifier_edit = QtWidgets.QLineEdit("")
 		self.identifier_edit.textChanged.connect(self.update)
+		self.local_folder_edit = QtWidgets.QLineEdit("")
+		self.lf_browse_button = QtWidgets.QPushButton("Browse...")
+		self.lf_browse_button.clicked.connect(self.on_lf_browse)
+		
+		lf_container = QtWidgets.QWidget()
+		lf_container.setLayout(QtWidgets.QHBoxLayout())
+		lf_container.layout().setContentsMargins(0, 0, 0, 0)
+		lf_container.layout().addWidget(self.local_folder_edit)
+		lf_container.layout().addWidget(self.lf_browse_button)
 		
 		self.dbrel = self.model.datasources.DBRel()
 		servers = []
@@ -67,6 +77,7 @@ class OpenDBRel(DModule, QtWidgets.QFrame):
 		self.form.layout().addRow("Username:", self.user_edit)
 		self.form.layout().addRow("Password:", self.pass_edit)
 		self.form.layout().addRow("Identifier:", self.identifier_edit)
+		self.form.layout().addRow("Local Folder:", lf_container)
 		
 		self.layout().addWidget(self.form)
 		self.layout().addWidget(self.connect_button, alignment = QtCore.Qt.AlignCenter)
@@ -81,14 +92,15 @@ class OpenDBRel(DModule, QtWidgets.QFrame):
 		user = self.user_edit.text().strip()
 		password = self.pass_edit.text().strip()
 		identifier = self.identifier_edit.text().strip()
+		local_folder = self.local_folder_edit.text().strip()
 		if server and (":" not in server):
 			server = "%s:5432" % (server)
-		return server, name, user, password, identifier
+		return server, name, user, password, identifier, local_folder
 	
 	def check_db(self):
 		
 		self.identifier_edit.blockSignals(True)
-		server, name, user, password, identifier = self.get_values()
+		server, name, user, password, identifier, _ = self.get_values()
 		connstr = "postgres://%s:%s@%s/%s" % (user, password, server, name)
 		if connstr != self._connstr_prev:
 			self._valid_db = False
@@ -100,13 +112,15 @@ class OpenDBRel(DModule, QtWidgets.QFrame):
 					if self.dbrel.is_valid():
 						self._identifier = self.dbrel.get_identifier()
 						self.identifier_edit.setText(self._identifier)
+		local_folder = self.dbrel.get_local_folder()
+		self.local_folder_edit.setText(local_folder)
 		self._connstr_prev = connstr
 		self.identifier_edit.blockSignals(False)
 	
 	def update(self, *args):
 		
 		self.check_db()
-		server, name, user, password, identifier = self.get_values()
+		server, name, user, password, identifier, _ = self.get_values()
 		if as_identifier(identifier) == self._identifier:
 			self.connect_button.setText("Connect")
 		elif self._identifier: 
@@ -115,13 +129,15 @@ class OpenDBRel(DModule, QtWidgets.QFrame):
 			self.connect_button.setText("Create")
 		self.connect_button.setEnabled(self._valid_db and ("" not in [server, name, user, password, identifier]))
 	
-	def create_db(self, connstr, identifier):
+	def create_db(self, connstr, identifier, local_folder):
 		
 		self.dbrel.set_connstr(connstr)
 		self.dbrel.set_identifier(identifier)
 		cursor, _ = self.dbrel.connect()
 		if cursor:
 			self.model.set_datasource(self.dbrel)
+			if local_folder:
+				self.model.set_local_folder(local_folder)
 			return self.dbrel.save()
 		return False
 	
@@ -131,7 +147,7 @@ class OpenDBRel(DModule, QtWidgets.QFrame):
 		server = self.server_combo.currentText().strip()
 		if data:
 			server, user, password, names = data
-			_, curr_name, curr_user, curr_password, _ = self.get_values()
+			_, curr_name, curr_user, curr_password, _, _ = self.get_values()
 			if not (curr_user or curr_password):
 				curr_user, curr_password = user, password
 				self.user_edit.blockSignals(True)
@@ -149,21 +165,32 @@ class OpenDBRel(DModule, QtWidgets.QFrame):
 				self.name_combo.blockSignals(False)
 		self.update()
 	
+	def on_lf_browse(self):
+		
+		path = QtWidgets.QFileDialog.getExistingDirectory(self, caption = "Select Local Folder")
+		if path:
+			self.local_folder_edit.setText(os.path.normpath(os.path.abspath(path)))
+	
 	def on_connect(self):
 		
-		server, name, user, password, identifier = self.get_values()
+		server, name, user, password, identifier, local_folder = self.get_values()
 		if "" in [server, name, user, password, identifier]:
 			return
 		connstr = "postgres://%s:%s@%s/%s" % (user, password, server, name)
 		identifier = as_identifier(identifier)
+		print(identifier, self._identifier) # DEBUG
 		if identifier == self._identifier:
 			self.model.load(identifier, connstr)
+			if local_folder and (self.model.local_folder != local_folder):
+				reply = QtWidgets.QMessageBox.question(self, "Change Local Folder?", "Change Local Folder from %s to %s?" % (self.model.local_folder, local_folder), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+				if reply == QtWidgets.QMessageBox.Yes:
+					self.model.set_local_folder(local_folder)
 			self.parent.close()
 		else:
 			reply = QtWidgets.QMessageBox.question(self, "Overwrite Data?", "All existing data in database %s will be lost. Proceed?" % (name), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 			if reply != QtWidgets.QMessageBox.Yes:
 				return
-			if self.create_db(connstr, identifier):
+			if self.create_db(connstr, identifier, local_folder):
 				self.parent.close()
 			else:
 				QtWidgets.QMessageBox.critical(self, "Error", "Could not create database.")

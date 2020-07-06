@@ -17,6 +17,8 @@ class Dialog(DModule, QtWidgets.QDialog):
 		self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 		self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 		
+		self.finished.connect(self.on_finished)
+		
 		self.set_up(*args)
 		
 		self.setWindowTitle(self.title())
@@ -34,8 +36,6 @@ class Dialog(DModule, QtWidgets.QDialog):
 			self.buttonBox.rejected.connect(self.reject)
 			QtWidgets.QDialog.layout(self).addWidget(self.buttonBox)
 		
-		self.finished.connect(self.on_finished)
-		
 		self.adjustSize()
 
 	def set_enabled(self, state):
@@ -49,6 +49,13 @@ class Dialog(DModule, QtWidgets.QDialog):
 	
 	def closed(self):
 		
+		visible = False
+		try:
+			visible = self.isVisible()
+		except:
+			pass
+		if not visible:
+			return True
 		return self._closed
 	
 	def on_finished(self, code):
@@ -56,6 +63,7 @@ class Dialog(DModule, QtWidgets.QDialog):
 		self.view.dialogs.on_finished(code, self)
 	
 	def set_up(self, *args):
+		# re-implement
 		
 		pass
 	
