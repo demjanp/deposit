@@ -25,5 +25,5 @@ class ImportDeposit(DataSource):
 		if identifier is None:
 			self.close()
 			return
-		self.model.add_objects(identifier, connstr)
+		self.model.add_objects(identifier, connstr, localise = True)
 		self.close()

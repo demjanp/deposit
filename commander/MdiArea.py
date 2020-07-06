@@ -190,7 +190,7 @@ class MdiArea(ViewChild, QtWidgets.QMdiArea):
 				groups[identifier][connstr].append(id)
 			for identifier in groups:
 				for connstr in groups[identifier]:
-					self.model.add_objects(identifier, connstr, groups[identifier][connstr])
+					self.model.add_objects(identifier, connstr, groups[identifier][connstr], localise = True)
 	
 	def on_activated(self):
 

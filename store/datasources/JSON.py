@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 import datetime, time
 import shutil
 import json
+import sys
 import os
 
 class JSON(DataSource):
@@ -42,11 +43,20 @@ class JSON(DataSource):
 		data = None
 		if not os.path.isfile(path):
 			self.save()
-		with open(path, "r") as f:
-			data = json.load(f)
+		if not self.wait_if_busy():
+			return False
+		self.is_busy = True
+		try:
+			with open(path, "r") as f:
+				data = json.load(f)
+		except:
+			print("LOAD ERROR: %s" % (str(sys.exc_info())))
+			self.is_busy = False
+			return False
 		
 		for name in ["classes", "objects", "changed"]:
 			if name not in data:
+				self.is_busy = False
 				return False
 		
 		# fix for json encoding of integer dict keys
@@ -97,17 +107,23 @@ class JSON(DataSource):
 		
 		self.store.set_datasource(self)
 		
+		self.is_busy = False
+		
 		self.store.events.resume_recording()
 		self.resume_broadcasts()
 		self.broadcast(Broadcasts.STORE_LOADED)
-
+		
 		return True
 
 	def save(self):
-
+		
 		if self.url is None:
 			self.broadcast(Broadcasts.STORE_SAVE_FAILED)
 			return False
+		
+		if not self.wait_if_busy():
+			return False
+		self.is_busy = True
 		
 		data = dict(
 			classes = self.store.classes.to_dict(), # {name: class data, ...}
@@ -146,6 +162,8 @@ class JSON(DataSource):
 		new_local_folder = os.path.split(path)[0]
 		if new_local_folder != self.store.local_folder:
 			self.store.set_local_folder(new_local_folder)
+		
+		self.is_busy = False
 		
 		self.broadcast(Broadcasts.STORE_SAVED)
 		return True

@@ -44,6 +44,6 @@ class OpenOrImport(Dialog):
 	
 	def on_import(self):
 		
-		self.model.add_objects(self.url, None)
+		self.model.add_objects(self.url, None, localise = True)
 		self.close()
 	

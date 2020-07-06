@@ -124,11 +124,13 @@ class Store(DModule):
 		self.local_folder = path
 		self.broadcast(Broadcasts.STORE_LOCAL_FOLDER_CHANGED)
 	
-	def localise_resources(self, force = False):
+	def localise_resources(self, force = False, ids = None):
 		
 		if self.local_folder is None:
 			return
-		for id in self.objects:
+		if ids is None:
+			ids = self.objects.keys()
+		for id in ids:
 			for descr in self.objects[id].descriptors:
 				descr = self.objects[id].descriptors[descr]
 				if descr.linked:
@@ -254,7 +256,7 @@ class Store(DModule):
 		if self.data_source is not None:
 			self.data_source.save()
 	
-	def add_objects(self, identifier, connstr, ids = None):
+	def add_objects(self, identifier, connstr, ids = None, localise = False):
 		# add objects from a different store, specified by identifier and connstr
 		# if ids == None: import all objects
 		
@@ -303,6 +305,9 @@ class Store(DModule):
 						label._path = None
 				descr = obj_new.descriptors.add(descr, label)
 				descr.geotag = obj_orig.descriptors[descr].geotag
+		if localise:
+			ids = [id_lookup[id_orig] for id_orig in id_lookup]
+			self.localise_resources(True, ids)
 		self.resume_broadcasts()
 		self.populate_descriptor_names()
 		self.populate_relation_names()

@@ -89,6 +89,9 @@ class DBRel(DB):
 	
 	def is_valid(self):
 		
+		if not self.wait_if_busy():
+			return False
+		
 		cursor, tables = self.connect()
 		if cursor is None:
 			return False
@@ -102,6 +105,9 @@ class DBRel(DB):
 		return True
 	
 	def get_identifier(self):
+		
+		if not self.wait_if_busy():
+			return False
 		
 		cursor, tables = self.connect()
 		if cursor is None:
@@ -118,6 +124,9 @@ class DBRel(DB):
 		return identifier
 	
 	def get_local_folder(self):
+		
+		if not self.wait_if_busy():
+			return ""
 		
 		cursor, tables = self.connect()
 		if cursor is None:
@@ -144,6 +153,10 @@ class DBRel(DB):
 		if cursor is None:
 			self.broadcast(Broadcasts.STORE_SAVE_FAILED)
 			return False
+		
+		if not self.wait_if_busy():
+			return False
+		self.is_busy = True
 		
 		for name in tables:
 			cursor.execute("DROP TABLE \"%s\";" % (name))
@@ -323,17 +336,25 @@ class DBRel(DB):
 		cursor.connection.commit()
 		cursor.connection.close()
 		
+		self.is_busy = False
+		
 		self.broadcast(Broadcasts.STORE_SAVED)
 		return True
 	
 	def load(self):
 		
+		if not self.wait_if_busy():
+			return False
+		self.is_busy = True
+		
 		cursor, tables = self.connect()
 		if cursor is None:
+			self.is_busy = False
 			return False
 		
 		for name in RESERVED_TABLES:
 			if not name in tables:
+				self.is_busy = False
 				return False
 		
 		self.stop_broadcasts()
@@ -462,7 +483,9 @@ class DBRel(DB):
 		self.store.images.load_thumbnails()
 		
 		self.store.set_datasource(self)
-
+		
+		self.is_busy = False
+		
 		self.resume_broadcasts()
 		self.broadcast(Broadcasts.STORE_LOADED)
 		

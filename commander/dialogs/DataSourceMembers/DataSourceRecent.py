@@ -61,8 +61,10 @@ class DataSourceRecent(DModule, QtWidgets.QFrame):
 		row = item.data(QtCore.Qt.UserRole)
 		if len(row) == 1:
 			url = row[0]
-			self.view.registry.set("recent_dir", os.path.split(as_path(url))[0])
-			self.parent.on_connect(url, None)
+			path = as_path(url)
+			if path is not None:
+				self.view.registry.set("recent_dir", os.path.split(path)[0])
+				self.parent.on_connect(url, None)
 			
 		elif len(row) == 2:
 			identifier, connstr = row

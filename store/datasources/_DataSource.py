@@ -1,5 +1,6 @@
 from deposit import Broadcasts
 from deposit.DModule import (DModule)
+import time
 
 class DataSource(DModule):
 	
@@ -9,6 +10,7 @@ class DataSource(DModule):
 		self.identifier = None
 		self.url = None
 		self.connstr = None
+		self.is_busy = False
 		
 		DModule.__init__(self)
 	
@@ -22,6 +24,16 @@ class DataSource(DModule):
 		self.identifier = identifier
 		if self.store.data_source == self:
 			self.broadcast(Broadcasts.STORE_DATA_SOURCE_CHANGED)
+	
+	def wait_if_busy(self, timeout = 5):
+		
+		t0 = time.time()
+		while self.is_busy:
+			time.sleep(0.1)
+			if time.time() - t0 > timeout:
+				self.is_busy = False
+				return False
+		return True
 	
 	def set_url(self, url):
 		# re-implement

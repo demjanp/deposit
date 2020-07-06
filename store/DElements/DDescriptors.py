@@ -39,6 +39,9 @@ class DDescriptor(DElement):
 	
 	def to_dict(self):
 		
+		if self.label is None:
+			self.label = DNone()
+		
 		return dict(
 			target = self.target.id,
 			dclass = self.dclass.name,

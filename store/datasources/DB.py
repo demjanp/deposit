@@ -90,7 +90,7 @@ class DB(DataSource):
 		return ret
 	
 	def connect(self):
-
+		
 		try:
 			conn = psycopg2.connect(self.connstr)
 		except:
@@ -161,6 +161,10 @@ class DB(DataSource):
 		if cursor is None:
 			self.broadcast(Broadcasts.STORE_SAVE_FAILED)
 			return False
+		
+		if not self.wait_if_busy():
+			return False
+		self.is_busy = True
 		
 		data_class = self.store.classes.to_dict() # {name: class data, ...}
 		data_object = self.store.objects.to_dict() # {id: object data, ...}
@@ -251,6 +255,7 @@ class DB(DataSource):
 		cursor.connection.commit()
 		cursor.connection.close()
 		
+		self.is_busy = False
 		self.broadcast(Broadcasts.STORE_SAVED)
 		return True
 	
@@ -259,11 +264,17 @@ class DB(DataSource):
 		if self.identifier is None:
 			return False
 		
+		if not self.wait_if_busy():
+			return False
+		self.is_busy = True
+		
 		cursor, tables = self.connect()
 		if cursor is None:
+			self.is_busy = False
 			return False
 		
 		if not self.identifier in self.get_identifiers():
+			self.is_busy = False
 			return False
 		
 		self.stop_broadcasts()
@@ -349,6 +360,8 @@ class DB(DataSource):
 		
 		self.store.set_datasource(self)
 		
+		self.is_busy = False
+		
 		self.store.events.resume_recording()
 		self.resume_broadcasts()
 		self.broadcast(Broadcasts.STORE_LOADED)
@@ -368,6 +381,10 @@ class DB(DataSource):
 		
 		if not self.identifier in self.get_identifiers():
 			return False
+		
+		if not self.wait_if_busy():
+			return False
+		self.is_busy = True
 		
 		self.stop_broadcasts()
 		self.store.events.stop_recording()
@@ -423,6 +440,8 @@ class DB(DataSource):
 			break
 		
 		self.store.images.load_thumbnails(root_folder = self.store.linked[self.identifier].local_folder)
+		
+		self.is_busy = False
 		
 		self.store.events.resume_recording()
 		self.resume_broadcasts()

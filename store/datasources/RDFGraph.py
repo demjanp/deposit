@@ -67,6 +67,10 @@ class RDFGraph(DataSource):
 		if self.url is None:
 			return False
 
+		if not self.wait_if_busy():
+			return False
+		self.is_busy = True
+		
 		server_url = os.path.split(self.url)[0]
 		parsed = urlparse(self.url)
 		path = os.path.normpath(os.path.abspath(parsed.path.strip("//")))
@@ -200,6 +204,8 @@ class RDFGraph(DataSource):
 		
 		self.store.set_datasource(self)
 		
+		self.is_busy = False
+		
 		self.store.events.resume_recording()
 		self.resume_broadcasts()
 		self.broadcast(Broadcasts.STORE_LOADED)
@@ -221,6 +227,10 @@ class RDFGraph(DataSource):
 		if self.url is None:
 			self.broadcast(Broadcasts.STORE_SAVE_FAILED)
 			return False
+		
+		if not self.wait_if_busy():
+			return False
+		self.is_busy = True
 		
 		parsed = urlparse(self.url)
 		path = os.path.normpath(os.path.abspath(parsed.path.strip("//")))
@@ -378,6 +388,8 @@ class RDFGraph(DataSource):
 		if not os.path.isdir(tgt_dir):
 			os.mkdir(tgt_dir)
 		os.rename(saved_path, path)
+		
+		self.is_busy = False
 		
 		self.broadcast(Broadcasts.STORE_SAVED)
 		return True
