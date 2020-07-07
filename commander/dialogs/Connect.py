@@ -4,6 +4,7 @@ from deposit import (__version__, __date__)
 from deposit.commander.dialogs.DataSource import (DataSource)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
+import webbrowser
 import os
 
 class Connect(DataSource):
@@ -21,12 +22,8 @@ class Connect(DataSource):
 		logo_frame = QtWidgets.QFrame()
 		logo_frame.setLayout(QtWidgets.QVBoxLayout())
 		logo_frame.layout().setContentsMargins(0, 0, 0, 0)
-		
-		logo = QtWidgets.QLabel()
-		logo.setPixmap(QtGui.QPixmap("deposit/res/dep_installer.svg"))
-		
 		logo_frame.layout().addStretch()
-		logo_frame.layout().addWidget(logo)
+		logo_frame.layout().addWidget(ClickableLogo("deposit/res/dep_installer.svg", "https://github.com/demjanp/deposit", alignment = QtCore.Qt.AlignCenter))
 		logo_frame.layout().addStretch()
 		
 		return logo_frame
@@ -46,4 +43,21 @@ class Connect(DataSource):
 					if reply == QtWidgets.QMessageBox.Yes:
 						self.model.set_local_folder(local_folder)
 		self.close()
+
+class ClickableLogo(QtWidgets.QLabel):
+	
+	def __init__(self, image_path, link, *args, **kwargs):
+		
+		self.link = link
+		
+		QtWidgets.QLabel.__init__(self, *args, **kwargs)
+		
+		self.setPixmap(QtGui.QPixmap(image_path))
+		self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+	
+	def mousePressEvent(self, event):
+		
+		webbrowser.open(self.link)
+		QtWidgets.QLabel.mousePressEvent(self, event)
+	
 

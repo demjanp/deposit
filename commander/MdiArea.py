@@ -136,11 +136,13 @@ class MdiArea(ViewChild, QtWidgets.QMdiArea):
 						id, identifier, connstr = int(row["id"]), row["identifier"], row["connstr"]
 					elif row["delement"] == "DDescriptor":
 						id, identifier, connstr = int(row["target"]), row["identifier"], row["connstr"]
-					if id is not None:
+					if (id is not None):
 						if (identifier != self.model.identifier) or (connstr != self.model.connstr):
 							objects.append([id, identifier, connstr])					
 				if objects:
 					return "objects", objects
+				elif len(rows):
+					return "objects", None
 		if mimedata.hasUrls():
 			for url in mimedata.urls():
 				url = str(url.toString())
@@ -150,18 +152,18 @@ class MdiArea(ViewChild, QtWidgets.QMdiArea):
 	
 	def dragEnterEvent(self, event):
 		
-#		typ, data = self.get_drag_data(event)
-#		if typ is None:
-#			event.ignore()
-#			return
+		typ, data = self.get_drag_data(event)
+		if typ is None:
+			event.ignore()
+			return
 		event.accept()
 	
 	def dragMoveEvent(self, event):
 		
-#		typ, data = self.get_drag_data(event)
-#		if typ is None:
-#			event.ignore()
-#			return
+		typ, data = self.get_drag_data(event)
+		if typ is None:
+			event.ignore()
+			return
 		event.accept()
 	
 	def dropEvent(self, event):
@@ -185,12 +187,15 @@ class MdiArea(ViewChild, QtWidgets.QMdiArea):
 			return
 		
 		if typ == "objects":
-			groups = defaultdict(lambda: defaultdict(list)) # {identifier: {connstr: [id, ...], ...}, ...}
-			for id, identifier, connstr in data:
-				groups[identifier][connstr].append(id)
-			for identifier in groups:
-				for connstr in groups[identifier]:
-					self.model.add_objects(identifier, connstr, groups[identifier][connstr], localise = True)
+			if data is None:
+				QtWidgets.QMessageBox.warning(self, "Import Error", "Cannot import from an unsaved database.")
+			else:
+				groups = defaultdict(lambda: defaultdict(list)) # {identifier: {connstr: [id, ...], ...}, ...}
+				for id, identifier, connstr in data:
+					groups[identifier][connstr].append(id)
+				for identifier in groups:
+					for connstr in groups[identifier]:
+						self.model.add_objects(identifier, connstr, groups[identifier][connstr], localise = True)
 	
 	def on_activated(self):
 
