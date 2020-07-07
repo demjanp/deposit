@@ -53,6 +53,21 @@ class DataSource(Dialog):
 		
 		return "Connect"
 	
+	def logo(self):
+		
+		logo_frame = QtWidgets.QFrame()
+		logo_frame.setLayout(QtWidgets.QVBoxLayout())
+		logo_frame.layout().setContentsMargins(0, 0, 0, 0)
+		
+		logo = QtWidgets.QLabel()
+		logo.setPixmap(QtGui.QPixmap("deposit/res/dep_installer.svg"))
+		
+		logo_frame.layout().addStretch()
+		logo_frame.layout().addWidget(logo)
+		logo_frame.layout().addStretch()
+		
+		return logo_frame
+	
 	def on_connect(self, datasource, local_folder = None, created = False):
 		
 		self.close()

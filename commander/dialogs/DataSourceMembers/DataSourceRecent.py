@@ -16,8 +16,15 @@ class DataSourceRecent(DModule, QtWidgets.QFrame):
 		DModule.__init__(self)
 		QtWidgets.QFrame.__init__(self, parent)
 		
-		self.setLayout(QtWidgets.QVBoxLayout())
+		self.setLayout(QtWidgets.QHBoxLayout())
 		self.layout().setContentsMargins(0, 0, 0, 0)
+		
+		self.left = QtWidgets.QFrame()
+		self.left.setLayout(QtWidgets.QVBoxLayout())
+		self.left.layout().setContentsMargins(0, 0, 0, 0)
+		self.right = QtWidgets.QFrame()
+		self.right.setLayout(QtWidgets.QVBoxLayout())
+		self.right.layout().setContentsMargins(0, 0, 0, 0)
 		
 		self.recent_list = QtWidgets.QListWidget()
 		for row in self.view.menu.get_recent(): # [[url], [identifier, connstr], ...]
@@ -40,8 +47,11 @@ class DataSourceRecent(DModule, QtWidgets.QFrame):
 		self.connect_button = QtWidgets.QPushButton(self.parent.connect_caption())
 		self.connect_button.clicked.connect(self.on_connect)
 		
-		self.layout().addWidget(self.recent_list)
-		self.layout().addWidget(self.connect_button)
+		self.left.layout().addWidget(self.recent_list)
+		self.left.layout().addWidget(self.connect_button)
+		self.right.layout().addWidget(self.parent.logo())
+		self.layout().addWidget(self.left)
+		self.layout().addWidget(self.right)
 		
 		self.update()
 	

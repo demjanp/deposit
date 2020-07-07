@@ -4,7 +4,7 @@ class Connect(Tool):
 	
 	def name(self):
 		
-		return self.__class__.__name__
+		return "Connect Data Source"
 	
 	def icon(self):
 		
