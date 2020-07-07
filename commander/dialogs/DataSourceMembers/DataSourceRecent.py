@@ -49,9 +49,12 @@ class DataSourceRecent(DModule, QtWidgets.QFrame):
 		
 		self.left.layout().addWidget(self.recent_list)
 		self.left.layout().addWidget(self.connect_button)
-		self.right.layout().addWidget(self.parent.logo())
 		self.layout().addWidget(self.left)
-		self.layout().addWidget(self.right)
+		
+		logo = self.parent.logo()
+		if logo:
+			self.right.layout().addWidget(logo)
+			self.layout().addWidget(self.right)
 		
 		self.update()
 	
