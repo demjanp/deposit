@@ -244,7 +244,7 @@ class Query(Frame, QtWidgets.QWidget):
 		
 		self.update()
 	
-	def on_object_activated(self):
+	def on_object_activated(self, element):
 		
 		self.tabs.setCurrentIndex(3)
 	

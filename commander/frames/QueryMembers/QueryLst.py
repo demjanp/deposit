@@ -318,7 +318,7 @@ class QueryLst(Frame, PrototypeDragView, QtWidgets.QTableView):
 				cls = item.element.first_class()
 				self.parent.on_query_activated("SELECT %s.* WHERE id(%s) == %d" % (cls, cls, item.element.id))
 				return
-			self.parent.on_object_activated()
+			self.parent.on_object_activated(item.element)
 			return
 		if item.element.__class__.__name__ == "DDescriptor":
 			self.parent.on_descriptor_activated(item.element)
