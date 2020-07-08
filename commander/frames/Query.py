@@ -54,8 +54,6 @@ class Query(Frame, QtWidgets.QWidget):
 		self.tabs.addTab(self.tab_obj, "OBJ")
 		
 		self.connect_broadcast(Broadcasts.VIEW_SELECTED, self.on_query_selected)
-		self.connect_broadcast(Broadcasts.VIEW_OBJECT_ACTIVATED, self.on_object_activated)
-		self.connect_broadcast(Broadcasts.VIEW_DESCRIPTOR_ACTIVATED, self.on_descriptor_activated)
 		self.connect_broadcast(Broadcasts.VIEW_BROWSE_PREVIOUS, self.on_previous)
 		self.connect_broadcast(Broadcasts.VIEW_BROWSE_NEXT, self.on_next)
 
@@ -97,7 +95,6 @@ class Query(Frame, QtWidgets.QWidget):
 		
 		self.tab_img = QueryImg(self.model, self.view, self, self.query)
 		self.connect_broadcast(Broadcasts.VIEW_SELECTED, self.on_query_selected)
-		self.connect_broadcast(Broadcasts.VIEW_DESCRIPTOR_ACTIVATED, self.on_descriptor_activated)
 		self.tab_img.set_thumbnail_size(128)
 		
 		self.tabs.insertTab(1, self.tab_img, "IMG")
@@ -110,14 +107,13 @@ class Query(Frame, QtWidgets.QWidget):
 		
 		self.tab_geo = QueryGeo(self.model, self.view, self, self.query)
 		self.connect_broadcast(Broadcasts.VIEW_SELECTED, self.on_query_selected)
-		self.connect_broadcast(Broadcasts.VIEW_DESCRIPTOR_ACTIVATED, self.on_descriptor_activated)
 		
 		self.tabs.insertTab(2, self.tab_geo, "GEO")
 		self.tabs.removeTab(3)
 		self.tabs.setCurrentIndex(2)
 	
 	def update(self):
-
+		
 		query = self.model.query(self.querystr)
 
 		if not((len(self.query.hash) == len(query.hash)) and (self.query.hash == query.hash)):
@@ -241,28 +237,28 @@ class Query(Frame, QtWidgets.QWidget):
 			self.tab_lst.select_last_row()
 
 	def on_store_changed(self, args):
-
+		
 		self._update_timer.start(100)
 	
 	def on_update_timer(self):
 		
 		self.update()
 	
-	def on_object_activated(self, args):
-
-		for broadcaster, in args:
-			if broadcaster == self.tab_lst:
-				self.tabs.setCurrentIndex(3)
+	def on_object_activated(self):
+		
+		self.tabs.setCurrentIndex(3)
 	
-	def on_descriptor_activated(self, args):
-
-		for broadcaster, element in args:
-			if broadcaster.query == self.query:
-				if element.label.__class__.__name__ == "DResource":
-					if element.label.is_image():
-						self.view.mdiarea.create_descriptor(element)
-						return
-					self.model.files.open(element.label)
+	def on_descriptor_activated(self, element):
+		
+		if element.label.__class__.__name__ == "DResource":
+			if element.label.is_image():
+				self.view.mdiarea.create_descriptor(element)
+				return
+			self.model.files.open(element.label)
+	
+	def on_query_activated(self, querystr):
+		
+		self.view.query(querystr)
 	
 class QueryFooter(DModule, QtWidgets.QFrame):
 

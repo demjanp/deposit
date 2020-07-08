@@ -316,12 +316,12 @@ class QueryLst(Frame, PrototypeDragView, QtWidgets.QTableView):
 		if item.element.__class__.__name__ == "DObject":
 			if self.relation:
 				cls = item.element.first_class()
-				self.view.query("SELECT %s.* WHERE id(%s) == %d" % (cls, cls, item.element.id))
+				self.parent.on_query_activated("SELECT %s.* WHERE id(%s) == %d" % (cls, cls, item.element.id))
 				return
-			self.broadcast(Broadcasts.VIEW_OBJECT_ACTIVATED)
+			self.parent.on_object_activated()
 			return
 		if item.element.__class__.__name__ == "DDescriptor":
-			self.broadcast(Broadcasts.VIEW_DESCRIPTOR_ACTIVATED, item.element)
+			self.parent.on_descriptor_activated(item.element)
 			return
 	
 	def on_sorted(self):

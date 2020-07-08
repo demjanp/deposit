@@ -145,7 +145,7 @@ class RelView(Frame, QtWidgets.QWidget):
 				query = self.model.query(querystr)
 				if len(query):
 					found = True
-					self.tables.append(QueryLst(self.model, self.view, table_widget, query, obj.relations[rel]))
+					self.tables.append(QueryLst(self.model, self.view, self.parent, query, obj.relations[rel]))
 					table_layout.addWidget(self.tables[-1])
 					table_widget.setVisible(visible)
 					header_widget.setEnabled(True)
@@ -176,5 +176,5 @@ class RelView(Frame, QtWidgets.QWidget):
 		
 		table_widget = self.layout.itemAt(idx * 2 + 1).widget()
 		if table_widget.layout().count():
-			self.view.query(table_widget.layout().itemAt(0).widget().query.querystr)
+			self.parent.on_query_activated(table_widget.layout().itemAt(0).widget().query.querystr)
 

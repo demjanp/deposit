@@ -5,8 +5,6 @@ VIEW_ACTION = 0
 VIEW_SELECTED = 1
 VIEW_BROWSE_PREVIOUS = 2
 VIEW_BROWSE_NEXT = 3
-VIEW_OBJECT_ACTIVATED = 4
-VIEW_DESCRIPTOR_ACTIVATED = 5
 
 STORE_SAVED = 100
 STORE_SAVE_FAILED = 101
@@ -70,7 +68,7 @@ class BroadcastHook(object):
 					del self._connected[signal][idx]
 
 	def broadcast(self):
-
+		
 		if self._stopped:
 			return
 		to_exec = []

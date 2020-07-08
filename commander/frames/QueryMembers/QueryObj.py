@@ -81,3 +81,12 @@ class QueryObj(Frame, QtWidgets.QWidget):
 			self.rel_view.populate_data(self.object)
 			self.browse_frame.populate_data(self.object)
 			self.resume_broadcasts()
+	
+	def on_descriptor_activated(self, element):
+		
+		self.parent.on_descriptor_activated(element)
+	
+	def on_query_activated(self, querystr):
+		
+		self.parent.on_query_activated(querystr)
+

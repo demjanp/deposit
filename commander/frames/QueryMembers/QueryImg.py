@@ -53,6 +53,10 @@ class QueryImgLazy(Frame, QtWidgets.QWidget):
 		Frame.__init__(self, model, view, parent)
 		QtWidgets.QWidget.__init__(self, parent)
 		
+		self.set_up()
+	
+	def set_up(self):
+		
 		def has_image():
 			
 			for row in self.query:
@@ -64,10 +68,6 @@ class QueryImgLazy(Frame, QtWidgets.QWidget):
 			return False
 
 		self.has_image = has_image()
-	
-	def set_up(self):
-		
-		pass
 	
 	def set_query(self, query):
 		
@@ -317,8 +317,8 @@ class QueryImg(Frame, PrototypeDragView, QtWidgets.QListView):
 	def on_activated(self, index):
 		
 		item = index.data(QtCore.Qt.UserRole)
-		self.broadcast(Broadcasts.VIEW_DESCRIPTOR_ACTIVATED, item.element)
-		
+		self.parent.on_descriptor_activated(item.element)
+	
 	def selectionChanged(self, selected, deselected):
 		
 		super(QueryImg, self).selectionChanged(selected, deselected)

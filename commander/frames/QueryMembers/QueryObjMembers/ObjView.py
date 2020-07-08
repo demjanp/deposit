@@ -77,7 +77,7 @@ class ObjView(Frame, PrototypeDragWidget, QtWidgets.QTableWidget):
 		
 		element = item.data(QtCore.Qt.UserRole).element
 		if element.__class__.__name__ == "DDescriptor":
-			self.broadcast(Broadcasts.VIEW_DESCRIPTOR_ACTIVATED, element)
+			self.parent.on_descriptor_activated(element)
 	
 	def closeEditor(self, editor, hint):
 		

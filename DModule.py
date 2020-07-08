@@ -7,7 +7,7 @@ class DModule(object):
 		pass
 
 	def broadcast(self, signal, *args):
-
+		
 		Broadcasts._BROADCAST_HOOK.add(self, signal, list(args))
 
 	def connect_broadcast(self, signal, func, *args):
