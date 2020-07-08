@@ -20,7 +20,7 @@ from PySide2 import (QtWidgets, QtCore, QtGui)
 import os
 
 class View(DModule, QtWidgets.QMainWindow):
-
+	
 	def __init__(self, model, *args):
 
 		self.model = model
@@ -45,7 +45,7 @@ class View(DModule, QtWidgets.QMainWindow):
 		QtWidgets.QMainWindow.__init__(self)
 
 		self.set_up()
-
+	
 	def set_up(self):
 		
 		update_info = True
@@ -55,10 +55,7 @@ class View(DModule, QtWidgets.QMainWindow):
 		
 		self.registry = Registry("Deposit")
 		
-		geometry = self.registry.get("window_geometry")
-		if geometry:
-			geometry = geometry[1:].strip("'")
-			self.restoreGeometry(QtCore.QByteArray().fromPercentEncoding(bytearray(geometry, "utf-8")))
+		self.load_geometry()
 		
 		self.stop_broadcasts()
 		
@@ -107,13 +104,25 @@ class View(DModule, QtWidgets.QMainWindow):
 		if not update_info:
 			self.dialogs.open("Connect")
 	
+	def load_geometry(self):
+		
+		geometry = self.registry.get("window_geometry")
+		if geometry:
+			geometry = geometry[1:].strip("'")
+			self.restoreGeometry(QtCore.QByteArray().fromPercentEncoding(bytearray(geometry, "utf-8")))
+	
+	def save_geometry(self):
+		
+		if self.isVisible():
+			self.registry.set("window_geometry", str(self.saveGeometry().toPercentEncoding()))
+	
 	def get_icon(self, name):
 
 		path = os.path.join(os.path.dirname(res.__file__), name)
 		if os.path.isfile(path):
 			return QtGui.QIcon(path)
 		raise Exception("Could not load icon", name)
-
+	
 	def set_title(self, name = None):
 
 		title = "Deposit"
@@ -121,7 +130,7 @@ class View(DModule, QtWidgets.QMainWindow):
 			self.setWindowTitle(title)
 		else:
 			self.setWindowTitle("%s - %s" % (name, title))
-
+	
 	def update_model_info(self):
 
 		texts = []
@@ -136,7 +145,7 @@ class View(DModule, QtWidgets.QMainWindow):
 			self.mdiarea.set_background_text("".join([("<p>%s</p>" % text) for text in texts]))
 		else:
 			self.mdiarea.set_background_text("")
-
+	
 	def save(self):
 
 		if self.model.data_source is None:
@@ -195,21 +204,29 @@ class View(DModule, QtWidgets.QMainWindow):
 		
 		print("Saving failed!")
 		self.statusbar.message("Saving failed!")
-
+	
 	def on_broadcast(self, signals):
 
 		if (Broadcasts.STORE_SAVED in signals) or (Broadcasts.STORE_SAVE_FAILED in signals):
 			self.process_broadcasts()
 		else:
 			self._broadcast_timer.start(100)
-
+	
 	def on_broadcast_timer(self):
 
 		self.process_broadcasts()
-
-	def closeEvent(self, event):
+	
+	def resizeEvent(self, event):
 		
-		self.registry.set("window_geometry", str(self.saveGeometry().toPercentEncoding()))
+		self.save_geometry()
+		QtWidgets.QMainWindow.resizeEvent(self, event)
+	
+	def moveEvent(self, event):
+		
+		self.save_geometry()
+		QtWidgets.QMainWindow.moveEvent(self, event)
+	
+	def closeEvent(self, event):
 		
 		if isinstance(self.model, Model):
 			if not self.model.is_saved():
@@ -229,11 +246,13 @@ class View(DModule, QtWidgets.QMainWindow):
 			self.mdiarea.close_all()
 			self.usertools.on_close()
 			self.model.on_close()
-
+		
 		else:  # Commander started with an external Model
 			if not self.populate_thread is None:
 				self.populate_thread.terminate()
 				self.populate_thread.wait()
 			self.mdiarea.close_all()
 			self.usertools.on_close()
+
+
 
