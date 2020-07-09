@@ -55,7 +55,13 @@ class QueryObj(Frame, QtWidgets.QWidget):
 	
 	def get_selected(self):
 		
-		return self.obj_view.get_selected() + self.rel_view.get_selected()
+		selected = self.obj_view.get_selected()
+		selected.update(self.rel_view.get_selected().indexes)
+		return selected
+	
+	def get_objects(self):
+		
+		return [self.object]
 	
 	def get_row_count(self):
 		

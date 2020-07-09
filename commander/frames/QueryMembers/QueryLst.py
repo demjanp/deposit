@@ -280,7 +280,11 @@ class QueryLst(Frame, PrototypeDragView, QtWidgets.QTableView):
 		# return QuerySelection instance
 
 		return self._selection
-
+	
+	def get_objects(self):
+		
+		return [self.get_row_object(row) for row in range(self.get_row_count())]
+	
 	def get_first_selected(self):
 		# return [DObject, row number]
 

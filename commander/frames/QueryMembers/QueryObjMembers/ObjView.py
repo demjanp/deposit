@@ -1,6 +1,8 @@
 from deposit import Broadcasts
 from deposit.commander.frames._Frame import (Frame)
+from deposit.commander.frames.QueryMembers.QuerySelection import (QuerySelection)
 from deposit.commander.frames.QueryMembers.PrototypeDrag import (PrototypeDragWidget)
+
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
@@ -62,7 +64,11 @@ class ObjView(Frame, PrototypeDragWidget, QtWidgets.QTableWidget):
 	
 	def get_selected(self):
 		
-		return [[item.data(QtCore.Qt.UserRole) for item in self.selectedItems()]]
+		return QuerySelection(self.model, self.view, self.selectedItems())
+	
+	def get_objects(self):
+		
+		return [self.parent.object]
 	
 	def on_query_selected(self):
 		
@@ -92,7 +98,7 @@ class ObjView(Frame, PrototypeDragWidget, QtWidgets.QTableWidget):
 		
 	def drag_supported(self, item):
 		
-		return False # DEBUG
+		return True
 		
 	def drop_supported(self, item):
 		

@@ -306,6 +306,10 @@ class QueryImg(Frame, PrototypeDragView, QtWidgets.QListView):
 		
 		return dict([(row, self.get_row_object(row)) for row in self.get_selected().rows()])
 	
+	def get_objects(self):
+		
+		return [self.get_row_object(row) for row in range(self.get_row_count())]
+	
 	def get_row_count(self):
 		
 		return self.list_model.proxy_model.rowCount()

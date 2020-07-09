@@ -130,6 +130,10 @@ class QueryGeo(Frame, QtWidgets.QWidget):
 		
 		return []
 	
+	def get_objects(self):
+		
+		return []  # TODO
+	
 	def get_row_count(self):
 		
 		return self.geo_model.row_count()

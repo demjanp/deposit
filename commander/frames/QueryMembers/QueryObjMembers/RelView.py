@@ -1,5 +1,6 @@
 from deposit.commander.frames._Frame import (Frame)
 from deposit.commander.frames.QueryMembers.QueryLst import (QueryLst)
+from deposit.commander.frames.QueryMembers.QuerySelection import (QuerySelection)
 from natsort import (natsorted)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
@@ -154,10 +155,20 @@ class RelView(Frame, QtWidgets.QWidget):
 	
 	def get_selected(self):
 		
-		selected = []
+		selected = None
 		for table in self.tables:
-			selected += table.get_selected()
+			if selected is None:
+				selected = table.get_selected()
+			else:
+				selected.update(table.get_selected().indexes)
 		return selected
+	
+	def get_objects(self):
+		
+		objects = []
+		for table in self.tables:
+			objects += table.get_objects()
+		return objects
 	
 	def on_header_clicked(self, header):
 		

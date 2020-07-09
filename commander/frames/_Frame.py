@@ -44,3 +44,12 @@ class Frame(ViewChild):
 		
 		return []
 	
+	def get_objects(self):
+		# re-implement to return a list of objects in order of rows
+		
+		return []
+	
+	def on_sorted(self):
+		
+		pass
+

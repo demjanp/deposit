@@ -48,7 +48,7 @@ class QuerySelection(object):
 
 	def __init__(self, model, view, indexes):
 		# indexes = QModelIndexList
-
+		
 		self.model = model
 		self.view = view
 		self._indexes = indexes # {row: {column: QModelIndex, ...}, ...}
@@ -71,7 +71,7 @@ class QuerySelection(object):
 			collect[row][column] = index
 		self._indexes = collect
 		return self._indexes
-
+	
 	def rows(self):
 		# return [row, ...]; row = row number in table (not selection)
 
@@ -84,7 +84,21 @@ class QuerySelection(object):
 	def column_count(self):
 
 		return self._col_max - self._col_min + 1
-
+	
+	def update(self, indexes):
+		
+		self.indexes
+		row0 = 0 if self._row_min is None else self._row_min
+		for row in indexes:
+			for column in indexes[row]:
+				index = indexes[row][column]
+				row += row0
+				self._row_min = row if (self._row_min is None) else min(self._row_min, row)
+				self._row_max = max(self._row_max, row)
+				self._col_min = column if (self._col_min is None) else min(self._col_min, column)
+				self._col_max = max(self._col_max, column)
+				self._indexes[row][column] = index
+	
 	def __len__(self):
 
 		return len(self.indexes)
