@@ -91,19 +91,22 @@ def coords_to_wkt(coords):
 			typ = "POLYGONZ"
 		return "%s((%s))" % (typ, ", ".join([" ".join([str(c) for c in coord]) for coord in coords]))
 
-def as_url(value):
+def as_url(value, default_base = None):
 	# convert value to url
 	
 	if value is None:
 		return value
 	scheme = urlparse(value).scheme
 	if (not scheme) or ((len(scheme) == 1) and scheme.isalpha()):
-		return pathlib.Path(os.path.normpath(os.path.abspath(value))).as_uri()
+		if default_base is None:
+			return pathlib.Path(os.path.normpath(os.path.abspath(value))).as_uri()
+		else:
+			return os.path.join(default_base, value).replace("\\","/")
 	return value
 
-def as_identifier(value):
+def as_identifier(value, default_base = None):
 	
-	value = as_url(value)
+	value = as_url(value, default_base)
 	if value[-1] != "#":
 		value = value + "#"
 	return value

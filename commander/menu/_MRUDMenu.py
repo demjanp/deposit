@@ -14,7 +14,7 @@ class MRUDMenu(ViewChild):
 		
 		self.set_up()
 		self.load_recent()
-		
+	
 	def set_up(self):
 		
 		# define self.recent_menu here

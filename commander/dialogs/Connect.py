@@ -42,6 +42,7 @@ class Connect(DataSource):
 					reply = QtWidgets.QMessageBox.question(self, "Change Local Folder?", "Change Local Folder from %s to %s?" % (self.model.local_folder, local_folder), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 					if reply == QtWidgets.QMessageBox.Yes:
 						self.model.set_local_folder(local_folder)
+						self.model.save()
 		self.close()
 
 class ClickableLogo(QtWidgets.QLabel):

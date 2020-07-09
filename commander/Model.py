@@ -23,7 +23,7 @@ class Model(Store):
 		Store.save(self)
 	
 	def save(self):
-
+		
 		self.save_thread.wait()
 		self.save_thread.start()
 

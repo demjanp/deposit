@@ -38,6 +38,8 @@ class DataSourceDB(DModule, QtWidgets.QFrame):
 		self.identifier_combo = QtWidgets.QComboBox()
 		self.identifier_combo.setEditable(True)
 		self.local_folder_edit = QtWidgets.QLineEdit("")
+		self.local_folder_edit.textChanged.connect(self.on_local_folder_edit)
+		self.local_folder_edit._edited = False
 		self.lf_browse_button = QtWidgets.QPushButton("Browse...")
 		self.lf_browse_button.clicked.connect(self.on_lf_browse)
 		
@@ -70,7 +72,7 @@ class DataSourceDB(DModule, QtWidgets.QFrame):
 		
 		self.server_combo.editTextChanged.connect(self.on_server_changed)
 		self.name_combo.editTextChanged.connect(self.update)
-		self.identifier_combo.editTextChanged.connect(self.update)
+		self.identifier_combo.editTextChanged.connect(self.on_identifier_changed)
 		
 		self.connect_button = QtWidgets.QPushButton(self.parent.connect_caption())
 		self.connect_button.clicked.connect(self.on_connect)
@@ -114,28 +116,31 @@ class DataSourceDB(DModule, QtWidgets.QFrame):
 					self._identifiers = self.db.get_identifiers()
 					if self._identifiers:
 						self.identifier_combo.addItems(self._identifiers)
+						self.local_folder_edit._edited = False
 		if identifier:
 			self.identifier_combo.setCurrentText(identifier)
 		if (not identifier) and self._identifiers:
 			identifier = self._identifiers[0]
-		if identifier in self._identifiers:
+		if (not self.local_folder_edit._edited) and (identifier in self._identifiers):
 			local_folder = self.db.get_local_folder(identifier)
+			self.local_folder_edit.blockSignals(True)
 			self.local_folder_edit.setText(local_folder)
+			self.local_folder_edit.blockSignals(False)
 		self._connstr_prev = connstr
 		self.identifier_combo.blockSignals(False)
 	
 	def update(self, *args):
 		
 		self.load_identifiers()
-		server, name, user, password, identifier, _ = self.get_values()
+		server, name, user, password, identifier, local_folder = self.get_values()
 		is_valid = False
-		if as_identifier(identifier) in self._identifiers:
+		if as_identifier(identifier, default_base = "http://localhost/deposit") in self._identifiers:
 			self.connect_button.setText(self.parent.connect_caption())
 			is_valid = True
 		elif self.parent.creating_enabled():
 			self.connect_button.setText("Create")
 			is_valid = True
-		self.connect_button.setEnabled(is_valid and self._valid_db and ("" not in [server, name, user, password, identifier]))
+		self.connect_button.setEnabled(is_valid and self._valid_db and ("" not in [server, name, user, password, identifier, local_folder]))
 	
 	def create_db(self, connstr, identifier):
 		
@@ -146,6 +151,11 @@ class DataSourceDB(DModule, QtWidgets.QFrame):
 		if cursor:
 			return ds.save()
 		return False
+	
+	def on_local_folder_edit(self):
+		
+		self.local_folder_edit._edited = True
+		self.update()
 	
 	def on_server_changed(self):
 		
@@ -171,11 +181,18 @@ class DataSourceDB(DModule, QtWidgets.QFrame):
 				self.name_combo.blockSignals(False)
 		self.update()
 	
+	def on_identifier_changed(self):
+		
+		self.local_folder_edit._edited = False
+		self.update()
+	
 	def on_lf_browse(self):
 		
 		path = QtWidgets.QFileDialog.getExistingDirectory(self, caption = "Select Local Folder")
 		if path:
+			self.local_folder_edit.blockSignals(True)
 			self.local_folder_edit.setText(os.path.normpath(os.path.abspath(path)))
+			self.local_folder_edit.blockSignals(False)
 	
 	def on_connect(self):
 		
@@ -183,7 +200,9 @@ class DataSourceDB(DModule, QtWidgets.QFrame):
 		if "" in [server, name, user, password, identifier]:
 			return
 		connstr = "postgres://%s:%s@%s/%s" % (user, password, server, name)
-		identifier = as_identifier(identifier)
+		identifier = as_identifier(identifier, default_base = "http://localhost/deposit")
+		if not os.path.isdir(local_folder):
+			os.mkdir(local_folder)
 		if identifier in self._identifiers:
 			if self.temp_store.get_datasource(identifier, connstr):
 				self.parent.on_connect(identifier, connstr, local_folder, created = False)

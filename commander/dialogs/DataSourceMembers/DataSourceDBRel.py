@@ -38,6 +38,8 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 		self.identifier_edit = QtWidgets.QLineEdit("")
 		self.identifier_edit.textChanged.connect(self.update)
 		self.local_folder_edit = QtWidgets.QLineEdit("")
+		self.local_folder_edit.textChanged.connect(self.on_local_folder_edit)
+		self.local_folder_edit._edited = False
 		self.lf_browse_button = QtWidgets.QPushButton("Browse...")
 		self.lf_browse_button.clicked.connect(self.on_lf_browse)
 		
@@ -114,8 +116,12 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 					if self.dbrel.is_valid():
 						self._identifier = self.dbrel.get_identifier()
 						self.identifier_edit.setText(self._identifier)
-		local_folder = self.dbrel.get_local_folder()
-		self.local_folder_edit.setText(local_folder)
+						self.local_folder_edit._edited = False
+		if not self.local_folder_edit._edited:
+			local_folder = self.dbrel.get_local_folder()
+			self.local_folder_edit.blockSignals(True)
+			self.local_folder_edit.setText(local_folder)
+			self.local_folder_edit.blockSignals(False)
 		self._connstr_prev = connstr
 		self.identifier_edit.blockSignals(False)
 	
@@ -124,7 +130,7 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 		self.check_db()
 		server, name, user, password, identifier, _ = self.get_values()
 		is_valid = False
-		if as_identifier(identifier) == self._identifier:
+		if as_identifier(identifier, default_base = "http://localhost/deposit") == self._identifier:
 			self.connect_button.setText(self.parent.connect_caption())
 			is_valid = True
 		elif self.parent.creating_enabled() and self._identifier: 
@@ -145,6 +151,11 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 		if cursor:
 			return ds.save()
 		return False
+	
+	def on_local_folder_edit(self):
+		
+		self.local_folder_edit._edited = True
+		self.update()
 	
 	def on_server_changed(self):
 		
@@ -175,6 +186,9 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 		path = QtWidgets.QFileDialog.getExistingDirectory(self, caption = "Select Local Folder")
 		if path:
 			self.local_folder_edit.setText(os.path.normpath(os.path.abspath(path)))
+			self.local_folder_edit.blockSignals(True)
+			self.local_folder_edit.setText(os.path.normpath(os.path.abspath(path)))
+			self.local_folder_edit.blockSignals(False)
 	
 	def on_connect(self):
 		
@@ -182,14 +196,16 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 		if "" in [server, name, user, password, identifier]:
 			return
 		connstr = "postgres://%s:%s@%s/%s" % (user, password, server, name)
-		identifier = as_identifier(identifier)
+		identifier = as_identifier(identifier, default_base = "http://localhost/deposit")
+		if not os.path.isdir(local_folder):
+			os.mkdir(local_folder)
 		if identifier == self._identifier:
 			if self.temp_store.get_datasource(identifier, connstr):
 				self.parent.on_connect(identifier, connstr, local_folder, created = False)
 			else:
 				QtWidgets.QMessageBox.critical(self, "Error", "Could not connect to database.")
 		else:
-			if self.create_db(connstr, identifier):
+			if self.create_db(connstr, identifier, local_folder):
 				self.parent.on_connect(identifier, connstr, local_folder, created = True)
 			else:
 				QtWidgets.QMessageBox.critical(self, "Error", "Could not create database.")

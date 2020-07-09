@@ -146,6 +146,15 @@ class View(DModule, QtWidgets.QMainWindow):
 		else:
 			self.mdiarea.set_background_text("")
 	
+	def update_mrud(self):
+		
+		if self.model.data_source is None:
+			return
+		if self.model.data_source.connstr is None:
+			self.menu.add_recent_url(self.model.data_source.url)
+		else:
+			self.menu.add_recent_db(self.model.data_source.identifier, self.model.data_source.connstr)
+	
 	def save(self):
 
 		if self.model.data_source is None:
@@ -163,17 +172,12 @@ class View(DModule, QtWidgets.QMainWindow):
 					ds = self.model.datasources.JSON(url=url)
 				if (not ds is None) and ds.save():
 					self.model.set_datasource(ds)
-					self.menu.add_recent_url(url)
 
 		else:
 			if (self.model.data_source.name == "DB") and (not self.model.data_source.identifier):
 				self.dialogs.open("SetIdentifier", True)
 				return
 			self.model.save()
-			if self.model.data_source.connstr is None:
-				self.menu.add_recent_url(self.model.data_source.url)
-			else:
-				self.menu.add_recent_db(self.model.data_source.identifier, self.model.data_source.connstr)
 	
 	def query(self, querystr):
 		
@@ -187,6 +191,7 @@ class View(DModule, QtWidgets.QMainWindow):
 	def on_data_source_changed(self, args):
 		
 		self.update_model_info()
+		self.update_mrud()
 	
 	def on_local_folder_changed(self, *args):
 		
@@ -199,6 +204,8 @@ class View(DModule, QtWidgets.QMainWindow):
 		
 		print("Database Saved")
 		self.statusbar.message("Database Saved")
+		self.update_model_info()
+		self.update_mrud()
 	
 	def on_save_failed(self, args):
 		

@@ -16,7 +16,7 @@ class SaveAsDB(Tool):
 
 	def enabled(self):
 
-		return True
+		return (self.model.data_source is None)
 
 	def triggered(self, state):
 
