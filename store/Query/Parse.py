@@ -136,12 +136,6 @@ class Select(object):
 		self.classes = set([cls for cls in self.classes if cls in self.store.classes])
 		self.descriptors = set([descr for descr in self.descriptors if descr in self.store.descriptor_names])
 	
-	def is_valid(self):
-		
-		if self.classes and self.descriptors:
-			return True
-		return False
-	
 	def value(self, objects):
 		# return value or [value, ...]; based on whether only one or multiple descriptors are specified
 		
@@ -207,7 +201,7 @@ class ObjectId(object):
 		if (classstr not in objects) or (self.index not in objects[classstr]):
 			return None
 		return objects[classstr][self.index].id
-	
+
 class Related(object):
 	
 	def __init__(self, store, relstr, quotes):
@@ -293,7 +287,7 @@ class Related(object):
 					ids = set([id for id in self.store.objects if id not in ids])
 		ids = [self.store.objects[id] for id in ids]
 		return [obj for obj in ids if check_classes(obj, self.classes1)]
-		
+
 class Weight(object):
 	
 	def __init__(self, store, weightstr, quotes):
@@ -611,7 +605,7 @@ class Parse(object):
 		# find selects
 		_, qry_select = segments.pop(0)
 		self.selects = [Select(self.store, selectstr, quotes) for selectstr in qry_select.split(",")]
-		self.selects = [select for select in self.selects if select.is_valid()]
+		self.selects = [select for select in self.selects if select.classes]
 		if not self.selects:
 			return
 		
