@@ -133,6 +133,14 @@ class Select(object):
 				self.classes = set([cls])
 			if descr is not None:
 				self.descriptors = set([descr])
+		self.classes = set([cls for cls in self.classes if cls in self.store.classes])
+		self.descriptors = set([descr for descr in self.descriptors if descr in self.store.descriptor_names])
+	
+	def is_valid(self):
+		
+		if self.classes and self.descriptors:
+			return True
+		return False
 	
 	def value(self, objects):
 		# return value or [value, ...]; based on whether only one or multiple descriptors are specified
@@ -603,7 +611,7 @@ class Parse(object):
 		# find selects
 		_, qry_select = segments.pop(0)
 		self.selects = [Select(self.store, selectstr, quotes) for selectstr in qry_select.split(",")]
-		self.selects = [select for select in self.selects if select.classes]
+		self.selects = [select for select in self.selects if select.is_valid()]
 		if not self.selects:
 			return
 		
