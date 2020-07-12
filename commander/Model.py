@@ -1,5 +1,5 @@
 from deposit import Broadcasts
-from deposit import (Store)
+from deposit.store.Store import (Store)
 
 from PySide2 import (QtCore)
 

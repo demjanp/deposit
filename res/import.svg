@@ -14,7 +14,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.92.1 r15371"
-   sodipodi:docname="check_in.svg"
+   sodipodi:docname="import.svg"
    inkscape:export-filename="C:\documents\deposit_1_1\_res\dep_cube_256px.png"
    inkscape:export-xdpi="720"
    inkscape:export-ydpi="720">
@@ -36,7 +36,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="8"
-     inkscape:cx="22.726388"
+     inkscape:cx="2.413888"
      inkscape:cy="26.071642"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -48,11 +48,11 @@
      inkscape:bbox-paths="true"
      inkscape:snap-bbox-edge-midpoints="true"
      inkscape:snap-bbox-midpoints="true"
-     inkscape:snap-global="true"
+     inkscape:snap-global="false"
      inkscape:window-width="1232"
-     inkscape:window-height="1412"
-     inkscape:window-x="1160"
-     inkscape:window-y="0"
+     inkscape:window-height="1200"
+     inkscape:window-x="540"
+     inkscape:window-y="8"
      inkscape:window-maximized="0"
      inkscape:object-paths="true"
      inkscape:snap-intersection-paths="true"
@@ -75,7 +75,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -86,7 +86,7 @@
      transform="translate(0,-1090.5196)">
     <g
        id="g4511"
-       transform="translate(-1.0666665,1.06955)">
+       transform="matrix(0.76704544,0,0,0.76704544,-1.8242423,258.58918)">
       <path
          inkscape:connector-curvature="0"
          id="path4050"
@@ -141,8 +141,8 @@
        id="g3992-1"
        transform="matrix(-1,0,0,1,78.933333,34.536241)" />
     <path
-       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:Sans;-inkscape-font-specification:Sans;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#f9b406;fill-opacity:1;stroke:#494949;stroke-width:0.38402101;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker:none;enable-background:accumulate"
-       d="m 23.562189,1100.6965 -7.255516,5.8261 7.255516,5.826 v -3.4691 h 7.166415 v -4.7139 h -7.166415 z"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:Sans;-inkscape-font-specification:Sans;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#f9b406;fill-opacity:1;stroke:#494949;stroke-width:0.50949192;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker:none;enable-background:accumulate"
+       d="m 21.157976,1098.79 -9.626105,7.7297 9.626105,7.7295 v -4.6025 h 9.507893 v -6.2541 h -9.507893 z"
        id="path3041-7-8"
        inkscape:connector-curvature="0" />
   </g>

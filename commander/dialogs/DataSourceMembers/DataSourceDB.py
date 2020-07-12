@@ -1,6 +1,6 @@
 from deposit.DModule import (DModule)
 from deposit.store.Conversions import (as_identifier)
-from deposit import (Store)
+from deposit.store.Store import (Store)
 
 import os
 from PySide2 import (QtWidgets, QtCore, QtGui)

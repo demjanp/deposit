@@ -1,5 +1,5 @@
 from deposit.commander.dialogs._Dialog import (Dialog)
-from deposit import (Store)
+from deposit.store.Store import (Store)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 

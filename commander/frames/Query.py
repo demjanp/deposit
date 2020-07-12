@@ -71,11 +71,7 @@ class Query(Frame, QtWidgets.QWidget):
 		self.footer.set_zoom_slider(128)
 		
 		self._update_timer = QtCore.QTimer()
-		self._update_timer.setSingleShot(True)
-		self._update_timer.timeout.connect(self.on_update_timer)
 		self._filter_timer = QtCore.QTimer()
-		self._filter_timer.setSingleShot(True)
-		self._filter_timer.timeout.connect(self.on_filter_timer)
 		
 		self.connect_broadcast(Broadcasts.ELEMENT_ADDED, self.on_store_changed)
 		self.connect_broadcast(Broadcasts.ELEMENT_DELETED, self.on_store_changed)
@@ -193,7 +189,7 @@ class Query(Frame, QtWidgets.QWidget):
 	
 	def on_filter(self):
 		
-		self._filter_timer.start(1000)
+		self._filter_timer.singleShot(1000, self.on_filter_timer)
 	
 	def on_filter_timer(self):
 		
@@ -238,8 +234,9 @@ class Query(Frame, QtWidgets.QWidget):
 
 	def on_store_changed(self, args):
 		
-		self._update_timer.start(100)
+		self._update_timer.singleShot(100, self.on_update_timer)
 	
+	@QtCore.Slot()
 	def on_update_timer(self):
 		
 		self.update()

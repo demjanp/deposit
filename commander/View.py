@@ -22,10 +22,9 @@ import os
 class View(DModule, QtWidgets.QMainWindow):
 	
 	def __init__(self, model, *args):
-
+		
 		self.model = model
 		self.args = args
-		self.populate_thread = None
 		self.registry = None
 		
 		self.navigator = None
@@ -95,8 +94,6 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.set_on_broadcast(self.on_broadcast)
 
 		self._broadcast_timer = QtCore.QTimer()
-		self._broadcast_timer.setSingleShot(True)
-		self._broadcast_timer.timeout.connect(self.on_broadcast_timer)
 		
 		if update_info:
 			self.update_model_info()
@@ -217,7 +214,7 @@ class View(DModule, QtWidgets.QMainWindow):
 		if (Broadcasts.STORE_SAVED in signals) or (Broadcasts.STORE_SAVE_FAILED in signals):
 			self.process_broadcasts()
 		else:
-			self._broadcast_timer.start(100)
+			self._broadcast_timer.singleShot(100, self.on_broadcast_timer)
 	
 	def on_broadcast_timer(self):
 
@@ -245,19 +242,13 @@ class View(DModule, QtWidgets.QMainWindow):
 					pass
 				else:
 					event.ignore()
-
-			if not self.populate_thread is None:
-				self.populate_thread.terminate()
-				self.populate_thread.wait()
+			
 			self.menu.save_recent()
 			self.mdiarea.close_all()
 			self.usertools.on_close()
 			self.model.on_close()
 		
 		else:  # Commander started with an external Model
-			if not self.populate_thread is None:
-				self.populate_thread.terminate()
-				self.populate_thread.wait()
 			self.mdiarea.close_all()
 			self.usertools.on_close()
 

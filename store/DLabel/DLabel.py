@@ -1,3 +1,4 @@
+import sys
 
 class DLabel(object):
 
@@ -35,7 +36,7 @@ class DLabel(object):
 	def asdtype(self, dtype, *args, **kwargs):
 		# convert this label to other dtype (DString / DDateTime / DResource / DGeometry / DNone)
 		
-		return globals()[dtype](self._value, *args, **kwargs)
+		return getattr(sys.modules["deposit.store.DLabel.%s" % (dtype)], dtype)(self._value, *args, **kwargs)
 	
 	def to_dict(self):
 
@@ -49,9 +50,3 @@ class DLabel(object):
 		self._value = data["value"]
 		
 		return self
-
-from deposit.store.DLabel.DString import (DString)
-from deposit.store.DLabel.DResource import (DResource)
-from deposit.store.DLabel.DGeometry import (DGeometry)
-from deposit.store.DLabel.DDateTime import (DDateTime)
-from deposit.store.DLabel.DNone import (DNone)
