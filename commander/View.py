@@ -94,6 +94,8 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.set_on_broadcast(self.on_broadcast)
 
 		self._broadcast_timer = QtCore.QTimer()
+		self._broadcast_timer.setSingleShot(True)
+		self._broadcast_timer.timeout.connect(self.on_broadcast_timer)
 		
 		if update_info:
 			self.update_model_info()
@@ -214,7 +216,7 @@ class View(DModule, QtWidgets.QMainWindow):
 		if (Broadcasts.STORE_SAVED in signals) or (Broadcasts.STORE_SAVE_FAILED in signals):
 			self.process_broadcasts()
 		else:
-			self._broadcast_timer.singleShot(100, self.on_broadcast_timer)
+			self._broadcast_timer.start(100)
 	
 	def on_broadcast_timer(self):
 

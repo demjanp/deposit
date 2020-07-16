@@ -1,11 +1,20 @@
 from deposit import Broadcasts
+from PySide2 import (QtWidgets)
+
+def check_visible(function):
+	
+	def wrapper(self, *args):
+		
+		if isinstance(self, QtWidgets.QWidget):
+			if not self.isVisible():
+				return
+		return function(self, *args)
+	
+	return wrapper
 
 class DModule(object):
-
-	def __init__(self):
-
-		pass
-
+	
+	@check_visible
 	def broadcast(self, signal, *args):
 		
 		Broadcasts._BROADCAST_HOOK.add(self, signal, list(args))
@@ -27,7 +36,8 @@ class DModule(object):
 	def resume_broadcasts(self):
 
 		Broadcasts._BROADCAST_HOOK.resume(id(self))
-
+	
+	@check_visible
 	def process_broadcasts(self):
 
 		Broadcasts._BROADCAST_HOOK.broadcast()
