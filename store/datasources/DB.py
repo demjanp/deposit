@@ -154,12 +154,10 @@ class DB(DataSource):
 			cursor.execute("CREATE TABLE \"%s\" (%s);" % (name, columns))
 		
 		if self.identifier is None:
-			self.broadcast(Broadcasts.STORE_SAVE_FAILED)
 			return False
 		
 		cursor, tables = self.connect()
 		if cursor is None:
-			self.broadcast(Broadcasts.STORE_SAVE_FAILED)
 			return False
 		
 		if not self.wait_if_busy():
@@ -256,7 +254,6 @@ class DB(DataSource):
 		cursor.connection.close()
 		
 		self.is_busy = False
-		self.broadcast(Broadcasts.STORE_SAVED)
 		return True
 	
 	def load(self):

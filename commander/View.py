@@ -187,7 +187,7 @@ class View(DModule, QtWidgets.QMainWindow):
 			else:
 				self.model.query(querystr)
 	
-	def on_data_source_changed(self, args):
+	def on_data_source_changed(self, *args):
 		
 		self.update_model_info()
 		self.update_mrud()
@@ -199,14 +199,14 @@ class View(DModule, QtWidgets.QMainWindow):
 		if reply == QtWidgets.QMessageBox.Yes:
 			self.model.localise_resources(force = True)
 	
-	def on_saved(self, args):
+	def on_saved(self, *args):
 		
 		print("Database Saved")
 		self.statusbar.message("Database Saved")
 		self.update_model_info()
 		self.update_mrud()
 	
-	def on_save_failed(self, args):
+	def on_save_failed(self, *args):
 		
 		print("Saving failed!")
 		self.statusbar.message("Saving failed!")

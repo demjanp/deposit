@@ -1,5 +1,5 @@
 from deposit import Broadcasts
-from deposit.store.DElements.DElements import (DElement, DElements, event)
+from deposit.store.DElements.DElements import (DElement, DElements, event, blocked)
 
 class DObjects(DElements):
 	
@@ -18,6 +18,7 @@ class DObjects(DElements):
 
 		self._on_deleted = func
 	
+	@blocked
 	def add(self, id = None):
 		# returns the added / created object
 		
@@ -43,6 +44,7 @@ class DObjects(DElements):
 
 		return self[id]
 	
+	@blocked
 	@event
 	def __delitem__(self, id):
 
@@ -79,7 +81,7 @@ class DObjects(DElements):
 
 		if self._on_deleted is not None:
 			self._on_deleted(obj)
-		
+	
 	def from_dict(self, data):
 		# note: classes have to be already loaded for this to work
 		
@@ -203,22 +205,27 @@ class DObject(DElement):
 		
 		return self._descriptors
 	
+	@blocked
 	def add_descriptor(self, cls, label, dtype = "DString"):
 		
 		return self.descriptors.add(cls, label, dtype)
 	
+	@blocked
 	def rename_descriptor(self, old_name, new_name):
 		
 		return self.descriptors.rename(old_name, new_name)
 	
+	@blocked
 	def del_descriptor(self, name):
 		
 		del self.descriptors[name]
 	
+	@blocked
 	def add_relation(self, name, target, weight = None):
 		
 		return self.relations.add(name, target, weight)
 	
+	@blocked
 	def del_relation(self, name, target = None):
 		
 		if target is None:
@@ -226,14 +233,17 @@ class DObject(DElement):
 		else:
 			del self.relations[name][target]
 	
+	@blocked
 	def set_relation_weight(self, name, target_id, weight):
 		
 		return self.relations[name].set_weight(target_id, weight)
 	
+	@blocked
 	def add_class(self, cls):
 		
 		return self.classes.add(cls)
 	
+	@blocked
 	def del_class(self, name):
 		
 		del self.classes[name]

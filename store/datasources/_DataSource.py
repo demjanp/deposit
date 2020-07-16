@@ -35,6 +35,36 @@ class DataSource(DModule):
 				return False
 		return True
 	
+	def to_dict(self):
+		
+		return dict(
+			data_source_class = self.__class__.__name__,
+			identifier = self.identifier,
+			url = self.url,
+			connstr = self.connstr,
+			local_folder = self.store.local_folder,
+			changed = self.store.changed,
+			classes = self.store.classes.to_dict(), # {name: class data, ...}
+			objects = self.store.objects.to_dict(), # {id: object data, ...}
+			events = self.store.events.to_list(),
+			user_tools = self.store.user_tools.to_list(),
+			queries = self.store.queries.to_dict(),
+		)
+	
+	def from_dict(self, data):
+		
+		self.identifier = data["identifier"]
+		self.url = data["url"]
+		self.connstr = data["connstr"]
+		self.store.local_folder = data["local_folder"]
+		self.store.changed = data["changed"]
+		data["objects"] = dict([(int(id), data["objects"][id]) for id in data["objects"]])
+		self.store.classes.from_dict(data["classes"])
+		self.store.objects.from_dict(data["objects"])
+		self.store.events.from_list(data["events"])
+		self.store.user_tools.from_list(data["user_tools"])
+		self.store.queries.from_dict(data["queries"])
+	
 	def set_url(self, url):
 		# re-implement
 		
@@ -59,7 +89,7 @@ class DataSource(DModule):
 		# re-implement
 		
 		return False
-		
+	
 	def save(self):
 		# re-implement
 		

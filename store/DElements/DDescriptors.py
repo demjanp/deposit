@@ -1,7 +1,7 @@
 from deposit import Broadcasts
 from deposit.store.DLabel.DLabel import (DLabel)
 from deposit.store.DLabel.DNone import (DNone)
-from deposit.store.DElements.DElements import (DElement, DElements, event)
+from deposit.store.DElements.DElements import (DElement, DElements, event, blocked)
 from deposit.store.DElements.DClasses import (DClass)
 from deposit.store.Conversions import (as_url)
 from deposit.store.Projections import (get_raster_projection)
@@ -67,6 +67,7 @@ class DDescriptors(DElements):
 		
 		super(DDescriptors, self).__init__(parent)
 	
+	@blocked
 	def add(self, cls, label, dtype = "DString"):
 		# cls = DClass or str
 		# label = DLabel or other type (will be converted according to dtype)
@@ -110,6 +111,7 @@ class DDescriptors(DElements):
 		
 		return self[cls.name]
 	
+	@blocked
 	def rename(self, old_name, new_name):
 		
 		if old_name.__class__.__name__ == "DClass":
@@ -146,6 +148,7 @@ class DDescriptors(DElements):
 			return super(DDescriptors, self).__getitem__(key)
 		return DDescriptor(self, DClass(self.store, "[no class]"), DNone())
 	
+	@blocked
 	def __delitem__(self, name):
 
 		if not name in self:
@@ -172,7 +175,8 @@ class DDescriptors(DElements):
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self.parent)
 		
 		self.store.events.add(self.parent, self.parent.del_descriptor, name)
-
+	
+	@blocked
 	def update_order(self):
 		
 		self._keys = sorted(self._keys, key = lambda key: self[key].dclass.order)
@@ -183,6 +187,7 @@ class DDescriptors(DElements):
 			self.add_naive(name, data[name])
 		return self
 	
+	@blocked
 	def restore_dclasses(self):
 		# to be run subsequently after classes are loaded
 		

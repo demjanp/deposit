@@ -26,7 +26,7 @@ class Save(Tool):
 
 	def enabled(self):
 
-		return not self.model.is_saved()
+		return True
 
 	def triggered(self, state):
 		

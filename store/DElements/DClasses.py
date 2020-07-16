@@ -1,6 +1,6 @@
 
 from deposit import Broadcasts
-from deposit.store.DElements.DElements import (DElement, DElements, event)
+from deposit.store.DElements.DElements import (DElement, DElements, event, blocked)
 from deposit import (INVALID_CHARACTERS_NAME)
 
 from collections import defaultdict
@@ -79,6 +79,7 @@ class DClass(DElement):
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, dclass)
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
 	
+	@blocked
 	@event
 	def add_descriptor(self, name):
 
@@ -89,6 +90,7 @@ class DClass(DElement):
 			self.descriptors = sorted(self.descriptors, key=lambda name: self.store.classes[name].order)
 			self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
 	
+	@blocked
 	@event
 	def rename_descriptor(self, old_name, new_name):
 		
@@ -98,6 +100,7 @@ class DClass(DElement):
 			self.objects[id].descriptors.rename(old_name, new_name)
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
 	
+	@blocked
 	@event	
 	def del_descriptor(self, name):
 
@@ -111,6 +114,7 @@ class DClass(DElement):
 		self.descriptors.remove(name)
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
 	
+	@blocked
 	@event
 	def add_relation(self, rel, class_name):
 
@@ -119,6 +123,7 @@ class DClass(DElement):
 			self.relations[rel] = sorted(self.relations[rel], key=lambda class_name: self.store.classes[class_name].order if (class_name != "!*") else -1)
 			self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
 	
+	@blocked
 	@event
 	def del_relation(self, rel, class_name):
 
@@ -138,18 +143,22 @@ class DClass(DElement):
 				for id2 in to_del:
 					del self.store.objects[id1].relations[rel][id2]
 	
+	@blocked
 	def add_object(self):
 		
 		return self.objects.add()
 	
+	@blocked
 	def del_object(self, id):
 		
 		del self.objects[id]
 	
+	@blocked
 	def add_subclass(self, cls):
 		
 		return self.subclasses.add(cls)
 	
+	@blocked
 	def del_subclass(self, name):
 		
 		del self.subclasses[name]
@@ -175,7 +184,7 @@ class DClass(DElement):
 		if "descriptors" in data:  # TODO will be obsolete for new databases
 			self.descriptors = data["descriptors"]
 			self.relations = defaultdict(list, data["relations"])
-
+	
 	def from_dict_linked(self, data, prefix):
 		
 		self.from_dict(data)
@@ -201,6 +210,7 @@ class DClasses(DElements):
 
 		self._on_deleted = func
 	
+	@blocked
 	@event
 	def add(self, cls):
 		
@@ -234,6 +244,7 @@ class DClasses(DElements):
 
 		return self[name]
 	
+	@blocked
 	@event
 	def rename(self, old_cls, new_cls):
 		
@@ -269,6 +280,7 @@ class DClasses(DElements):
 			return super(DClasses, self).__getitem__(key)
 		return DClass(self, "[no class]")
 	
+	@blocked
 	@event
 	def __delitem__(self, name):
 
@@ -311,6 +323,7 @@ class DClasses(DElements):
 		if self._on_deleted is not None:
 			self._on_deleted(cls)
 	
+	@blocked
 	@event
 	def switch_order(self, name1, name2):
 		
@@ -320,6 +333,7 @@ class DClasses(DElements):
 			self.broadcast(Broadcasts.ELEMENT_CHANGED, self[name1])
 			self.broadcast(Broadcasts.ELEMENT_CHANGED, self[name2])
 	
+	@blocked
 	def set_order(self, data):
 		# data = {name:, order_nr, ...}
 		
@@ -327,6 +341,7 @@ class DClasses(DElements):
 			self[name].order = data[name]
 		self.update_order_deep()
 	
+	@blocked
 	def update_order(self):
 		
 		self._keys = sorted(self._keys, key = lambda key: self[key].order)

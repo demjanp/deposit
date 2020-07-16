@@ -225,7 +225,6 @@ class RDFGraph(DataSource):
 			return "%s_%d" % (ID_PREFIX[typ], id)
 		
 		if self.url is None:
-			self.broadcast(Broadcasts.STORE_SAVE_FAILED)
 			return False
 		
 		if not self.wait_if_busy():
@@ -391,6 +390,5 @@ class RDFGraph(DataSource):
 		
 		self.is_busy = False
 		
-		self.broadcast(Broadcasts.STORE_SAVED)
 		return True
 

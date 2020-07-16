@@ -118,7 +118,6 @@ class JSON(DataSource):
 	def save(self):
 		
 		if self.url is None:
-			self.broadcast(Broadcasts.STORE_SAVE_FAILED)
 			return False
 		
 		if not self.wait_if_busy():
@@ -165,5 +164,7 @@ class JSON(DataSource):
 		
 		self.is_busy = False
 		
-		self.broadcast(Broadcasts.STORE_SAVED)
+		if not os.path.isfile(path):
+			return False
+		
 		return True

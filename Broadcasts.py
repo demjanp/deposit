@@ -81,7 +81,7 @@ class BroadcastHook(object):
 
 					to_exec.append([func, args])
 		self._broadcasts.clear()
-
+		
 		for func, args in to_exec:
 			func(args)
 

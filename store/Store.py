@@ -43,6 +43,7 @@ class Store(DModule):
 		self.linked = {} # {identifier: LinkedStore(), ...}
 		self._local_resource_uris = []
 		self.save_events = False
+		self.read_only = False
 
 		self.data_source = None # DB / DBRel / JSON / RDFGraph / None
 
@@ -253,8 +254,12 @@ class Store(DModule):
 	def save(self):
 		# convenience function
 		
+		result = False
 		if self.data_source is not None:
-			self.data_source.save()
+			self.read_only = True
+			result = self.data_source.save()
+			self.read_only = False
+		return result
 	
 	def add_objects(self, identifier, connstr, ids = None, localise = False):
 		# add objects from a different store, specified by identifier and connstr
