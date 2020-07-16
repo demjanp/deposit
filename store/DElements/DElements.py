@@ -2,19 +2,6 @@ from deposit.DModule import (DModule)
 
 from functools import wraps
 
-def blocked(function):
-	# write blocking decorator for DElement and DElements
-	
-	@wraps(function)
-	def wrapper(self, *args):
-		
-		if self.store.read_only:
-			print("Blocked write access during saving by function: %s" % (function.__name__))
-			return None
-		return function(self, *args)
-	
-	return wrapper
-
 def event(function):
 	# event decorator for DElement and DElements
 	
@@ -137,7 +124,6 @@ class DElements(DModule):
 			del self._members[key]
 			self._keys.remove(key)
 	
-	@blocked
 	def __delitem__(self, key):
 		
 		if key in self._members:

@@ -37,8 +37,9 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.querytoolbar = None
 		self.usertools = None
 		self.statusbar = None
-
-		self._broadcast_timer = None
+		
+		self._in_parent_thread = False
+		self.broadcast_timer = None
 
 		DModule.__init__(self)
 		QtWidgets.QMainWindow.__init__(self)
@@ -47,10 +48,14 @@ class View(DModule, QtWidgets.QMainWindow):
 	
 	def set_up(self):
 		
+		
 		update_info = True
 		if self.model is None:
 			self.model = Model(self, *self.args)
 			update_info = False
+			self.broadcast_timer = QtCore.QTimer()
+		else:
+			self.broadcast_timer = self.model.broadcast_timer
 		
 		self.registry = Registry("Deposit")
 		
@@ -92,16 +97,26 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.connect_broadcast(Broadcasts.STORE_SAVED, self.on_saved)
 		self.connect_broadcast(Broadcasts.STORE_SAVE_FAILED, self.on_save_failed)
 		self.set_on_broadcast(self.on_broadcast)
-
-		self._broadcast_timer = QtCore.QTimer()
-		self._broadcast_timer.setSingleShot(True)
-		self._broadcast_timer.timeout.connect(self.on_broadcast_timer)
+		
+		self.broadcast_timer.setSingleShot(True)
+		self.broadcast_timer.timeout.connect(self.on_broadcast_timer)
 		
 		if update_info:
 			self.update_model_info()
 		
 		if not update_info:
 			self.dialogs.open("Connect")
+	
+	def on_broadcast(self, signals):
+		
+		if (Broadcasts.STORE_SAVED in signals) or (Broadcasts.STORE_SAVE_FAILED in signals):
+			self.process_broadcasts()
+		else:
+			self.broadcast_timer.start(100)
+	
+	def on_broadcast_timer(self):
+
+		self.process_broadcasts()
 	
 	def load_geometry(self):
 		
@@ -201,7 +216,7 @@ class View(DModule, QtWidgets.QMainWindow):
 	
 	def on_saved(self, *args):
 		
-		print("Database Saved")
+		print("Database Saved")  # DEBUG
 		self.statusbar.message("Database Saved")
 		self.update_model_info()
 		self.update_mrud()
@@ -210,17 +225,6 @@ class View(DModule, QtWidgets.QMainWindow):
 		
 		print("Saving failed!")
 		self.statusbar.message("Saving failed!")
-	
-	def on_broadcast(self, signals):
-
-		if (Broadcasts.STORE_SAVED in signals) or (Broadcasts.STORE_SAVE_FAILED in signals):
-			self.process_broadcasts()
-		else:
-			self._broadcast_timer.start(100)
-	
-	def on_broadcast_timer(self):
-
-		self.process_broadcasts()
 	
 	def resizeEvent(self, event):
 		

@@ -40,6 +40,8 @@ class DataSource(Dialog):
 			self.tabs.addTab(self.tab_memory, "Memory")
 		
 		self.layout().addWidget(self.tabs)
+		if not self.tab_recent.has_items():
+			self.tabs.setCurrentIndex(1)
 	
 	def button_box(self):
 		

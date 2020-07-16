@@ -1,6 +1,6 @@
 
 from deposit import Broadcasts
-from deposit.store.DElements.DElements import (DElement, DElements, event, blocked)
+from deposit.store.DElements.DElements import (DElement, DElements, event)
 from deposit import (INVALID_CHARACTERS_NAME)
 
 from numbers import Number
@@ -53,7 +53,6 @@ class DRelation(DElement):
 			return self._weights[target_id]
 		return None
 	
-	@blocked
 	def _set_weight(self, target_id, weight):
 		
 		if target_id.__class__.__name__ == "DObject":
@@ -61,7 +60,6 @@ class DRelation(DElement):
 		target_id = int(target_id)
 		self._weights[target_id] = weight
 	
-	@blocked
 	def set_weight(self, target_id, weight):
 		
 		target_id = int(target_id)
@@ -145,7 +143,6 @@ class DRelations(DElements):
 		
 		super(DRelations, self).__init__(parent)
 	
-	@blocked
 	def _add(self, name, target, weight):
 		# target = DObject or id
 		
@@ -166,7 +163,6 @@ class DRelations(DElements):
 		self.broadcast(Broadcasts.ELEMENT_CHANGED, target)
 		return target
 	
-	@blocked
 	def add(self, name, target, weight = None):
 		# target = DObject or id
 		# returns the created DRelation
@@ -201,7 +197,6 @@ class DRelations(DElements):
 			return super(DRelations, self).__getitem__(key)
 		return DRelation(self, None)
 	
-	@blocked
 	def __delitem__(self, name):
 		
 		if name in self:

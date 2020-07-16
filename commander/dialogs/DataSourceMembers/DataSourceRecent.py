@@ -62,6 +62,10 @@ class DataSourceRecent(DModule, QtWidgets.QFrame):
 		
 		self.connect_button.setEnabled(len(self.recent_list.selectedItems()) > 0)
 	
+	def has_items(self):
+		
+		return self.recent_list.count() > 0
+	
 	def on_selected(self):
 		
 		self.update()
