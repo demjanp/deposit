@@ -46,7 +46,7 @@ class QuerySelectionRow(object):
 
 class QuerySelection(object):
 
-	def __init__(self, model, view, indexes):
+	def __init__(self, model, view, indexes = []):
 		# indexes = QModelIndexList
 		
 		self.model = model

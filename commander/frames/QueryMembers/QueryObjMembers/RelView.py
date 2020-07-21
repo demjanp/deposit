@@ -161,6 +161,8 @@ class RelView(Frame, QtWidgets.QWidget):
 				selected = table.get_selected()
 			else:
 				selected.update(table.get_selected().indexes)
+		if selected is None:
+			return QuerySelection(self.model, self.view)
 		return selected
 	
 	def get_objects(self):
