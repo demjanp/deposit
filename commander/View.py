@@ -48,7 +48,6 @@ class View(DModule, QtWidgets.QMainWindow):
 	
 	def set_up(self):
 		
-		
 		update_info = True
 		if self.model is None:
 			self.model = Model(self, *self.args)
@@ -68,7 +67,11 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.central_layout.setContentsMargins(0, 0, 0, 0)
 		self.setCentralWidget(self.central_widget)
 		
+		self.tool_window = QtWidgets.QMainWindow() # HACK to stop MDI Subwindows move controls to MenuBar when maximized
+		self.central_layout.addWidget(self.tool_window)
+		
 		self.splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
+		self.splitter.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 		self.central_layout.addWidget(self.splitter)
 		
 		self.navigator = Navigator(self.model, self)
@@ -84,7 +87,9 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.usertools = UserTools(self.model, self)
 		self.statusbar = StatusBar(self.model, self)
 		self.setStatusBar(self.statusbar)
-
+		
+		self.tool_window.setMaximumHeight(self.tool_window.sizeHint().height())
+		
 		self.resume_broadcasts()
 		
 		self.setWindowIcon(self.get_icon("dep_cube.svg"))
@@ -257,6 +262,7 @@ class View(DModule, QtWidgets.QMainWindow):
 		else:  # Commander started with an external Model
 			self.mdiarea.close_all()
 			self.usertools.on_close()
+
 
 
 

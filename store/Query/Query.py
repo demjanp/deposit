@@ -236,7 +236,6 @@ class Query(object):
 					if (chain[classstr0][index0].id == row.object.id) and count_.eval(chain):
 						cnt += 1
 				row.add_alias(count_.alias, cnt)
-				
 		
 		# add sums as aliases
 		for sum_ in self.parse.sums:
@@ -250,6 +249,21 @@ class Query(object):
 				row.add_alias(sum_.alias, summed)
 		
 		self.hash = self.columns + [row.hash for row in self._rows]
+	
+	def update(self):
+		
+		self._rows = []
+		self._columns = []
+		self._classes = []
+		
+		self.parse = None
+		
+		self.hash = [] # hash of the query rows (to quickly check whether query has changed)
+		
+		self._columns_sorted = False
+		self._rows_sorted = False
+		
+		self.process()
 	
 	def get_sorted_columns(self):
 		

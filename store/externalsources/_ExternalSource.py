@@ -18,7 +18,7 @@ class ExternalSource(DModule):
 		
 		return self.__class__.__name__
 	
-	def import_data(self, sheet, targets):
+	def import_data(self, sheet, targets, relations = []):
 		# targets = {column_idx: target, ...}
 		
 		def has_labels(obj, labels):
@@ -37,7 +37,7 @@ class ExternalSource(DModule):
 		# collect target classes & descriptors
 		for idx in list(targets.keys()):
 			selectstr, quotes = find_quotes(targets[idx])
-			select = Select(self.store, selectstr, quotes)
+			select = Select(self.store, selectstr, quotes, create_classes = True)
 			if (len(select.classes) != 1) or (len(select.descriptors) != 1) or (list(select.classes)[0][-1] == "*"):
 				del targets[idx]
 			else:
@@ -48,19 +48,17 @@ class ExternalSource(DModule):
 		classes = set()
 		for column_idx in targets:
 			cls, descr = targets[column_idx]
-			self.store.classes.add(cls)
-			self.store.classes.add(descr)
 			classes.add(cls)
 		
 		# find relations between classes
-		relations = []  # [[cls1, rel, cls2], ...]
 		for cls1 in classes:
 			for rel in self.store.classes[cls1].relations:
 				if rel[0] == "~":
 					continue
 				for cls2 in self.store.classes[cls1].relations[rel]:
 					if cls2 in classes:
-						relations.append([cls1, rel, cls2])
+						if [cls1, rel, cls2] not in relations:
+							relations.append([cls1, rel, cls2])
 		
 		# add data
 		for row_idx in range(self.row_count(sheet)):

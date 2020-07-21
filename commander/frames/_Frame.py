@@ -5,9 +5,14 @@ class Frame(ViewChild):
 	def __init__(self, model, view, parent):
 		
 		self.parent = parent
+		self.edited = False
 		self._closed = False
 		
 		super(Frame, self).__init__(model, view)
+	
+	def set_edited(self, state):
+		
+		self.edited = state
 	
 	def set_closed(self):
 		

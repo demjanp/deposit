@@ -36,6 +36,7 @@ class TableModel(DModule, PrototypeDragModel, QtCore.QAbstractTableModel):
 		self.view = view
 		self.query = query
 		self.relation = relation
+		self.table_view = table_view
 		self.class_name = None
 		
 		self.proxy_model = None
@@ -80,7 +81,7 @@ class TableModel(DModule, PrototypeDragModel, QtCore.QAbstractTableModel):
 			if descr in self.model.descriptor_names:
 				return QueryItem(index, self.model.null_descriptor(self.query[row].object, self.model.classes[descr]), self.icons)
 		return QueryItem(index, None, self.icons)
-			
+	
 	def rowCount(self, parent):
 		
 		return len(self.query)
@@ -124,7 +125,12 @@ class TableModel(DModule, PrototypeDragModel, QtCore.QAbstractTableModel):
 			item = self.get_query_item(index)
 			obj = item.element.target
 			cls = item.element.dclass
+			self.table_view.parent.set_edited(True)
 			obj.descriptors.add(cls, value)
+			
+			self.query.update()
+			
+			QtCore.QAbstractTableModel.setData(self, index, value, role)
 		
 		return False
 	
@@ -135,19 +141,19 @@ class TableModel(DModule, PrototypeDragModel, QtCore.QAbstractTableModel):
 	def drop_supported(self, item):
 		
 		return True # DEBUG
-		
+	
 	def on_drop_url(self, item, urls):
 		
 		obj = item.element.target
 		cls = item.element.dclass
 		obj.descriptors.add(cls, urls[0], "DResource")
-		
+	
 	def on_drop_text(self, item, text):
 		
 		obj = item.element.target
 		cls = item.element.dclass
 		obj.descriptors.add(cls, text)
-		
+	
 	def on_drop_elements(self, item, elements):
 		
 		element = elements[0]

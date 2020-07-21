@@ -23,8 +23,5 @@ class Import(Tool):
 	
 	def triggered(self, state):
 		
-		reply = QtWidgets.QMessageBox.question(self.view, "Import External Data", "Import external data into database?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
-		if reply == QtWidgets.QMessageBox.Yes:
-			current = self.view.mdiarea.get_current()
-			current.import_data()
+		self.view.dialogs.open("Import", self.view.mdiarea.get_current())
 

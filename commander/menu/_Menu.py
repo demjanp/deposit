@@ -37,7 +37,7 @@ class Menu(CmdDict, MRUDMenu):
 		
 	def set_up(self):
 		
-		self.menubar = self.view.menuBar()
+		self.menubar = self.view.tool_window.menuBar()  # DEBUG
 		
 		menus = {} # {name: QMenu, ...}
 		

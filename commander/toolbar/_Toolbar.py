@@ -63,7 +63,8 @@ class Toolbar(CmdDict, ViewChild):
 
 	def set_up(self):
 
-		self.toolbar = self.view.addToolBar("Main")
+		self.toolbar = self.view.tool_window.addToolBar("Main")  # DEBUG
+		
 		self.toolbar.setIconSize(QtCore.QSize(36,36))
 		for i, row in enumerate(ordering):
 			for name in row:

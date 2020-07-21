@@ -118,6 +118,7 @@ class ListModel(DModule, PrototypeDragModel, QtCore.QAbstractListModel):
 		self.model = model
 		self.view = view
 		self.query = query
+		self.list_view = list_view
 		self.icon_size = icon_size
 		self.images = [] # [DDescriptor, ...]
 		self.icons = [] # [QIcon or None, ...]; for each image
@@ -156,7 +157,7 @@ class ListModel(DModule, PrototypeDragModel, QtCore.QAbstractListModel):
 		self.proxy_model.setSourceModel(self)
 		
 		self.proxy_model.sort()
-		
+	
 	def rowCount(self, parent):
 		
 		return len(self.images)
@@ -188,7 +189,7 @@ class ListModel(DModule, PrototypeDragModel, QtCore.QAbstractListModel):
 		if not path is None:
 			self.icons[index.row()] = QtGui.QIcon(path)
 			self.icon_loaded.emit(self.proxy_model.mapFromSource(index))
-				
+	
 	def on_paint(self, item):
 		
 		if item is None:
@@ -206,19 +207,19 @@ class ListModel(DModule, PrototypeDragModel, QtCore.QAbstractListModel):
 	def drop_supported(self, item):
 		
 		return True # DEBUG
-		
+	
 	def on_drop_url(self, item, urls):
 		
 		obj = item.element.target
 		cls = item.element.dclass
 		obj.descriptors.add(cls, urls[0], "DResource")
-		
+	
 	def on_drop_text(self, item, text):
 		
 		obj = item.element.target
 		cls = item.element.dclass
 		obj.descriptors.add(cls, text)
-		
+	
 	def on_drop_elements(self, item, elements):
 		
 		element = elements[0]

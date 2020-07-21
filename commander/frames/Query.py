@@ -243,7 +243,10 @@ class Query(Frame, QtWidgets.QWidget):
 	@QtCore.Slot()
 	def on_update_timer(self):
 		
-		self.update()
+		if not self.edited:
+			self.update()
+		else:
+			self.edited = False
 	
 	def on_object_activated(self, element):
 		

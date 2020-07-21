@@ -79,7 +79,7 @@ def check_classstr(classstr, objects):
 
 class Select(object):
 	
-	def __init__(self, store, selectstr, quotes):
+	def __init__(self, store, selectstr, quotes, create_classes = False):
 		
 		self.store = store
 		self.classes = set()  # ("!*", "[class_name]", ...)
@@ -87,9 +87,9 @@ class Select(object):
 		self.classstr = ""
 		self.index = -1
 		
-		self.set_up(selectstr, quotes)
+		self.set_up(selectstr, quotes, create_classes)
 	
-	def set_up(self, selectstr, quotes):
+	def set_up(self, selectstr, quotes, create_classes):
 		
 		fragments = [(fragment % quotes).strip() for fragment in selectstr.split(".")]
 		if (not fragments) or (len(fragments) > 2):
@@ -133,6 +133,14 @@ class Select(object):
 				self.classes = set([cls])
 			if descr is not None:
 				self.descriptors = set([descr])
+		if create_classes:
+			for cls in self.classes:
+				if cls not in self.store.classes:
+					self.store.classes.add(cls)
+			for descr in self.descriptors:
+				if descr not in self.store.descriptor_names:
+					for cls in self.classes:
+						self.store.classes[cls].add_descriptor(descr)
 		self.classes = set([cls for cls in self.classes if cls in self.store.classes])
 		self.descriptors = set([descr for descr in self.descriptors if descr in self.store.descriptor_names])
 	

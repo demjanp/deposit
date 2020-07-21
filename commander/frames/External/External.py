@@ -20,11 +20,17 @@ class External(Frame):
 		
 		return self.body
 	
-	def import_data(self):
+	def get_targets(self):
 		
 		header = self.get_current_header()
 		targets = {}  # {column_idx: target, ...}
 		for idx in range(self.es.column_count(header.sheet)):
 			targets[idx] = header.item(0, idx).data(QtCore.Qt.DisplayRole)
-		self.es.import_data(header.sheet, targets)
+		return targets
+	
+	def import_data(self, relations = []):
+		
+		header = self.get_current_header()
+		targets = self.get_targets()
+		self.es.import_data(header.sheet, targets, relations)
 

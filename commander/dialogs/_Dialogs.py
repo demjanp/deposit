@@ -12,6 +12,7 @@ from deposit.commander.dialogs.RemoveObject import (RemoveObject)
 from deposit.commander.dialogs.RemoveObjectsFromClass import (RemoveObjectsFromClass)
 from deposit.commander.dialogs.RemoveRelation import (RemoveRelation)
 from deposit.commander.dialogs.RenameClass import (RenameClass)
+from deposit.commander.dialogs.Import import (Import)
 from deposit.commander.dialogs.SaveAsDB import (SaveAsDB)
 from deposit.commander.dialogs.SaveAsDBRel import (SaveAsDBRel)
 from deposit.commander.dialogs.SetIdentifier import (SetIdentifier)
@@ -28,7 +29,7 @@ class Dialogs(CmdDict, ViewChild):
 		
 		self.dialogs_open = []
 
-		CmdDict.__init__(self, AddClass, AddDescriptor, AddRelation, ImportDeposit, Connect, LinkDB, RemoveClass, RemoveObject, RemoveObjectsFromClass, RemoveRelation, RenameClass, SaveAsDB, SaveAsDBRel, SetIdentifier, About, AddQuery, EditQuery, OpenOrImport)
+		CmdDict.__init__(self, AddClass, AddDescriptor, AddRelation, ImportDeposit, Connect, LinkDB, RemoveClass, RemoveObject, RemoveObjectsFromClass, RemoveRelation, RenameClass, Import, SaveAsDB, SaveAsDBRel, SetIdentifier, About, AddQuery, EditQuery, OpenOrImport)
 		ViewChild.__init__(self, model, view)
 		
 		self.set_up()

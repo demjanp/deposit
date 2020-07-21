@@ -15,8 +15,8 @@ class QueryToolbar(ViewChild):
 	
 	def set_up(self):
 		
-		self.view.addToolBarBreak()
-		self.toolbar = self.view.addToolBar("Query")
+		self.view.tool_window.addToolBarBreak()
+		self.toolbar = self.view.tool_window.addToolBar("Query")
 		
 		self.query_box = QtWidgets.QComboBox(self.view)
 		self.query_box.setEditable(True)

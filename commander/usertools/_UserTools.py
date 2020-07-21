@@ -34,8 +34,9 @@ class UserTools(ViewChild):
 		
 	def set_up(self):
 		
-		self.view.addToolBarBreak()
-		self.toolbar = self.view.addToolBar("User Tools")
+		self.view.tool_window.addToolBarBreak()
+		self.toolbar = self.view.tool_window.addToolBar("User Tools")
+		
 		self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 		
 		self.action_manage = QtWidgets.QAction("User Tools", self.view)

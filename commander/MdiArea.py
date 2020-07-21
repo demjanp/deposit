@@ -12,18 +12,18 @@ class MdiSubWindow(ViewChild, QtWidgets.QMdiSubWindow):
 	def __init__(self, model, view, parent):
 
 		self.parent = parent
-
+		
 		ViewChild.__init__(self, model, view)
 		QtWidgets.QMdiSubWindow.__init__(self, flags = QtCore.Qt.SubWindow)
 		
 		self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-
+		
 		self.windowStateChanged.connect(self.on_state_changed)
-
+	
 	def on_state_changed(self, old_state, new_state):
-
+		
 		self.broadcast(Broadcasts.VIEW_ACTION)
-
+	
 	def closeEvent(self, event):
 
 		self.widget().set_closed()
@@ -37,7 +37,7 @@ class MdiArea(ViewChild, QtWidgets.QMdiArea):
 		self.descriptor_windows = []
 
 		ViewChild.__init__(self, model, view)
-		QtWidgets.QMdiArea.__init__(self, view)
+		QtWidgets.QMdiArea.__init__(self, view.navigator)
 
 		self.set_up()
 	
@@ -45,8 +45,8 @@ class MdiArea(ViewChild, QtWidgets.QMdiArea):
 		
 		self.setAcceptDrops(True)
 		
-		self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn	)
-		self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn	)
+		self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+		self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
 		
 		self.subWindowActivated.connect(self.on_activated)
 		self.connect_broadcast(Broadcasts.STORE_LOADED, self.on_loaded)
