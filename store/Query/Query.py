@@ -466,7 +466,7 @@ class QueryRow(object):
 		
 		def hash_obj_descr(obj, descriptor):
 			
-			if descriptor is None:
+			if (descriptor is None) or (descriptor.label is None):
 				return str(obj.id)
 			return "%d%s" % (obj.id, str(descriptor.label.value))
 		
