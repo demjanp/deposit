@@ -38,6 +38,8 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.usertools = None
 		self.statusbar = None
 		
+		self._splash = None
+		
 		self._in_parent_thread = False
 		self.broadcast_timer = None
 
@@ -87,6 +89,8 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.usertools = UserTools(self.model, self)
 		self.statusbar = StatusBar(self.model, self)
 		self.setStatusBar(self.statusbar)
+		
+		self.progress = None
 		
 		self.tool_window.setMaximumHeight(self.tool_window.sizeHint().height())
 		
@@ -165,6 +169,18 @@ class View(DModule, QtWidgets.QMainWindow):
 		else:
 			self.mdiarea.set_background_text("")
 	
+	def show_progress(self, text):
+		
+		self.progress = QtWidgets.QProgressDialog(text, None, 0, 0, self, flags = QtCore.Qt.FramelessWindowHint)
+		self.progress.setWindowModality(QtCore.Qt.WindowModal)
+		self.progress.show()
+		QtWidgets.QApplication.processEvents()
+	
+	def hide_progress(self):
+		
+		self.progress.hide()
+		self.progress.setParent(None)
+	
 	def update_mrud(self):
 		
 		if self.model.data_source is None:
@@ -189,14 +205,18 @@ class View(DModule, QtWidgets.QMainWindow):
 #					ds = self.model.datasources.RDFGraph(url=url)
 				if format == "JSON (*.json)":
 					ds = self.model.datasources.JSON(url=url)
+				self.show_progress("Saving...")
 				if (not ds is None) and ds.save():
 					self.model.set_datasource(ds)
+				self.hide_progress()
 
 		else:
 			if (self.model.data_source.name == "DB") and (not self.model.data_source.identifier):
 				self.dialogs.open("SetIdentifier", True)
 				return
+			self.show_progress("Saving...")
 			self.model.save()
+			self.hide_progress()
 	
 	def query(self, querystr):
 		

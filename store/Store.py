@@ -288,7 +288,11 @@ class Store(DModule):
 		id_lookup = {} # {orig_id: new_id, ...}
 		for id_orig in found_ids:
 			id_lookup[id_orig] = self.objects.add().id
+		cmax = len(found_ids)
+		cnt = 1
 		for id_orig in found_ids:
+			print("\rImporting %d/%d            " % (cnt, cmax), end = "")
+			cnt += 1
 			obj_orig = store.objects[id_orig]
 			obj_new = self.objects[id_lookup[id_orig]]
 			for cls in obj_orig.classes:
