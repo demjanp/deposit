@@ -130,7 +130,11 @@ class Store(DModule):
 			return
 		if ids is None:
 			ids = self.objects.keys()
+		cmax = len(ids)
+		cnt = 1
 		for id in ids:
+			print("\rCopying files %d/%d         " % (cnt, cmax), end = "")
+			cnt += 1
 			for descr in self.objects[id].descriptors:
 				descr = self.objects[id].descriptors[descr]
 				if descr.linked:
@@ -314,11 +318,9 @@ class Store(DModule):
 		if localise:
 			ids = [id_lookup[id_orig] for id_orig in id_lookup]
 			self.localise_resources(True, ids)
-		self.resume_broadcasts()
 		self.populate_descriptor_names()
 		self.populate_relation_names()
-		for id_orig in id_lookup:
-			self.broadcast(Broadcasts.ELEMENT_CHANGED, self.objects[id_lookup[id_orig]])
+		self.resume_broadcasts()
 	
 	def populate_descriptor_names(self):
 

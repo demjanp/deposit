@@ -38,8 +38,6 @@ class View(DModule, QtWidgets.QMainWindow):
 		self.usertools = None
 		self.statusbar = None
 		
-		self._splash = None
-		
 		self._in_parent_thread = False
 		self.broadcast_timer = None
 
