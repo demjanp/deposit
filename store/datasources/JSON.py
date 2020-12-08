@@ -156,7 +156,7 @@ class JSON(DataSource):
 		tgt_dir = os.path.split(path)[0]
 		if not os.path.isdir(tgt_dir):
 			os.mkdir(tgt_dir)
-		os.rename(saved_path, path)
+		shutil.move(saved_path, path)
 		
 		new_local_folder = os.path.split(path)[0]
 		if new_local_folder != self.store.local_folder:

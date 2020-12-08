@@ -270,10 +270,14 @@ class Store(DModule):
 			
 			if id in found:
 				return
-			found.append(id)
 			obj = store.objects[id]
+			if obj is None:
+				return
+			found.append(id)
 			for rel in obj.relations:
 				for id2 in obj.relations[rel]:
+					if id2 is None:
+						continue
 					collect_ids(id2, store, found)
 		
 		if (identifier == self.identifier) and (connstr == self.connstr):
@@ -305,6 +309,10 @@ class Store(DModule):
 				if rel.startswith("~"):
 					continue
 				for id2 in obj_orig.relations[rel]:
+					if id2 is None:
+						continue
+					if id2 not in id_lookup:
+						continue
 					weight = obj_orig.relations[rel].weight(id2)
 					obj_new.relations.add(rel, id_lookup[id2], weight)
 			for descr in obj_orig.descriptors:
