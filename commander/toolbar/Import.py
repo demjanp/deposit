@@ -7,7 +7,7 @@ class Import(Tool):
 	
 	def name(self):
 		
-		return "Import External"
+		return "Import"
 	
 	def icon(self):
 		
@@ -15,7 +15,7 @@ class Import(Tool):
 	
 	def help(self):
 		
-		return "Import External Data"
+		return "Import Data"
 	
 	def enabled(self):
 
