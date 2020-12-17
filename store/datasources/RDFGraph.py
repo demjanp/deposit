@@ -386,7 +386,7 @@ class RDFGraph(DataSource):
 		tgt_dir = os.path.split(path)[0]
 		if not os.path.isdir(tgt_dir):
 			os.mkdir(tgt_dir)
-		os.rename(saved_path, path)
+		shutil.move(saved_path, path)
 		
 		self.is_busy = False
 		
