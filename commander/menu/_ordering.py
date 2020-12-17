@@ -1,8 +1,7 @@
 
 ordering = [
-	["Data",	"Connect", "Save", "SaveAs", "SaveAsDB", "SaveAsDBRel"],
-	["Data",	"SetIdentifier"],
-	["Data",	"Import", "ImportDeposit", "Export"],
+	["Data",	"Connect", "Save"],
+	["Data",	"Import", "Export"],
 	["Data",	"ClearRecent"],
 	["Edit",	"Copy", "Paste"],
 	["Resources",	"SetLocalFolder", "ClearLocalFolder"],

@@ -10,10 +10,6 @@ from deposit.commander.menu.ClearLocalFolder import (ClearLocalFolder)
 from deposit.commander.menu.ClearRecent import (ClearRecent)
 from deposit.commander.menu.Copy import (Copy)
 from deposit.commander.menu.Paste import (Paste)
-from deposit.commander.menu.SaveAs import (SaveAs)
-from deposit.commander.menu.SaveAsDB import (SaveAsDB)
-from deposit.commander.menu.SaveAsDBRel import (SaveAsDBRel)
-from deposit.commander.menu.SetIdentifier import (SetIdentifier)
 from deposit.commander.menu.SetLocalFolder import (SetLocalFolder)
 from deposit.commander.menu.LocaliseResources import (LocaliseResources)
 from deposit.commander.menu.SaveHistory import (SaveHistory)
@@ -32,7 +28,7 @@ class Menu(CmdDict, MRUDMenu):
 		self.menubar = None
 		self.actions = {} # {name: Action, ...}
 		
-		CmdDict.__init__(self, ClearLocalFolder, ClearRecent, Copy, Paste, SaveAs, SaveAsDB, SaveAsDBRel, SetIdentifier, SetLocalFolder, LocaliseResources, SaveHistory, History, About)
+		CmdDict.__init__(self, ClearLocalFolder, ClearRecent, Copy, Paste, SetLocalFolder, LocaliseResources, SaveHistory, History, About)
 		MRUDMenu.__init__(self, model, view)
 		
 	def set_up(self):

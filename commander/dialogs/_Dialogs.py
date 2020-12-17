@@ -5,7 +5,6 @@ from deposit.commander.dialogs.AddClass import (AddClass)
 from deposit.commander.dialogs.AddDescriptor import (AddDescriptor)
 from deposit.commander.dialogs.AddRelation import (AddRelation)
 from deposit.commander.dialogs.Connect import (Connect)
-from deposit.commander.dialogs.ImportDeposit import (ImportDeposit)
 from deposit.commander.dialogs.LinkDB import (LinkDB)
 from deposit.commander.dialogs.RemoveClass import (RemoveClass)
 from deposit.commander.dialogs.RemoveObject import (RemoveObject)
@@ -13,9 +12,6 @@ from deposit.commander.dialogs.RemoveObjectsFromClass import (RemoveObjectsFromC
 from deposit.commander.dialogs.RemoveRelation import (RemoveRelation)
 from deposit.commander.dialogs.RenameClass import (RenameClass)
 from deposit.commander.dialogs.Import import (Import)
-from deposit.commander.dialogs.SaveAsDB import (SaveAsDB)
-from deposit.commander.dialogs.SaveAsDBRel import (SaveAsDBRel)
-from deposit.commander.dialogs.SetIdentifier import (SetIdentifier)
 from deposit.commander.dialogs.About import (About)
 from deposit.commander.dialogs.AddQuery import (AddQuery)
 from deposit.commander.dialogs.EditQuery import (EditQuery)
@@ -29,7 +25,7 @@ class Dialogs(CmdDict, ViewChild):
 		
 		self.dialogs_open = []
 
-		CmdDict.__init__(self, AddClass, AddDescriptor, AddRelation, ImportDeposit, Connect, LinkDB, RemoveClass, RemoveObject, RemoveObjectsFromClass, RemoveRelation, RenameClass, Import, SaveAsDB, SaveAsDBRel, SetIdentifier, About, AddQuery, EditQuery, OpenOrImport)
+		CmdDict.__init__(self, AddClass, AddDescriptor, AddRelation, Connect, LinkDB, RemoveClass, RemoveObject, RemoveObjectsFromClass, RemoveRelation, RenameClass, Import, About, AddQuery, EditQuery, OpenOrImport)
 		ViewChild.__init__(self, model, view)
 		
 		self.set_up()

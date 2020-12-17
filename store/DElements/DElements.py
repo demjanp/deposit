@@ -91,7 +91,8 @@ class DElements(DModule):
 		
 		if key in self._members:
 			return self._members[key]
-		raise IndexError()
+		print("Error: Index %d not found" % (key))
+		return None
 	
 	def add_naive(self, key, member):
 		

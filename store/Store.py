@@ -117,12 +117,13 @@ class Store(DModule):
 		self.data_source = data_source
 		self.broadcast(Broadcasts.STORE_DATA_SOURCE_CHANGED)
 
-	def set_local_folder(self, path):
+	def set_local_folder(self, path, silent = False):
 		
 		if not os.path.isdir(path):
 			os.mkdir(path)
 		self.local_folder = path
-		self.broadcast(Broadcasts.STORE_LOCAL_FOLDER_CHANGED)
+		if not silent:
+			self.broadcast(Broadcasts.STORE_LOCAL_FOLDER_CHANGED)
 	
 	def localise_resources(self, force = False, ids = None):
 		
@@ -262,28 +263,41 @@ class Store(DModule):
 			result = self.data_source.save()
 		return result
 	
-	def add_objects(self, identifier, connstr, ids = None, localise = False):
+	def add_objects(self, identifier_ds, connstr = None, ids = None, localise = False):
 		# add objects from a different store, specified by identifier and connstr
+		# identifier_ds = identifier or DataSource
 		# if ids == None: import all objects
 		
 		def collect_ids(id, store, found = []):
 			
 			if id in found:
 				return
-			found.append(id)
 			obj = store.objects[id]
+			if obj is None:
+				return
+			found.append(id)
 			for rel in obj.relations:
 				for id2 in obj.relations[rel]:
+					if id2 is None:
+						continue
 					collect_ids(id2, store, found)
 		
-		if (identifier == self.identifier) and (connstr == self.connstr):
-			return
-		store = Store()
-		ds = self.get_datasource(identifier, connstr, store)
-		if ds is None:
-			return
-		self.stop_broadcasts()
-		store.set_datasource(ds)
+		if isinstance(identifier_ds, dict):
+			self.stop_broadcasts()
+			store = Store()
+			ds = DataSource(store)
+			ds.from_dict(identifier_ds)
+			store.set_datasource(ds)
+		else:
+			if (identifier == self.identifier) and (connstr == self.connstr):
+				return
+			store = Store()
+			ds = self.get_datasource(identifier, connstr, store)
+			if ds is None:
+				return
+			self.stop_broadcasts()
+			store.set_datasource(ds)
+		
 		found_ids = []
 		if ids is None:
 			ids = store.objects.keys()
@@ -305,6 +319,10 @@ class Store(DModule):
 				if rel.startswith("~"):
 					continue
 				for id2 in obj_orig.relations[rel]:
+					if id2 is None:
+						continue
+					if id2 not in id_lookup:
+						continue
 					weight = obj_orig.relations[rel].weight(id2)
 					obj_new.relations.add(rel, id_lookup[id2], weight)
 			for descr in obj_orig.descriptors:

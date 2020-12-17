@@ -13,7 +13,7 @@ class Save(Tool):
 	def help(self):
 
 		if self.model.data_source is None:
-			return "Save As File"
+			return "Save"
 		
 		save_to = self.model.data_source.__class__.__name__
 		
