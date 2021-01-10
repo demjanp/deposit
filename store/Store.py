@@ -289,10 +289,10 @@ class Store(DModule):
 			ds.from_dict(identifier_ds)
 			store.set_datasource(ds)
 		else:
-			if (identifier == self.identifier) and (connstr == self.connstr):
+			if (identifier_ds == self.identifier) and (connstr == self.connstr):
 				return
 			store = Store()
-			ds = self.get_datasource(identifier, connstr, store)
+			ds = self.get_datasource(identifier_ds, connstr, store)
 			if ds is None:
 				return
 			self.stop_broadcasts()
