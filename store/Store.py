@@ -280,6 +280,8 @@ class Store(DModule):
 				for id2 in obj.relations[rel]:
 					if id2 is None:
 						continue
+					if id2 in found:
+						return
 					collect_ids(id2, store, found)
 		
 		if isinstance(identifier_ds, dict):
