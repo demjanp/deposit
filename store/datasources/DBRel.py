@@ -176,7 +176,11 @@ class DBRel(DB):
 				row = {"#obj_id": obj.id}
 				for descr_name in descriptor_names:
 					if descr_name in obj.descriptors:
-						row[descr_name] = json.dumps(obj.descriptors[descr_name].label.to_dict())
+						row_data = obj.descriptors[descr_name].label.to_dict()
+						if row_data["dtype"] == "DString":
+							row[descr_name] = row_data["value"]
+						else:
+							row[descr_name] = json.dumps(row_data)
 						if obj.descriptors[descr_name].geotag:
 							geotags.append([obj.id, descr_name, json.dumps(geotag)])
 					else:
@@ -340,6 +344,18 @@ class DBRel(DB):
 	
 	def load(self):
 		
+		def _load_value(data_in):
+			
+			if data_in.startswith('''{"dtype": '''):
+				try:
+					return json.loads(data_in)
+				except:
+					pass
+			return dict(
+				dtype = "DString",
+				value = data_in,
+			)
+		
 		if not self.wait_if_busy():
 			return False
 		self.is_busy = True
@@ -399,7 +415,7 @@ class DBRel(DB):
 					if added:
 						for i in range(len(descr_names)):
 							if row[i + 1] and (not descr_names[i] in obj.descriptors):
-								data = json.loads(row[i + 1])
+								data = _load_value(row[i + 1])
 								label = DLabel("").asdtype(data["dtype"]).from_dict(data)
 								obj.descriptors.add(descr_names[i], label)
 								
