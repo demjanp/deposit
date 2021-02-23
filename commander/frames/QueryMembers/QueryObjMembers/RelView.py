@@ -74,24 +74,20 @@ class RelView(Frame, QtWidgets.QWidget):
 	
 	def populate_headers(self):
 		
-		# collect all combinations of reltion and class / classless for query
+		# collect all combinations of relation and class / classless for query
 		self.relations = [] # [[rel, cls], ...]
-		for row in self.query:
-			obj = row.object
-			for rel in obj.relations:
-				for id2 in obj.relations[rel]:
-					if len(obj.relations[rel][id2].classes) == 0:
-						if not [rel, "!*"] in self.relations:
-							self.relations.append([rel, "!*"])
-					for cls in obj.relations[rel][id2].classes:
-						if not [rel, cls] in self.relations:
-							self.relations.append([rel, cls])
-							key = "%s_%s" % (rel, cls)
-							if not key in self.visible_widgets:
-								self.visible_widgets[key] = True
+		found = set([])
+		for cls1 in self.query.classes:
+			for rel in self.model.classes[cls1].relations:
+				for cls2 in self.model.classes[cls1].relations[rel]:
+					found.add((rel, cls2))
+				found.add((rel, "!*"))
+		for rel, cls in found:
+			self.relations.append([rel, cls])
+			self.visible_widgets["%s_%s" % (rel, cls)] = True
 		
 		# sort relations by class order
-		self.relations = natsorted(self.relations, key = lambda row: -1 if (row[1] == "!*") else self.model.classes[row[1]].order)
+		self.relations = natsorted(self.relations, key = lambda row: [row[0], -1] if (row[1] == "!*") else [row[0], self.model.classes[row[1]].order])
 		
 		self.clear_layout(self.layout)
 		
