@@ -16,6 +16,7 @@ from deposit.commander.dialogs.About import (About)
 from deposit.commander.dialogs.AddQuery import (AddQuery)
 from deposit.commander.dialogs.EditQuery import (EditQuery)
 from deposit.commander.dialogs.OpenOrImport import (OpenOrImport)
+from deposit.commander.dialogs.AddRelationVis import (AddRelationVis)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
@@ -25,7 +26,24 @@ class Dialogs(CmdDict, ViewChild):
 		
 		self.dialogs_open = []
 
-		CmdDict.__init__(self, AddClass, AddDescriptor, AddRelation, Connect, LinkDB, RemoveClass, RemoveObject, RemoveObjectsFromClass, RemoveRelation, RenameClass, Import, About, AddQuery, EditQuery, OpenOrImport)
+		CmdDict.__init__(self, 
+			AddClass, 
+			AddDescriptor, 
+			AddRelation, 
+			Connect, 
+			LinkDB, 
+			RemoveClass, 
+			RemoveObject, 
+			RemoveObjectsFromClass, 
+			RemoveRelation, 
+			RenameClass, 
+			Import, 
+			About, 
+			AddQuery, 
+			EditQuery, 
+			OpenOrImport, 
+			AddRelationVis
+		)
 		ViewChild.__init__(self, model, view)
 		
 		self.set_up()

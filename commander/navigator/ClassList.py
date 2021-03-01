@@ -75,7 +75,7 @@ class ClassList(Frame, QtWidgets.QTreeWidget):
 	def get_selected(self):
 		
 		return [item.data(0, QtCore.Qt.UserRole) for item in self.selectedItems()]
-		
+	
 	def get_selected_parent(self):
 		
 		parent = self.selectedItems()[0].parent()

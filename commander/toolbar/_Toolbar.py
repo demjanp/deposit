@@ -15,6 +15,7 @@ from deposit.commander.toolbar.RemoveClass import (RemoveClass)
 from deposit.commander.toolbar.RemoveDescriptor import (RemoveDescriptor)
 from deposit.commander.toolbar.RemoveObject import (RemoveObject)
 from deposit.commander.toolbar.RemoveRelation import (RemoveRelation)
+from deposit.commander.toolbar.ClassVis import (ClassVis)
 from deposit.commander.toolbar.Save import (Save)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
@@ -55,7 +56,7 @@ class Toolbar(CmdDict, ViewChild):
 		self.toolbar = None
 		self.actions = {} # {name: Action, ...}
 
-		CmdDict.__init__(self, AddClass, AddDescriptor, AddObject, AddRelation, Export, Import, Connect, RelationName, RemoveClass, RemoveDescriptor, RemoveObject, RemoveRelation, Save)
+		CmdDict.__init__(self, AddClass, AddDescriptor, AddObject, AddRelation, Export, Import, Connect, RelationName, RemoveClass, RemoveDescriptor, RemoveObject, RemoveRelation, ClassVis, Save)
 		ViewChild.__init__(self, model, view)
 
 		self.set_up()

@@ -64,7 +64,7 @@ class Class(Frame, QtWidgets.QWidget):
 		
 		self.layout().addItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding), row, 0)
 		self.parent.adjustSize()
-		
+	
 	def name(self):
 		
 		return self.dclass.name

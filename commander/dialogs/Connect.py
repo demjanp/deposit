@@ -38,7 +38,25 @@ class Connect(DataSource):
 		
 		ds_import = None
 		if (len(self.model.objects) > 0) or (len(self.model.classes) > 0):
-			if self.save or (QtWidgets.QMessageBox.question(self, "Import current data?", "Import current data to new database?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No) == QtWidgets.QMessageBox.Yes):
+			
+			do_import = self.save
+			if not self.save:
+				msgbox = QtWidgets.QMessageBox()
+				msgbox.setWindowTitle("Import current data?")
+				msgbox.setText("Import current data into new database?")
+				button_import = msgbox.addButton("Import", QtWidgets.QMessageBox.YesRole)
+				button_import.setToolTip("Import current data into the newly opened database.")
+				button_no = msgbox.addButton("No", QtWidgets.QMessageBox.NoRole)
+				button_no.setToolTip("Just open the new database, without importing.")
+				button_cancel = msgbox.addButton("Cancel", QtWidgets.QMessageBox.RejectRole)
+				msgbox.setIcon(QtWidgets.QMessageBox.Question)
+				ret = msgbox.exec()
+				if msgbox.clickedButton() == button_cancel:
+					self.close()
+					return
+				do_import = (msgbox.clickedButton() == button_import)				
+			
+			if do_import:
 				ds_import = dict(
 					data_source_class = None,
 					identifier = None,

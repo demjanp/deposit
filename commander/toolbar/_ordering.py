@@ -3,7 +3,7 @@ ordering = [
 	["AddClass", "RemoveClass"],
 	["AddObject", "RemoveObject"],
 	["AddDescriptor", "RemoveDescriptor"],
-	["AddRelation", "RelationName", "RemoveRelation"],
+	["AddRelation", "RelationName", "RemoveRelation", "ClassVis"],
 	["FieldCalculator", "Merge", "MergeIdentical", "Duplicate"],
 	["Import", "Export"],
 ]

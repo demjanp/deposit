@@ -4,5 +4,6 @@ from deposit.commander.frames.Descriptor import (Descriptor)
 from deposit.commander.frames.Query import (Query)
 from deposit.commander.frames.Shapefile import (Shapefile)
 from deposit.commander.frames.XLSX import (XLSX)
+from deposit.commander.frames.ClassVis import (ClassVis)
 
-FRAMES = dict([(cls.__name__, cls) for cls in [Class, CSV, Descriptor, Query, Shapefile, XLSX]]) # {name: Frame, ...}
+FRAMES = dict([(cls.__name__, cls) for cls in [Class, CSV, Descriptor, Query, Shapefile, XLSX, ClassVis]]) # {name: Frame, ...}
