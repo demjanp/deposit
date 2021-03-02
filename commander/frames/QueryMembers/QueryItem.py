@@ -73,3 +73,23 @@ class QueryItem(DModule):
 		
 		return None
 
+
+class DModelIndex(object):
+	
+	def __init__(self, row, column, element, relation = None):
+		
+		self._column = column
+		self._row = row
+		self._data = QueryItem(self, element, None, relation)
+	
+	def column(self):
+		
+		return self._column
+	
+	def data(self, role):
+		
+		return self._data
+	
+	def row(self):
+		
+		return self._row

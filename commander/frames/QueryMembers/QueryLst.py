@@ -216,6 +216,10 @@ class QueryLst(Frame, PrototypeDragView, QtWidgets.QTableView):
 			self.table_model.proxy_model.setFilterRegExp(QtCore.QRegExp(".*%s.*" % text, QtCore.Qt.CaseInsensitive))
 		self.table_model.proxy_model.setFilterKeyColumn(-1)
 	
+	def clear_selection(self):
+	
+		self.clearSelection()
+	
 	def select_next_row(self):
 		
 		rows = self.table_model.rowCount(None)
@@ -239,13 +243,13 @@ class QueryLst(Frame, PrototypeDragView, QtWidgets.QTableView):
 				self.selectRow(row - 1)
 			else:
 				self.selectRow(rows - 1)
-
+	
 	def select_last_row(self):
 
 		rows = self.table_model.rowCount(None)
 		if rows:
 			self.selectRow(rows - 1)
-
+	
 	def select_object(self, obj):
 
 		if obj.__class__.__name__ != "DObject":

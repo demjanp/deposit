@@ -126,7 +126,6 @@ class DClass(DElement):
 			self.relations[rel].remove(class_name)
 			if not len(self.relations[rel]):
 				del self.relations[rel]
-				self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
 			# also delete relation from classes objects
 			for id1 in self.objects:
 				if rel not in self.objects[id1].relations:
@@ -137,6 +136,7 @@ class DClass(DElement):
 						to_del.append(id2)
 				for id2 in to_del:
 					del self.store.objects[id1].relations[rel][id2]
+			self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
 	
 	def add_object(self):
 		

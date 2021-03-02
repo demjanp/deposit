@@ -32,5 +32,10 @@ class RemoveRelation(Dialog):
 	def process(self):
 		
 		for item in self.items:
-			del self.model.objects[item.relation.source.id].relations[item.relation.name][item.element.id]
+			if item.element.__class__.__name__ == "DObject":
+				del self.model.objects[item.relation.source.id].relations[item.relation.name][item.element.id]
+			elif item.element.__class__.__name__ == "DClass":
+				cls1 = item.element.name
+				rel, cls2 = item.relation
+				self.model.classes[cls1].del_relation(rel, cls2)
 

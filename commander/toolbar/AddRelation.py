@@ -26,7 +26,7 @@ class AddRelation(Tool):
 		if current:
 			for row in current.get_selected():
 				for item in row:
-					if item.element.__class__.__name__ == "DObject":
+					if (item.element.__class__.__name__ == "DObject") or (item.element.__class__.__name__ == "DClass"):
 						return True
 					return False
 		return False
@@ -35,7 +35,16 @@ class AddRelation(Tool):
 		
 		objects = []
 		current = self.view.mdiarea.get_current()
-		if current:
+		if current.__class__.__name__ == "ClassVis":
+			classes = []
+			for row in current.get_selected():
+				for item in row:
+					if item.element.__class__.__name__ == "DClass":
+						classes.append(item.element.name)
+			if classes:
+				self.view.dialogs.open("AddRelation", [self.model.classes[name] for name in classes])
+			return
+		elif current:
 			if current.__class__.__name__ == "QueryObj":
 				objects = [current.object]
 			else:
@@ -50,3 +59,4 @@ class AddRelation(Tool):
 			classes = [self.model.classes[name] for name in current.query.classes if name != "!*"]
 			if classes:
 				self.view.dialogs.open("AddRelation", classes)
+

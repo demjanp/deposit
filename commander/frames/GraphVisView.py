@@ -312,7 +312,11 @@ class Edge(QtWidgets.QGraphicsItem):
 		painter.setPen(QtGui.QPen(QtCore.Qt.gray, pen_width, QtCore.Qt.SolidLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin))
 		painter.drawLine(self.line)
 		
-		angle = math.acos(self.line.dx() / self.line.length())
+		length = self.line.length()
+		if length:
+			angle = math.acos(self.line.dx() / length)
+		else:
+			angle = 0
 		if self.line.dy() >= 0:
 			angle = 2*math.pi - angle
 		
@@ -333,7 +337,7 @@ class Edge(QtWidgets.QGraphicsItem):
 
 class GraphVisView(QtWidgets.QGraphicsView):
 	
-	activated = QtCore.Signal(str)
+	activated = QtCore.Signal(object)
 	selected = QtCore.Signal()
 	
 	def __init__(self):
@@ -341,6 +345,7 @@ class GraphVisView(QtWidgets.QGraphicsView):
 		self._nodes = {}  # {node_id: Node, ...}
 		self._edges = []  # [Edge, ...]
 		self._mouse_prev = None
+		self._show_attributes = False
 		
 		QtWidgets.QGraphicsView.__init__(self)
 		
@@ -375,15 +380,16 @@ class GraphVisView(QtWidgets.QGraphicsView):
 		# attributes = {node_id: [name, ...], ...}
 		# positions = {node_id: (x, y), ...}
 		
+		self._show_attributes = show_attributes
 		self.clear()
 		for node_id in nodes:
-			if show_attributes:
+			if self._show_attributes:
 				self._nodes[node_id] = NodeWithAttributes(node_id, nodes[node_id], attributes[node_id] if node_id in attributes else [])
 			else:
 				self._nodes[node_id] = Node(node_id, nodes[node_id])
 			self.scene().addItem(self._nodes[node_id])
 			x, y = positions[node_id]
-			if show_attributes:
+			if self._show_attributes:
 				self._nodes[node_id].setPos(x*4, y*4)
 			else:
 				self._nodes[node_id].setPos(x*2, y*2)
@@ -404,6 +410,18 @@ class GraphVisView(QtWidgets.QGraphicsView):
 				edges.append((item.source().node_id, item.target().node_id, item.label))
 		return nodes, edges
 	
+	def get_positions(self):
+		
+		positions = {}
+		for node_id in self._nodes:
+			pos = self._nodes[node_id].pos()
+			x, y = pos.x(), pos.y()
+			if self._show_attributes:
+				positions[node_id] = (x / 4, y / 4)
+			else:
+				positions[node_id] = (x / 2, y / 2)
+		return positions
+	
 	def wheelEvent(self, event):
 		
 		self.scale_view(2**(event.delta() / 240.0))
@@ -411,9 +429,6 @@ class GraphVisView(QtWidgets.QGraphicsView):
 	def scale_view(self, factor):
 		
 		f = self.matrix().scale(factor, factor).mapRect(QtCore.QRectF(0, 0, 1, 1)).width()
-		
-		if f < 0.07 or f > 100:
-			return
 		
 		self.scale(factor, factor)
 	

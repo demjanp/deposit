@@ -328,9 +328,12 @@ class QueryImg(Frame, PrototypeDragView, QtWidgets.QListView):
 		
 		super(QueryImg, self).selectionChanged(selected, deselected)
 		
-		selected = self.get_selected()
+		selected = self.get_selected_objects()
+		
+		self.parent.tab_lst.clear_selection()
 		if len(selected):
-			self.parent.tab_lst.select_object(selected[0][0].element.target)
+			for row in selected:
+				self.parent.tab_lst.select_object(selected[row])
 		
 #		self.broadcast(Broadcasts.VIEW_SELECTED)
 #		self.broadcast(Broadcasts.VIEW_ACTION)

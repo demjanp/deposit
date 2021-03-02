@@ -45,6 +45,7 @@ class Dialog(DModule, QtWidgets.QDialog):
 
 	def set_closed(self):
 		
+		self.disconnect_broadcast()
 		self._closed = True
 	
 	def closed(self):

@@ -35,7 +35,7 @@ class AddRelation(Dialog):
 		self.connect_broadcast(Broadcasts.VIEW_ACTION, self.update_label)
 
 		self.is_objects = (self.objects_classes[0].__class__.__name__ == "DObject")
-
+		
 		self.update_label([])
 	
 	def on_relation_edited(self, text):
@@ -44,9 +44,6 @@ class AddRelation(Dialog):
 
 	def update_label(self, args):
 		
-		if self.closed():
-			return
-
 		rel = self.view.toolbar.get_combo_value("RelationName")
 		self.label_relation.setText(rel)
 		fm = QtGui.QFontMetrics(QtGui.QFont("", 0))
@@ -73,11 +70,16 @@ class AddRelation(Dialog):
 				if self.objects_classes2:
 					obj2 = " \u2192 obj(%s)" % (", ".join([str(obj.id) for obj in self.objects_classes2]))
 				self.label_target.setText(obj2)
-
 			else:
-				for name in current.query.classes:
-					if name != "!*":
-						self.objects_classes2.append(self.model.classes[name])
+				if current.__class__.__name__ == "ClassVis":
+					for cls in current.graph_view.get_selected()[0]:
+						cls = self.model.classes[cls]
+						if cls not in self.objects_classes:
+							self.objects_classes2.append(cls)
+				else:
+					for name in current.query.classes:
+						if name != "!*":
+							self.objects_classes2.append(self.model.classes[name])
 				cls1 = "%s \u2192 " % (", ".join([cls.name for cls in self.objects_classes]))
 				self.label_source.setText(cls1)
 				cls2 = " \u2192 "
@@ -99,3 +101,4 @@ class AddRelation(Dialog):
 				for cls1 in self.objects_classes:
 					for cls2 in self.objects_classes2:
 						cls1.add_relation(rel, cls2.name)
+	

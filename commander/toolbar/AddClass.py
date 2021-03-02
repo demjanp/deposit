@@ -4,7 +4,11 @@ class AddClass(Tool):
 	
 	def name(self):
 		
-		return "Add Objects to Class"
+		current = self.view.mdiarea.get_current()
+		if (current is None) or (current.__class__.__name__ == "ClassVis"):
+			return "Add Class"
+		else:
+			return "Add Objects to Class"
 	
 	def icon(self):
 		
@@ -12,18 +16,11 @@ class AddClass(Tool):
 	
 	def help(self):
 		
-		return "Add Objects to Class"
+		return self.name()
 	
 	def enabled(self):
 		
-		current = self.view.mdiarea.get_current()
-		if current:
-			for row in current.get_selected():
-				for item in row:
-					if item.element.__class__.__name__ == "DObject":
-						return True
-					return False
-		return False
+		return True
 	
 	def triggered(self, state):
 		
@@ -38,5 +35,5 @@ class AddClass(Tool):
 				self.view.dialogs.open("AddClass", objects)
 				return
 		
-
+		self.view.dialogs.open("AddClass")
 		

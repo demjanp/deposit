@@ -4,6 +4,7 @@ from deposit.commander.frames._Frame import (Frame)
 from deposit.commander.frames.QueryMembers.QueryLst import (QueryLst)
 from deposit.commander.frames.QueryMembers.QueryImg import (QueryImgLazy, QueryImg)
 from deposit.commander.frames.QueryMembers.QueryGeo import (QueryGeoLazy, QueryGeo)
+from deposit.commander.frames.QueryMembers.QueryVis import (QueryVisLazy, QueryVis)
 from deposit.commander.frames.QueryMembers.QueryObj import (QueryObj)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
@@ -18,6 +19,7 @@ class Query(Frame, QtWidgets.QWidget):
 		self.tab_lst = None
 		self.tab_img = None
 		self.tab_geo = None
+		self.tab_vis = None
 		self.tab_obj = None
 		self.footer = None
 		self.populate_obj = [] # [DObject, row] or []
@@ -40,27 +42,30 @@ class Query(Frame, QtWidgets.QWidget):
 		self.query = self.model.query(self.querystr)
 		
 		self.tabs = QtWidgets.QTabWidget(self)
-
+		
 		self.tab_lst = QueryLst(self.model, self.view, self, self.query)
 		self.tabs.addTab(self.tab_lst, "LST")
-
+		
 		self.tab_img = QueryImgLazy(self.model, self.view, self, self.query)
 		self.tabs.addTab(self.tab_img, "IMG")
-
+		
 		self.tab_geo = QueryGeoLazy(self.model, self.view, self, self.query)
 		self.tabs.addTab(self.tab_geo, "GEO")
-
+		
+		self.tab_vis = QueryVisLazy(self.model, self.view, self, self.query)
+		self.tabs.addTab(self.tab_vis, "VIS")
+		
 		self.tab_obj = QueryObj(self.model, self.view, self, self.query)
 		self.tabs.addTab(self.tab_obj, "OBJ")
 		
 		self.connect_broadcast(Broadcasts.VIEW_SELECTED, self.on_query_selected)
 		self.connect_broadcast(Broadcasts.VIEW_BROWSE_PREVIOUS, self.on_previous)
 		self.connect_broadcast(Broadcasts.VIEW_BROWSE_NEXT, self.on_next)
-
+		
 		self.tabs.currentChanged.connect(self.on_tab_changed)
-
+		
 		self.layout.addWidget(self.tabs)
-
+		
 		self.footer = QueryFooter(self)
 		self.layout.addWidget(self.footer)
 
@@ -85,7 +90,7 @@ class Query(Frame, QtWidgets.QWidget):
 
 	def update_tabs_enabled(self):
 
-		for i, tab in enumerate([self.tab_img, self.tab_geo, self.tab_obj]):
+		for i, tab in enumerate([self.tab_img, self.tab_geo, self.tab_vis, self.tab_obj]):
 			if tab == self.tab_geo:  # TODO remove after implementing GEO view
 				self.tabs.setTabEnabled(i + 1, False)
 				continue
@@ -112,6 +117,15 @@ class Query(Frame, QtWidgets.QWidget):
 		self.tabs.removeTab(3)
 		self.tabs.setCurrentIndex(2)
 	
+	def populate_tab_vis(self):
+		
+		self.tab_vis = QueryVis(self.model, self.view, self, self.query)
+		self.connect_broadcast(Broadcasts.VIEW_SELECTED, self.on_query_selected)
+		
+		self.tabs.insertTab(3, self.tab_vis, "VIS")
+		self.tabs.removeTab(4)
+		self.tabs.setCurrentIndex(3)
+	
 	def update(self):
 		
 		query = self.model.query(self.querystr)
@@ -122,7 +136,9 @@ class Query(Frame, QtWidgets.QWidget):
 			self.tab_img.set_query(self.query)
 			self.tab_geo.set_query(self.query)
 			self.update_tabs_enabled()
-
+		
+		self.tab_vis.set_query(self.query)
+		
 		self.tab_obj.set_query(self.query)
 		if self.tab_obj.object is not None:
 			self.tab_obj.update()
@@ -140,7 +156,7 @@ class Query(Frame, QtWidgets.QWidget):
 	
 	def get_current(self):
 
-		return [self.tab_lst, self.tab_img, self.tab_geo, self.tab_obj][self.tabs.currentIndex()]
+		return [self.tab_lst, self.tab_img, self.tab_geo, self.tab_vis, self.tab_obj][self.tabs.currentIndex()]
 
 	def on_query_selected(self, args):
 
@@ -154,7 +170,7 @@ class Query(Frame, QtWidgets.QWidget):
 		obj, row = self.tab_lst.get_first_selected()
 		if obj is None:
 			return
-		if self.tabs.currentIndex() == 3:  # obj tab visible
+		if self.tabs.currentIndex() == 4:  # obj tab visible
 			self.tab_obj.populate_data(self.tab_lst, obj, row)
 			self.populate_obj = []
 		else:
@@ -163,7 +179,7 @@ class Query(Frame, QtWidgets.QWidget):
 	@QtCore.Slot(int)
 	def on_tab_changed(self, index):
 		
-		if index == 3: # tab_obj
+		if index == 4: # tab_obj
 			if not self.tab_lst.get_selected_objects():
 				self.tab_lst.select_next_row()
 			if self.populate_obj:
@@ -177,15 +193,19 @@ class Query(Frame, QtWidgets.QWidget):
 			if isinstance(self.tab_geo, QueryGeoLazy):
 				self.populate_tab_geo()
 		
+		elif index == 3: # tab_vis
+			if isinstance(self.tab_vis, QueryVisLazy):
+				self.populate_tab_vis()
+		
 		self.footer.set_zoom_enabled(index == 1)
-		self.footer.set_filter_enabled(index != 3)
+		self.footer.set_filter_enabled(index != 4)
 
-		if index != 3:
+		if index != 4:
 			self.on_filter_timer()
 		
 		self.footer.set_count(self.get_current().get_row_count())
 
-		state = ((index in [0,3]) and (len(self.query.parse.selects) == 1) and (len(self.query.parse.selects[0].classes) == 1))
+		state = ((index in [0,4]) and (len(self.query.parse.selects) == 1) and (len(self.query.parse.selects[0].classes) == 1))
 		self.footer.set_add_object_enabled(state)
 
 		self.update_tabs_enabled()
@@ -212,19 +232,19 @@ class Query(Frame, QtWidgets.QWidget):
 		current = self.get_current()
 		if current == self.tab_img:
 			current.set_thumbnail_size(value)
-
+	
 	def on_previous(self, args):
 
 		for broadcaster, in args:
 			if broadcaster == self.tab_obj.browse_frame:
 				self.tab_lst.select_previous_row()
-
+	
 	def on_next(self, args):
 
 		for broadcaster, in args:
 			if broadcaster == self.tab_obj.browse_frame:
 				self.tab_lst.select_next_row()
-
+	
 	def on_add_object(self):
 
 		cls = self.query.classes[0]
@@ -235,7 +255,7 @@ class Query(Frame, QtWidgets.QWidget):
 		if self.get_current() == self.tab_obj:
 			self.update()
 			self.tab_lst.select_last_row()
-
+	
 	def on_store_changed(self, args):
 		
 		self._update_timer.start(100)
@@ -250,7 +270,7 @@ class Query(Frame, QtWidgets.QWidget):
 	
 	def on_object_activated(self, element):
 		
-		self.tabs.setCurrentIndex(3)
+		self.tabs.setCurrentIndex(4)
 	
 	def on_descriptor_activated(self, element):
 		

@@ -4,7 +4,11 @@ class RemoveClass(Tool):
 	
 	def name(self):
 		
-		return "Remove Objects from Class"
+		current = self.view.mdiarea.get_current()
+		if current.__class__.__name__ == "ClassVis":
+			return "Remove Class"
+		else:
+			return "Remove Objects from Class"
 	
 	def icon(self):
 		
@@ -12,15 +16,15 @@ class RemoveClass(Tool):
 	
 	def help(self):
 		
-		return "Remove Objects from Class"
+		return self.name()
 	
 	def enabled(self):
-
+		
 		current = self.view.mdiarea.get_current()
 		if current:
 			for row in current.get_selected():
 				for item in row:
-					if item.element.__class__.__name__ == "DObject":
+					if (item.element.__class__.__name__ == "DObject") or (item.element.__class__.__name__ == "DClass"):
 						return True
 					return False
 		return False
@@ -33,4 +37,12 @@ class RemoveClass(Tool):
 			if objects:
 				self.view.dialogs.open("RemoveObjectsFromClass", objects)
 				return
+		elif current.__class__.__name__ == "ClassVis":
+			classes = []
+			for row in current.get_selected():
+				for item in row:
+					if item.element.__class__.__name__ == "DClass":
+						classes.append(item.element.name)
+			if classes:
+				self.view.dialogs.open("RemoveClass", classes, None)
 
