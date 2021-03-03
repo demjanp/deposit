@@ -15,6 +15,7 @@ class DResource(DLabel):
 	#	projection = wkt format
 	#	worldfile = [A, D, B, E, C, F]
 	# public methods:
+	#	path() returns path to resource (None if resource is online)
 	#	open() returns opened resource
 	#	is_stored()	returns True if resource is stored locally
 	#	is_image() returns True if resource is an image
@@ -79,19 +80,26 @@ class DResource(DLabel):
 		
 		if isinstance(values, list) and (len(values) == 6):
 			self._worldfile = values.copy()
-
-	def open(self):
+	
+	def path(self):
 		
 		if self._path is not None:
-			return open(self._path, "rb")
+			return self._path
 		if (self._value is not None) and os.path.isfile(self._value):
-			return open(self._value, "rb")
+			return self._value
 		parsed = urlparse(self._value)
 		if parsed.scheme == "file":
 			path = os.path.normpath(parsed.path.strip("/").strip("\\"))
 			if os.path.isfile(path):
-				return open(path, "rb")
-			return None
+				return path
+		return None
+	
+	def open(self):
+		
+		path = self.path()
+		if path is not None:
+			return open(path, "rb")
+		parsed = urlparse(self._value)
 		if parsed.scheme in ["http", "https", "ftp", "ftps"]:
 			return urlopen(self._value)
 		return None
