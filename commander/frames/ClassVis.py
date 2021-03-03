@@ -6,7 +6,9 @@ from deposit.commander.frames.QueryMembers.QuerySelection import (QuerySelection
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 from networkx.drawing.nx_agraph import graphviz_layout
+from pathlib import Path
 import networkx as nx
+import os
 
 class ClassVis(Frame, QtWidgets.QMainWindow):
 	
@@ -16,7 +18,7 @@ class ClassVis(Frame, QtWidgets.QMainWindow):
 		
 		self.nodes = {}  # {node_id: label, ...}
 		self.edges = []  # [[source_id, target_id, label], ...]
-		self.attributes = {}  # {node_id: [name, ...], ...}
+		self.attributes = {}  # {node_id: [(name, value), ...], ...}
 		self.positions = {}  # {node_id: (x, y), ...}
 		
 		self._selection = None
@@ -59,6 +61,8 @@ class ClassVis(Frame, QtWidgets.QMainWindow):
 			["zoom_in", "Zoom In", "zoom_in.svg"],
 			["zoom_out", "Zoom Out", "zoom_out.svg"],
 			["zoom_reset", "Zoom Reset", "zoom_reset.svg"],
+			["#separator", None, None],
+			["save_pdf", "Save As PDF", "save_pdf.svg"],
 		]
 		
 		for name, text, icon in actions:
@@ -88,7 +92,7 @@ class ClassVis(Frame, QtWidgets.QMainWindow):
 				continue
 			self.nodes[name] = name
 			G.add_node(name)
-			self.attributes[name] = sorted(list(self.model.classes[name].descriptors), key = lambda name2: self.model.classes[name2].order)
+			self.attributes[name] = [(name2, "") for name2 in sorted(list(self.model.classes[name].descriptors), key = lambda name2: self.model.classes[name2].order)]
 			classes_done.add(name)
 		for name in self.model.classes:
 			cls = self.model.classes[name]
@@ -126,7 +130,7 @@ class ClassVis(Frame, QtWidgets.QMainWindow):
 		for y, name in enumerate(todo):
 			self.positions[name] = (xmax, y * 30)
 		
-		self.graph_view.set_data(self.nodes, self.edges, self.attributes, self.positions, show_attributes = self.actions["descriptor_view"].isChecked())
+		self.graph_view.set_data(self.nodes, self.edges, self.attributes, self.positions, show_attributes = 2 if self.actions["descriptor_view"].isChecked() else 0)
 
 	def name(self):
 		
@@ -183,7 +187,7 @@ class ClassVis(Frame, QtWidgets.QMainWindow):
 	
 	def on_descriptor_view(self):
 		
-		self.graph_view.set_data(self.nodes, self.edges, self.attributes, self.positions, show_attributes = self.actions["descriptor_view"].isChecked())
+		self.graph_view.set_data(self.nodes, self.edges, self.attributes, self.positions, show_attributes = 2 if self.actions["descriptor_view"].isChecked() else 0)
 		self.graph_view.reset_scene()
 	
 	def on_reset_layout(self):
@@ -203,5 +207,16 @@ class ClassVis(Frame, QtWidgets.QMainWindow):
 		
 		self.graph_view.reset_scene()
 	
-	
-	
+	def on_save_pdf(self):
+		
+		filename = "classes.pdf"
+		path = self.view.registry.get("last_save_dir")
+		if not path:
+			path = os.path.join(str(Path.home()), "Desktop")
+		path = os.path.join(path, filename)
+		path, _ = QtWidgets.QFileDialog.getSaveFileName(None, "Save As Adobe PDF", path, "Adobe PDF (*.pdf)")
+		if not path:
+			return
+		self.view.registry.set("last_save_dir", os.path.split(path)[0])
+		self.graph_view.save_pdf(path)
+

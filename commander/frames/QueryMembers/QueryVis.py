@@ -7,7 +7,9 @@ from deposit.commander.frames.QueryMembers.QuerySelection import (QuerySelection
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 from networkx.drawing.nx_agraph import graphviz_layout
+from pathlib import Path
 import networkx as nx
+import os
 
 class QueryVisLazy(Frame, QtWidgets.QWidget):
 	
@@ -46,7 +48,7 @@ class QueryVis(Frame, QtWidgets.QMainWindow):
 		
 		self._nodes = {}  # {node_id: label, ...}
 		self._edges = []  # [[source_id, target_id, label], ...]
-		self._attributes = {}  # {node_id: [name, ...], ...}
+		self._attributes = {}  # {node_id: [(name, value), ...], ...}
 		self._positions = {}  # {node_id: (x, y), ...}
 		
 		self._actions = {} # {name: QAction, ...}
@@ -79,12 +81,16 @@ class QueryVis(Frame, QtWidgets.QMainWindow):
 		
 		self.toolbar = self.addToolBar("Graph")
 		actions = [
-			["descriptor_view", "Show Descriptors", "attributes.svg"],
+			["node_view", "Show Nodes", "nodes.svg"],
+			["value_view", "Show Values", "attributes_simple.svg"],
+			["descriptor_view", "Show Descriptors with Values", "attributes.svg"],
 			["reset_layout", "Re-arrange Layout", "geometry.svg"],
 			["#separator", None, None],
 			["zoom_in", "Zoom In", "zoom_in.svg"],
 			["zoom_out", "Zoom Out", "zoom_out.svg"],
 			["zoom_reset", "Zoom Reset", "zoom_reset.svg"],
+			["#separator", None, None],
+			["save_pdf", "Save As PDF", "save_pdf.svg"],
 		]
 		
 		for name, text, icon in actions:
@@ -95,8 +101,12 @@ class QueryVis(Frame, QtWidgets.QMainWindow):
 				self._actions[name].setData(name)
 				self.toolbar.addAction(self._actions[name])
 		
+		self._actions["node_view"].setCheckable(True)
+		self._actions["value_view"].setCheckable(True)
 		self._actions["descriptor_view"].setCheckable(True)
-		self._actions["descriptor_view"].setChecked(True)
+		self._actions["node_view"].setChecked(False)
+		self._actions["value_view"].setChecked(True)
+		self._actions["descriptor_view"].setChecked(False)
 		
 		self.toolbar.actionTriggered.connect(self.on_tool_triggered)
 	
@@ -122,7 +132,7 @@ class QueryVis(Frame, QtWidgets.QMainWindow):
 				if descriptor.label.__class__.__name__ != "DString":
 					continue
 				if descriptor.label.value:
-					self._attributes[obj_id].append("%s: %s" % (column, descriptor.label.value))
+					self._attributes[obj_id].append((column, descriptor.label.value))
 		for row in self.query:
 			obj_id1 = row.object.id
 			for rel in row.object.relations:
@@ -156,7 +166,7 @@ class QueryVis(Frame, QtWidgets.QMainWindow):
 		for y, name in enumerate(todo):
 			self._positions[name] = (xmax, y * 30)
 		
-		self.graph_view.set_data(self._nodes, self._edges, self._attributes, self._positions, show_attributes = self._actions["descriptor_view"].isChecked())
+		self.update_view(1)
 
 	def set_query(self, query):
 		
@@ -191,6 +201,15 @@ class QueryVis(Frame, QtWidgets.QMainWindow):
 		
 		return self._row_count
 	
+	def update_view(self, show_attributes):
+		
+		for n, name in [(0, "node_view"), (1, "value_view"), (2, "descriptor_view")]:
+			self._actions[name].blockSignals(True)
+			self._actions[name].setChecked(show_attributes == n)
+			self._actions[name].blockSignals(False)
+		self.graph_view.set_data(self._nodes, self._edges, self._attributes, self._positions, show_attributes = show_attributes)
+		self.graph_view.reset_scene()
+	
 	def on_tool_triggered(self, action):
 		
 		fnc_name = "on_%s" % str(action.data())
@@ -223,10 +242,17 @@ class QueryVis(Frame, QtWidgets.QMainWindow):
 	
 	# Toolbar actions
 	
+	def on_node_view(self):
+		
+		self.update_view(0)
+	
+	def on_value_view(self):
+		
+		self.update_view(1)
+	
 	def on_descriptor_view(self):
 		
-		self.graph_view.set_data(self._nodes, self._edges, self._attributes, self._positions, show_attributes = self._actions["descriptor_view"].isChecked())
-		self.graph_view.reset_scene()
+		self.update_view(2)
 	
 	def on_reset_layout(self):
 		
@@ -245,5 +271,21 @@ class QueryVis(Frame, QtWidgets.QMainWindow):
 		
 		self.graph_view.reset_scene()
 	
-	
-	
+	def on_save_pdf(self):
+		
+		classes = [cls for cls in self.query.classes if "*" not in cls]
+		if classes:
+			name = classes[0]
+		else:
+			name = "objects"
+		filename = "%s.pdf" % (name)
+		path = self.view.registry.get("last_save_dir")
+		if not path:
+			path = os.path.join(str(Path.home()), "Desktop")
+		path = os.path.join(path, filename)
+		path, _ = QtWidgets.QFileDialog.getSaveFileName(None, "Save As Adobe PDF", path, "Adobe PDF (*.pdf)")
+		if not path:
+			return
+		self.view.registry.set("last_save_dir", os.path.split(path)[0])
+		self.graph_view.save_pdf(path)
+

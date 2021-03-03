@@ -1,5 +1,5 @@
 
-from PySide2 import (QtWidgets, QtCore, QtGui)
+from PySide2 import (QtWidgets, QtCore, QtGui, QtPrintSupport)
 import weakref
 import math
 
@@ -92,7 +92,7 @@ class NodeWithAttributes(QtWidgets.QGraphicsItem):
 		
 		self.node_id = node_id
 		self.label = label
-		self.descriptors = descriptors
+		self.descriptors = []
 		self.edges = []  # [Edge, ...]
 		self.font = QtGui.QFont("Calibri", 14)
 		self.label_w = 0
@@ -104,6 +104,12 @@ class NodeWithAttributes(QtWidgets.QGraphicsItem):
 		self.text_padding = 3
 		
 		QtWidgets.QGraphicsItem.__init__(self)
+		
+		for name, value in descriptors:
+			if value:
+				self.descriptors.append("%s: %s" % (name, value))
+			else:
+				self.descriptors.append(name)
 		
 		self.adjust()
 		
@@ -190,6 +196,117 @@ class NodeWithAttributes(QtWidgets.QGraphicsItem):
 		
 		if self.label != "":
 			painter.drawText(self.text_padding, self.label_h + adjust_y, self.label)
+		
+		for n, text in enumerate(self.descriptors):
+			painter.drawText(self.text_padding, y + (n + 1)*(self.descriptor_h + self.text_padding) + adjust_y, text)
+	
+	def itemChange(self, change, value):
+		
+		if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+			for edge in self.edges:
+				edge().adjust()
+		
+		return QtWidgets.QGraphicsItem.itemChange(self, change, value)
+	
+	def mousePressEvent(self, event):
+		
+		self.update()
+		QtWidgets.QGraphicsItem.mousePressEvent(self, event)
+	
+	def mouseReleaseEvent(self, event):
+		
+		self.update()
+		QtWidgets.QGraphicsItem.mouseReleaseEvent(self, event)
+
+class NodeWithSimpleAttributes(QtWidgets.QGraphicsItem):
+	
+	def __init__(self, node_id, descriptors = []):
+		
+		self.node_id = node_id
+		self.descriptors = []
+		self.edges = []  # [Edge, ...]
+		self.font = QtGui.QFont("Calibri", 14)
+		self.descriptor_w = 0
+		self.descriptor_h = 0
+		self.selection_polygon = None
+		self.selection_shape = None
+		self.text_padding = 3
+		
+		QtWidgets.QGraphicsItem.__init__(self)
+		
+		for _, value in descriptors:
+			self.descriptors.append(value)
+		
+		self.adjust()
+		
+		self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+		self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
+		self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
+		self.setFlag(QtWidgets.QGraphicsItem.ItemIsFocusable, True)
+		self.setCacheMode(self.DeviceCoordinateCache)
+		self.setZValue(-1)
+	
+	def type(self):
+		
+		return NODE_TYPE
+	
+	def adjust(self):
+		
+		adjust_w = 2
+		adjust_h = 0
+		
+		self.descriptor_w = 0
+		self.descriptor_h = 0
+		for text in self.descriptors:
+			rect = QtGui.QFontMetrics(self.font).boundingRect(text)
+			self.descriptor_w = max(self.descriptor_w, rect.width() + adjust_w)
+			self.descriptor_h = max(self.descriptor_h, rect.height() + adjust_h)
+		
+		w = self.descriptor_w + 2*self.text_padding
+		h = len(self.descriptors)*(self.descriptor_h + self.text_padding) + self.text_padding
+		
+		self.selection_polygon = QtGui.QPolygonF(QtCore.QRectF(0, 0, w, h))
+		self.selection_shape = QtGui.QPainterPath()
+		self.selection_shape.addPolygon(self.selection_polygon)
+	
+	def add_edge(self, edge):
+		
+		self.edges.append(weakref.ref(edge))
+		edge.adjust()
+	
+	def boundingRect(self):
+		
+		return self.selection_polygon.boundingRect()
+	
+	def center(self):
+		
+		return self.boundingRect().center()
+	
+	def shape(self):
+		
+		return self.selection_shape
+	
+	def paint(self, painter, option, widget):
+		
+		adjust_y = -2
+		
+		pen_width = 0
+		if option.state & QtWidgets.QStyle.State_Sunken:
+			pen_width = 2
+		
+		painter.setPen(QtCore.Qt.NoPen)
+		if option.state & QtWidgets.QStyle.State_Selected:
+			painter.setBrush(QtGui.QBrush(QtCore.Qt.lightGray))
+		else:
+			painter.setBrush(QtGui.QBrush(QtCore.Qt.white))
+		
+		painter.setPen(QtGui.QPen(QtCore.Qt.black, pen_width))
+		
+		painter.drawPath(self.selection_shape)
+		
+		y = adjust_y
+		
+		painter.setFont(self.font)
 		
 		for n, text in enumerate(self.descriptors):
 			painter.drawText(self.text_padding, y + (n + 1)*(self.descriptor_h + self.text_padding) + adjust_y, text)
@@ -374,17 +491,20 @@ class GraphVisView(QtWidgets.QGraphicsView):
 		self.setSceneRect(rect)
 		self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
 	
-	def set_data(self, nodes, edges, attributes, positions, show_attributes = False):
+	def set_data(self, nodes, edges, attributes, positions, show_attributes = 0):
 		# nodes = {node_id: label, ...}
 		# edges = [[source_id, target_id, label], ...]
-		# attributes = {node_id: [name, ...], ...}
+		# attributes = {node_id: [(name, value), ...], ...}
 		# positions = {node_id: (x, y), ...}
+		# show_attributes = 0 (none) / 1 (values only) / 2 (node_id, attribute names and values)
 		
 		self._show_attributes = show_attributes
 		self.clear()
 		for node_id in nodes:
-			if self._show_attributes:
+			if self._show_attributes == 2:
 				self._nodes[node_id] = NodeWithAttributes(node_id, nodes[node_id], attributes[node_id] if node_id in attributes else [])
+			elif self._show_attributes == 1:
+				self._nodes[node_id] = NodeWithSimpleAttributes(node_id, attributes[node_id] if node_id in attributes else [])
 			else:
 				self._nodes[node_id] = Node(node_id, nodes[node_id])
 			self.scene().addItem(self._nodes[node_id])
@@ -431,6 +551,21 @@ class GraphVisView(QtWidgets.QGraphicsView):
 		f = self.matrix().scale(factor, factor).mapRect(QtCore.QRectF(0, 0, 1, 1)).width()
 		
 		self.scale(factor, factor)
+	
+	def save_pdf(self, path):
+		
+		self.scene().clearSelection()
+		
+		rect = self.scene().itemsBoundingRect().marginsAdded(QtCore.QMarginsF(10, 10, 10, 10))
+		w, h = rect.width(), rect.height()	
+		printer = QtPrintSupport.QPrinter()
+		printer.setPageSize(QtGui.QPageSize(QtCore.QSize(w, h)))
+		printer.setOrientation(QtPrintSupport.QPrinter.Portrait)
+		printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
+		printer.setOutputFileName(path)
+		painter = QtGui.QPainter(printer)
+		self.scene().render(painter, source = rect)
+		painter.end()
 	
 	@QtCore.Slot()
 	def on_selected(self):
