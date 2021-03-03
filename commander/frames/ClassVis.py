@@ -209,7 +209,7 @@ class ClassVis(Frame, QtWidgets.QMainWindow):
 	
 	def on_save_pdf(self):
 		
-		filename = "classes.pdf"
+		filename = "%s_schema.pdf" % (os.path.split(str(self.model.identifier))[-1].strip("#"))
 		path = self.view.registry.get("last_save_dir")
 		if not path:
 			path = os.path.join(str(Path.home()), "Desktop")
