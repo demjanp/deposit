@@ -5,6 +5,7 @@ from PySide2 import (QtWidgets, QtCore, QtGui)
 class DialogMultiGroup(QtWidgets.QGroupBox):
 	
 	entry_added = QtCore.Signal()
+	entry_removed = QtCore.Signal(list) # [obj_id, ...]
 	
 	def __init__(self, model, user_group):
 		# user_group = MultiGroup
@@ -62,7 +63,37 @@ class DialogMultiGroup(QtWidgets.QGroupBox):
 		self.add_frameset()
 		for member in self.user_group.members:
 			self.add_frame(member)
+		
+		button_frame = QtWidgets.QWidget()
+		button_frame.setLayout(QtWidgets.QHBoxLayout())
+		button_remove = QtWidgets.QPushButton("Remove")
+		button_remove.clicked.connect(self.on_remove_entry)
+		button_frame.layout().addStretch()
+		button_frame.layout().addWidget(button_remove)
+		self._framesets[-1].layout().addWidget(button_frame)
+		
 		return list(self._framesets[-1].findChildren(DialogFrame, options = QtCore.Qt.FindDirectChildrenOnly))
+	
+	def remove_entry(self, frameset):
+		
+		for idx, frm in enumerate(self._framesets):
+			if frm == frameset:
+				break
+		
+		obj_ids = set([])
+		for frame in self._framesets[idx].findChildren(DialogFrame, options = QtCore.Qt.FindDirectChildrenOnly):
+			obj_id = frame.ctrl.obj_id
+			if obj_id is not None:
+				obj_ids.add(obj_id)
+			frame.set_value("", None)
+		
+		if idx > 0:
+			self.controls_frame.layout().removeWidget(frameset)
+			frameset.setParent(None)
+			# TODO remove HLine after frameset
+			del self._framesets[idx]
+		
+		return list(obj_ids)
 	
 	def clear(self):
 		
@@ -78,4 +109,8 @@ class DialogMultiGroup(QtWidgets.QGroupBox):
 	
 		self.add_entry()
 		self.entry_added.emit()
-
+	
+	def on_remove_entry(self, *args):
+		
+		obj_ids = self.remove_entry(self.sender().parent().parent())
+		self.entry_removed.emit(obj_ids)

@@ -37,6 +37,10 @@ class DialogFrame(QtWidgets.QFrame):
 		self.ctrl.set_value(value)
 		self.ctrl.set_object(obj_id)
 	
+	def populate_lookup(self):
+		
+		self.ctrl.populate_lookup()
+	
 	def get_value(self):
 		
 		return self.ctrl.get_value()

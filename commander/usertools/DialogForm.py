@@ -1,3 +1,5 @@
+from deposit import Broadcasts
+
 from deposit.commander.ViewChild import (ViewChild)
 from deposit.commander.usertools.DialogColumn import (DialogColumn)
 from deposit.commander.usertools.DialogFrame import (DialogFrame)
@@ -19,7 +21,7 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 		self.buttonBox = None
 		self.columns = []  # [DialogColumn(), ...]
 		self.selects = []  # [[class, descriptor], ...]
-		self.unique = []  # [class, ...]
+		self.unique = set([])  # {class, ...}
 		
 		ViewChild.__init__(self, model, view)
 		QtWidgets.QDialog.__init__(self, self.view)
@@ -67,6 +69,8 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 				self.add_group(element)
 		
 		self.adjust_labels()
+		
+		self.connect_broadcast(Broadcasts.STORE_DATA_CHANGED, self.on_data_changed)
 	
 	def set_enabled(self, state):
 		
@@ -88,8 +92,10 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 		if isinstance(user_group, MultiGroup):
 			dialog_group = DialogMultiGroup(self.model, user_group)
 			dialog_group.entry_added.connect(self.on_entry_added)
+			dialog_group.entry_removed.connect(self.on_entry_removed)
 		elif isinstance(user_group, Group):
 			dialog_group = DialogGroup(self.model, user_group)
+			dialog_group.entry_removed.connect(self.on_entry_removed)
 		if dialog_group is None:
 			return
 		self.columns[-1].add_widget(dialog_group)
@@ -100,7 +106,7 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 	
 	def add_unique(self, user_unique):
 		
-		self.unique.append(user_unique.dclass)
+		self.unique.add(user_unique.dclass)
 	
 	def multigroups(self):
 		# returns [DialogMultiGroup(), ...]
@@ -136,7 +142,14 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 			for label in column.findChildren(QtWidgets.QLabel):
 				label.setFixedWidth(wmax)
 				label.setAlignment(QtCore.Qt.AlignRight)
-			
+	
+	def update_lookups(self):
+		
+		for column in self.columns:
+			for element in column.findChildren(QtWidgets.QWidget):
+				if isinstance(element, DialogGroup) or isinstance(element, DialogFrame):
+					element.populate_lookup()
+	
 	def sizeHint(self):
 		
 		margins = self.controls_frame.layout().contentsMargins()
@@ -155,9 +168,18 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 		for col in range(len(self.columns)):
 			self.controls_frame.layout().setColumnMinimumWidth(col, w)
 	
+	def hideEvent(self, event):
+		
+		self.disconnect_broadcast()
+		QtWidgets.QDialog.hideEvent(self, event)
+	
 	def on_entry_added(self):
 		
 		self.adjust_labels()
+	
+	def on_entry_removed(self, obj_ids):
+		
+		pass
 	
 	def on_submit(self, *args):
 		
@@ -166,5 +188,8 @@ class DialogForm(ViewChild, QtWidgets.QDialog):
 	def on_reset(self, *args):
 		
 		pass
-
+	
+	def on_data_changed(self, *args):
+		
+		self.update_lookups()
 	

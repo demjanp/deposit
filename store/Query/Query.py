@@ -482,4 +482,11 @@ class QueryItem(object):
 		self.object = object
 		self.dclass = dclass
 		self.descriptor = descriptor
+	
+	def __str__(self):
+		
+		if (self.descriptor is not None) and (self.descriptor.label is not None) and (self.descriptor.label.value is not None):
+			return str(self.descriptor.label.value)
+		return ""
+		
 

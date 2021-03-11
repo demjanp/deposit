@@ -2,6 +2,8 @@ from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class DialogControl(object):
 	
+	changed = QtCore.Signal()
+	
 	def __init__(self, model, user_control):
 		
 		self.model = model
@@ -15,6 +17,10 @@ class DialogControl(object):
 	def set_value(self, value):
 		
 		return None
+	
+	def populate_lookup(self):
+		
+		pass
 	
 	def get_value(self):
 		
@@ -31,12 +37,7 @@ class LineEdit(DialogControl, QtWidgets.QLineEdit):
 		DialogControl.__init__(self, model, user_control)
 		QtWidgets.QLineEdit.__init__(self)
 		
-		self.values = set()
-		for id in self.model.classes[self.user_control.dclass].objects:
-			val = self.model.objects[id].descriptors[self.user_control.descriptor].label.value
-			if val is not None:
-				self.values.add(val)
-		self.values = sorted(list(self.values))
+		self.populate_lookup()
 		
 		self.textChanged.connect(self.on_text_changed)
 	
@@ -53,11 +54,20 @@ class LineEdit(DialogControl, QtWidgets.QLineEdit):
 		else:
 			self._autocompleting = False
 	
+	def populate_lookup(self):
+		
+		self.values = set()
+		for id in self.model.classes[self.user_control.dclass].objects:
+			val = self.model.objects[id].descriptors[self.user_control.descriptor].label.value
+			if val is not None:
+				self.values.add(val)
+		self.values = sorted(list(self.values))
+	
 	def get_value(self):
 		
 		return self.text().strip()
-
-	def on_text_changed(self, *args):
+	
+	def autocomplete(self):
 		
 		text = self.text()
 		if not text:
@@ -77,6 +87,11 @@ class LineEdit(DialogControl, QtWidgets.QLineEdit):
 					self.blockSignals(False)
 					return
 		self.last_added = ""
+	
+	def on_text_changed(self, *args):
+		
+		self.autocomplete()
+		self.changed.emit()
 
 class PlainTextEdit(DialogControl, QtWidgets.QPlainTextEdit):
 	
@@ -91,12 +106,7 @@ class PlainTextEdit(DialogControl, QtWidgets.QPlainTextEdit):
 		
 		self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 		
-		self.values = set()
-		for id in self.model.classes[self.user_control.dclass].objects:
-			val = self.model.objects[id].descriptors[self.user_control.descriptor].label.value
-			if val is not None:
-				self.values.add(val)
-		self.values = sorted(list(self.values))
+		self.populate_lookup()
 		
 		self.textChanged.connect(self.on_text_changed)
 	
@@ -112,7 +122,16 @@ class PlainTextEdit(DialogControl, QtWidgets.QPlainTextEdit):
 			self._autocompleting = True
 		else:
 			self._autocompleting = False
+	
+	def populate_lookup(self):
 		
+		self.values = set()
+		for id in self.model.classes[self.user_control.dclass].objects:
+			val = self.model.objects[id].descriptors[self.user_control.descriptor].label.value
+			if val is not None:
+				self.values.add(val)
+		self.values = sorted(list(self.values))
+	
 	def get_value(self):
 		
 		return self.toPlainText().strip()
@@ -159,6 +178,7 @@ class PlainTextEdit(DialogControl, QtWidgets.QPlainTextEdit):
 		
 		self.autocomplete()
 		self.resize_to_fit()
+		self.changed.emit()
 	
 	def resizeEvent(self, event):
 		
@@ -174,6 +194,10 @@ class ComboBox(DialogControl, QtWidgets.QComboBox):
 		self.setEditable(True)
 		
 		self.set_value(None)
+		
+		self.populate_lookup()
+		
+		self.currentTextChanged.connect(self.on_text_changed)
 	
 	def set_value(self, value):
 		
@@ -183,6 +207,7 @@ class ComboBox(DialogControl, QtWidgets.QComboBox):
 			if val is not None:
 				values.add(val)
 		values = sorted(list(values))
+		self.blockSignals(True)
 		self.clear()
 		if values:
 			self.addItems([""] + values)
@@ -194,10 +219,19 @@ class ComboBox(DialogControl, QtWidgets.QComboBox):
 				self.setItemText(0, value)
 			else:
 				self.setCurrentText(value)
+		self.blockSignals(False)
+		
+	def populate_lookup(self):
+		
+		self.set_value(self.currentText().strip())
 		
 	def get_value(self):
 		
 		return self.currentText().strip()
+	
+	def on_text_changed(self, *args):
+		
+		self.changed.emit()
 	
 	def wheelEvent(self, event):
 		
@@ -209,6 +243,8 @@ class CheckBox(DialogControl, QtWidgets.QCheckBox):
 		
 		DialogControl.__init__(self, model, user_control)
 		QtWidgets.QCheckBox.__init__(self)
+		
+		self.stateChanged.connect(self.on_state_changed)
 	
 	def set_value(self, value):
 		
@@ -216,9 +252,15 @@ class CheckBox(DialogControl, QtWidgets.QCheckBox):
 			value = bool(int(value))
 		except:
 			value = False
+		self.blockSignals(True)
 		self.setChecked(value)
+		self.blockSignals(False)
 	
 	def get_value(self):
 		
 		return str(int(self.isChecked()))
+	
+	def on_state_changed(self, *args):
+		
+		self.changed.emit()
 

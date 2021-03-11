@@ -69,7 +69,7 @@ class EditorForm(ViewChild, QtWidgets.QMainWindow):
 		button_unique.clicked.connect(self.on_add_unique)
 		
 		if self.entry:
-			self.unique_frame.layout().addWidget(QtWidgets.QLabel("Unique:"))
+			self.unique_frame.layout().addWidget(QtWidgets.QLabel("Always add:"))
 			self.unique_frame.layout().addWidget(button_unique)
 			self.unique_frame.layout().addStretch()
 		self.central_widget.layout().addWidget(self.unique_frame)

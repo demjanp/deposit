@@ -18,6 +18,10 @@ class DialogEntryForm(DialogForm):
 		
 		self.overrideWindowFlags(QtCore.Qt.Window)
 		
+		button_remove = QtWidgets.QPushButton("Delete")
+		button_remove.clicked.connect(self.on_remove)
+		self.button_frame.layout().addWidget(button_remove)
+		
 		if self.selected_id is not None:
 			self.populate()
 	
@@ -47,6 +51,10 @@ class DialogEntryForm(DialogForm):
 	
 	def populate(self):
 		
+		if self.selected_id not in self.model.objects:
+			self.selected_id = None
+			return
+		
 		# find all possible relations
 		frames, framesets, relations = self.find_relations()  # [[cls1, rel, cls2], ...]
 		collect = []
@@ -75,6 +83,8 @@ class DialogEntryForm(DialogForm):
 						if rel in obj1.relations:
 							for obj_id2 in obj1.relations[rel]:
 								obj2 = self.model.objects[obj_id2]
+								if set(obj1.classes).intersection(obj2.classes):
+									continue
 								if (cls2 in obj2.classes) and ((cls2 in multi_classes) or (cls2 not in objects)) and (obj2 not in objects[cls2]):
 									objects[cls2].append(obj2)
 									found = True
@@ -121,8 +131,8 @@ class DialogEntryForm(DialogForm):
 						frame.set_value(frameset_values[obj_id][frame.dclass][frame.descriptor], obj_id)
 				group.add_entry()
 		self.adjust_labels()
-		
-	def submit(self):
+	
+	def get_data(self):
 		
 		# find frames, framesets and all possible relations
 		frames, framesets, relations = self.find_relations()
@@ -131,7 +141,7 @@ class DialogEntryForm(DialogForm):
 		# relations = [[cls1, rel, cls2], ...]
 		
 		# collect values from form
-		values = defaultdict(lambda: defaultdict(dict)) # {cls: {idx: {descr: value, ...}, ...}, ...}
+		values = defaultdict(lambda: defaultdict(dict))  # {cls: {idx: {descr: value, ...}, ...}, ...}
 		objects_existing = defaultdict(dict)  # {cls: {idx: obj_id, ...}, ...}
 		for frame in frames:
 			value = frame.get_value()
@@ -152,6 +162,15 @@ class DialogEntryForm(DialogForm):
 				obj_id = frame.get_object()
 				if obj_id is not None:
 					objects_existing[frame.dclass][idx] = obj_id
+		
+		return values, objects_existing, relations
+	
+	def submit(self):
+		
+		values, objects_existing, relations = self.get_data()
+		# values = {cls: {idx: {descr: value, ...}, ...}, ...}
+		# objects_existing = {cls: {idx: obj_id, ...}, ...}
+		# relations = [[cls1, rel, cls2], ...]
 		
 		# create / find objects
 		objects = defaultdict(dict) # {cls: {idx: obj_id, ...}, ...}
@@ -193,6 +212,61 @@ class DialogEntryForm(DialogForm):
 						continue
 					self.model.objects[obj_id1].relations.add(rel, obj_id2)
 	
+	def unlink(self, obj_ids):
+		
+		if not obj_ids:
+			return
+		if not self.unique:
+			return
+		
+		_, objects_existing, relations = self.get_data()
+		# objects_existing = {cls: {idx: obj_id, ...}, ...}
+		# relations = [[cls1, rel, cls2], ...]
+		
+		obj_lookup = defaultdict(set)  # {cls: {obj_id, ...}, ...}
+		existing_objs = set([])
+		for cls in objects_existing:
+			vals = objects_existing[cls].values()
+			obj_lookup[cls].update(vals)
+			existing_objs.update(vals)
+		
+		to_unlink = set([])  # {(obj_id1, rel, obj_id2), ...}
+		for obj_id in obj_ids:
+			obj = self.model.objects[obj_id]
+			obj_classes = set(obj.classes)
+			if self.unique.intersection(obj_classes):
+				del self.model.objects[obj_id]
+			else:
+				for cls1, rel, cls2 in relations:
+					if not ((cls1 in self.unique) or (cls2 in self.unique)):
+						continue
+					if (cls2 in obj_classes) and (("~" + rel) in obj.relations):
+						rel = "~" + rel
+						cls1, cls2 = cls2, cls1
+					if (cls1 in obj_classes) and (rel in obj.relations):
+						for obj_id2 in obj.relations[rel]:
+							if obj_id2 == obj_id:
+								continue
+							if obj_id2 in existing_objs:
+								if rel.startswith("~"):
+									to_unlink.add((obj_id2, rel[1:], obj_id))
+								else:
+									to_unlink.add((obj_id, rel, obj_id2))
+		for obj_id1, rel, obj_id2 in to_unlink:
+			del self.model.objects[obj_id1].relations[rel][obj_id2]
+	
+	def remove(self):
+		
+		if not self.unique:
+			return
+		_, objects_existing, _ = self.get_data()  # {cls: {idx: obj_id, ...}, ...}
+		obj_ids = set([])
+		for cls in objects_existing:
+			obj_ids.update(objects_existing[cls].values())
+		for obj_id in obj_ids:
+			if self.unique.intersection(self.model.objects[obj_id].classes):
+				del self.model.objects[obj_id]
+	
 	def clear(self):
 		
 		for group in self.multigroups():
@@ -200,6 +274,12 @@ class DialogEntryForm(DialogForm):
 		frames, _ = self.frames()
 		for frame in frames:
 			frame.set_value("")
+	
+	def on_entry_removed(self, obj_ids):
+		
+		self.unlink(obj_ids)
+		self.clear()
+		self.populate()
 	
 	def on_submit(self, *args):
 		
@@ -209,6 +289,14 @@ class DialogEntryForm(DialogForm):
 	def on_reset(self, *args):
 		
 		self.clear()
+	
+	def on_remove(self, *args):
+		
+		reply = QtWidgets.QMessageBox.question(self.view, "Delete Entry", "Delete database entry?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+		if reply == QtWidgets.QMessageBox.Yes:
+			self.remove()
+			self.clear()
+			self.populate()
 	
 	def closeEvent(self, event):
 		
