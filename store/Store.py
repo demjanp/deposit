@@ -268,22 +268,18 @@ class Store(DModule):
 		# identifier_ds = identifier or DataSource
 		# if ids == None: import all objects
 		
-		def collect_ids(id, store, found = []):
+		def collect_ids(id, store, found = set([])):
 			
-			if id in found:
-				return
 			obj = store.objects[id]
 			if obj is None:
 				return
-			found.append(id)
+			found.add(id)
 			for rel in obj.relations:
 				if rel.startswith("~"):
 					continue
 				for id2 in obj.relations[rel]:
 					if id2 is None:
 						continue
-					if id2 in found:
-						return
 					collect_ids(id2, store, found)
 		
 		if isinstance(identifier_ds, dict):
@@ -302,7 +298,7 @@ class Store(DModule):
 			self.stop_broadcasts()
 			store.set_datasource(ds)
 		
-		found_ids = []
+		found_ids = set([])
 		if ids is None:
 			ids = store.objects.keys()
 		for id in ids:
