@@ -1,4 +1,5 @@
 from numbers import Number
+import sys
 
 def find_index(cls):
 	# returns class_name, index
@@ -327,6 +328,7 @@ class Condition(object):
 	def __init__(self, store, wherestr, quotes):
 		
 		self.store = store
+		self.wherestr = wherestr
 		self.eval_str = "" # selects as: "...%(s0)s...%(s1)s..."; object ids as "...%(o0)s...%(o1)s..."; weights as: "...%(w0)s...%(w1)s..."
 		self.selects = []  # [Select, ...]; in order of appearance in the eval_str
 		self.object_ids = []  # [ObjectId, ...]; in order of appearance in the eval_str
@@ -467,7 +469,7 @@ class Condition(object):
 			idx0 = idx2
 		self.eval_str += wherestr[idx0:] % quotes
 		
-	def eval(self, objects):
+	def eval(self, objects, errors = set([])):
 		# objects = {classstr: {index: DObject, ...}, ...}
 		
 		def get_new_var(eval_str, n):
@@ -498,6 +500,8 @@ class Condition(object):
 		try:
 			return eval(self.eval_str % vars, values)
 		except:
+			_, exc_value, _ = sys.exc_info()
+			errors.add((self.wherestr, str(exc_value)))
 			return False
 	
 class Count(Condition):

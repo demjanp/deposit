@@ -30,6 +30,7 @@ class DialogGroup(QtWidgets.QGroupBox):
 		
 		lookup_frame = QtWidgets.QFrame()
 		lookup_frame.setLayout(QtWidgets.QHBoxLayout())
+		lookup_frame.layout().setContentsMargins(0, 0, 0, 0)
 		lookup_frame.layout().addStretch()
 		lookup_frame.layout().addWidget(self.lookup_combo)
 		lookup_frame.layout().addWidget(lookup_button)
@@ -40,6 +41,7 @@ class DialogGroup(QtWidgets.QGroupBox):
 		
 		button_frame = QtWidgets.QWidget()
 		button_frame.setLayout(QtWidgets.QHBoxLayout())
+		button_frame.layout().setContentsMargins(0, 0, 0, 0)
 		button_remove = QtWidgets.QPushButton("Remove")
 		button_remove.clicked.connect(self.on_remove)
 		button_frame.layout().addStretch()

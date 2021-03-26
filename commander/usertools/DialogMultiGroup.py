@@ -66,6 +66,7 @@ class DialogMultiGroup(QtWidgets.QGroupBox):
 		
 		button_frame = QtWidgets.QWidget()
 		button_frame.setLayout(QtWidgets.QHBoxLayout())
+		button_frame.layout().setContentsMargins(0, 0, 0, 0)
 		button_remove = QtWidgets.QPushButton("Remove")
 		button_remove.clicked.connect(self.on_remove_entry)
 		button_frame.layout().addStretch()

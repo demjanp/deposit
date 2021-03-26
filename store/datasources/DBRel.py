@@ -178,7 +178,7 @@ class DBRel(DB):
 					if descr_name in obj.descriptors:
 						row_data = obj.descriptors[descr_name].label.to_dict()
 						if row_data["dtype"] == "DString":
-							row[descr_name] = row_data["value"]
+							row[descr_name] = "\u0002" + row_data["value"]
 						else:
 							row[descr_name] = json.dumps(row_data)
 						if obj.descriptors[descr_name].geotag:
@@ -346,11 +346,18 @@ class DBRel(DB):
 		
 		def _load_value(data_in):
 			
+			if data_in.startswith("\u0002"):
+				return dict(
+					dtype = "DString",
+					value = data_in.lstrip("\u0002"),
+				)
+			
 			if data_in.startswith('''{"dtype": '''):
 				try:
 					return json.loads(data_in)
 				except:
 					pass
+			
 			return dict(
 				dtype = "DString",
 				value = data_in,

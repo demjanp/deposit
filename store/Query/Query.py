@@ -51,10 +51,10 @@ class Query(object):
 			ids.update(get_object_ids_by_class(cls))
 		return [self.store.objects[id] for id in ids]
 	
-	def check_conditions(self, objects):
+	def check_conditions(self, objects, errors = {}):
 		
 		for condition in self.parse.conditions:
-			if not condition.eval(objects):
+			if not condition.eval(objects, errors):
 				return False
 		return True
 	
@@ -164,6 +164,8 @@ class Query(object):
 			if not in_chains(chain, done):
 				chains.append(chain)
 		
+		errors = set([])
+		
 		chains = []  # [{classstr: {index: DObject, ...}, ...}, ...]
 		for objects0 in product(*[objects[classstr][index] for classstr, index in classstr_index0s]):
 			chain = {}
@@ -193,7 +195,7 @@ class Query(object):
 				chain = {}
 				for chain_rel in chains_rel:
 					chain.update(chain_rel)
-				if self.check_conditions(chain):
+				if self.check_conditions(chain, errors):
 					chains.append(chain)
 		
 		# apply conditions, aliases & sums
@@ -233,9 +235,12 @@ class Query(object):
 			for row in self._rows:
 				cnt = 0
 				for chain in chains:
-					if (chain[classstr0][index0].id == row.object.id) and count_.eval(chain):
+					if (chain[classstr0][index0].id == row.object.id) and count_.eval(chain, errors):
 						cnt += 1
 				row.add_alias(count_.alias, cnt)
+		
+		for wherestr, error in errors:
+			print("Error in expression: %s; %s" % (wherestr, error))
 		
 		# add sums as aliases
 		for sum_ in self.parse.sums:
