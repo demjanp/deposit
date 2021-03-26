@@ -277,6 +277,8 @@ class Store(DModule):
 				return
 			found.append(id)
 			for rel in obj.relations:
+				if rel.startswith("~"):
+					continue
 				for id2 in obj.relations[rel]:
 					if id2 is None:
 						continue
