@@ -96,6 +96,19 @@ class MdiArea(ViewChild, QtWidgets.QMdiArea):
 			return current
 		return None
 	
+	def open_external(self, url):
+		
+		ext = url.split(".")[-1].lower()
+		es = None
+		if ext == "xlsx":
+			es = self.model.externalsources.XLSX(url)
+		elif ext == "csv":
+			es = self.model.externalsources.CSV(url)
+		elif ext == "shp":
+			es = self.model.externalsources.Shapefile(url)
+		if (es is not None) and es.load():
+			self.create(es.name, es)
+	
 	def paintEvent(self, event):
 
 		QtWidgets.QMdiArea.paintEvent(self, event)
@@ -175,15 +188,7 @@ class MdiArea(ViewChild, QtWidgets.QMdiArea):
 				url = "%s" % (data)
 				self.view.dialogs.open("OpenOrImport", url)
 				return
-			es = None
-			if ext == "xlsx":
-				es = self.model.externalsources.XLSX(data)
-			elif ext == "csv":
-				es = self.model.externalsources.CSV(data)
-			elif ext == "shp":
-				es = self.model.externalsources.Shapefile(data)
-			if (es is not None) and es.load():
-				self.create(es.name, es)
+			self.open_external(data)
 			return
 		
 		if typ == "objects":

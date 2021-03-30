@@ -7,6 +7,7 @@ from deposit.commander.toolbar.AddClass import (AddClass)
 from deposit.commander.toolbar.AddDescriptor import (AddDescriptor)
 from deposit.commander.toolbar.AddObject import (AddObject)
 from deposit.commander.toolbar.AddRelation import (AddRelation)
+from deposit.commander.toolbar.LoadExternal import (LoadExternal)
 from deposit.commander.toolbar.Export import (Export)
 from deposit.commander.toolbar.Import import (Import)
 from deposit.commander.toolbar.Connect import (Connect)
@@ -56,7 +57,7 @@ class Toolbar(CmdDict, ViewChild):
 		self.toolbar = None
 		self.actions = {} # {name: Action, ...}
 
-		CmdDict.__init__(self, AddClass, AddDescriptor, AddObject, AddRelation, Export, Import, Connect, RelationName, RemoveClass, RemoveDescriptor, RemoveObject, RemoveRelation, ClassVis, Save)
+		CmdDict.__init__(self, AddClass, AddDescriptor, AddObject, AddRelation, LoadExternal, Export, Import, Connect, RelationName, RemoveClass, RemoveDescriptor, RemoveObject, RemoveRelation, ClassVis, Save)
 		ViewChild.__init__(self, model, view)
 
 		self.set_up()

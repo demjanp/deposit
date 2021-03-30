@@ -1,7 +1,7 @@
 
 ordering = [
 	["Data",	"Connect", "Save"],
-	["Data",	"Import", "Export"],
+	["Data",	"LoadExternal", "Import", "Export"],
 	["Data",	"ClearRecent"],
 	["Edit",	"Copy", "Paste"],
 	["Resources",	"SetLocalFolder", "ClearLocalFolder"],
