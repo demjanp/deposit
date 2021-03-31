@@ -62,6 +62,7 @@ from deposit.store.LinkedStore import (LinkedStore)
 from collections import defaultdict
 import psycopg2
 import json
+import sys
 
 class DB(DataSource):
 	
@@ -74,10 +75,21 @@ class DB(DataSource):
 		
 		self.identifier = identifier
 		self.connstr = connstr
+		self.schema = self.get_schema(self.connstr)
+	
+	def get_schema(self, connstr):
+		
+		schema = "public"
+		if connstr is None:
+			return schema
+		if "?" in connstr:
+			schema = connstr.split("?")[-1].split("%3D")[-1]
+		return schema
 	
 	def set_connstr(self, connstr):
 
 		self.connstr = connstr
+		self.schema = self.get_schema(self.connstr)
 		cursor, tables = self.connect()
 		if cursor is None:
 			self.connstr = None
@@ -89,14 +101,21 @@ class DB(DataSource):
 			self.broadcast(Broadcasts.STORE_DATA_SOURCE_CHANGED)
 		return ret
 	
-	def connect(self):
+	def connect(self, create_schema = False):
 		
 		try:
 			conn = psycopg2.connect(self.connstr)
 		except:
+			_, exc_value, _ = sys.exc_info()
+			print("Connection Error in %s: %s" % (self.connstr, str(exc_value)))
 			return None, []
 		cursor = conn.cursor()
-		cursor.execute("SELECT tablename FROM pg_tables WHERE schemaname = 'public';")
+		
+		if create_schema:
+			cursor.execute("CREATE SCHEMA IF NOT EXISTS %s" % (self.schema))
+			cursor.connection.commit()
+		
+		cursor.execute("SELECT tablename FROM pg_tables WHERE schemaname = '%s';" % (self.schema))
 		tables = [row[0] for row in cursor.fetchall()]
 		return cursor, tables
 	
@@ -151,7 +170,7 @@ class DB(DataSource):
 
 			if name in tables:
 				cursor.execute("DROP TABLE \"%s\";" % (name))
-			cursor.execute("CREATE TABLE \"%s\" (%s);" % (name, columns))
+			cursor.execute("CREATE TABLE %s.\"%s\" (%s);" % (self.schema, name, columns))
 		
 		if self.identifier is None:
 			return False
@@ -293,6 +312,8 @@ class DB(DataSource):
 				break
 			data = None
 		
+		resource_uris = []
+		
 		table = self.identifier + "objects"
 		cursor.execute("SELECT * FROM \"%s\";" % (table,))
 		rows = cursor.fetchall()
@@ -302,13 +323,14 @@ class DB(DataSource):
 				data[row[0]] = json.loads(row[1])
 			self.store.objects.from_dict(data)
 		
-		resource_uris = []
-		for id in data:
-			for name in data[id]["descriptors"]:
-				if (data[id]["descriptors"][name]["label"]["dtype"] == "DResource") and (not data[id]["descriptors"][name]["label"]["path"] is None):
-					if not data[id]["descriptors"][name]["label"]["value"] in resource_uris:
-						resource_uris.append(data[id]["descriptors"][name]["label"]["value"])
+			for id in data:
+				for name in data[id]["descriptors"]:
+					if (data[id]["descriptors"][name]["label"]["dtype"] == "DResource") and (not data[id]["descriptors"][name]["label"]["path"] is None):
+						if not data[id]["descriptors"][name]["label"]["value"] in resource_uris:
+							resource_uris.append(data[id]["descriptors"][name]["label"]["value"])
+		
 		self.store.set_local_resource_uris(resource_uris)
+		
 		if not has_class_descriptors:  # TODO will be obsolete for new databases
 			self.store.populate_descriptor_names()  # TODO will be obsolete for new databases
 			self.store.populate_relation_names()  # TODO will be obsolete for new databases

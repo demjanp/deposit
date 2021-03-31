@@ -3,6 +3,8 @@ from deposit.store.Conversions import (as_identifier)
 from deposit.store.Store import (Store)
 
 import os
+from natsort import natsorted
+from collections import defaultdict
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class DataSourceDBRel(DModule, QtWidgets.QFrame):
@@ -14,7 +16,7 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 		self.parent = parent
 		
 		self._connstr_prev = None
-		self._valid_db = False
+		self._schemas = defaultdict(lambda: defaultdict(list))  # {server: {db_name: [schema, ...], ...}, ...}
 		self._identifier = None
 		
 		DModule.__init__(self)
@@ -30,6 +32,9 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 		self.server_combo.setEditable(True)
 		self.name_combo = QtWidgets.QComboBox()
 		self.name_combo.setEditable(True)
+		self.schema_name_combo = QtWidgets.QComboBox()
+		self.schema_name_combo.setEditable(True)
+		self.schema_name_combo.setCurrentText("public")
 		self.user_edit = QtWidgets.QLineEdit("")
 		self.user_edit.textChanged.connect(self.update)
 		self.pass_edit = QtWidgets.QLineEdit("")
@@ -57,12 +62,18 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 		for row in self.view.menu.get_recent(): # [[url], [identifier, connstr], ...]
 			if len(row) == 2:
 				server, name = row[1].split("/")[-2:]
+				schema = "public"
+				if "?" in name:
+					name, schema = name.split("?")
+					schema = schema.split("%3D")[-1]
 				user, server = server.split("@")
 				user, password = user.split(":")
 				if server not in names:
 					names[server] = []
 				if name not in names[server]:
 					names[server].append(name)
+				if schema not in self._schemas[server][name]:
+					self._schemas[server][name].append(schema)
 				if server not in servers:
 					servers.append(server)
 					logins.append([user, password])
@@ -72,12 +83,14 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 		
 		self.server_combo.editTextChanged.connect(self.on_server_changed)
 		self.name_combo.editTextChanged.connect(self.update)
+		self.schema_name_combo.editTextChanged.connect(self.update)
 		
 		self.connect_button = QtWidgets.QPushButton(self.parent.connect_caption())
 		self.connect_button.clicked.connect(self.on_connect)
 		
 		self.form.layout().addRow("Server[:port]:", self.server_combo)
 		self.form.layout().addRow("Database:", self.name_combo)
+		self.form.layout().addRow("Schema:", self.schema_name_combo)
 		self.form.layout().addRow("Username:", self.user_edit)
 		self.form.layout().addRow("Password:", self.pass_edit)
 		self.form.layout().addRow("Identifier:", self.identifier_edit)
@@ -93,26 +106,49 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 		
 		server = self.server_combo.currentText().strip()
 		name = self.name_combo.currentText().strip()
+		schema = self.schema_name_combo.currentText().strip()
 		user = self.user_edit.text().strip()
 		password = self.pass_edit.text().strip()
 		identifier = self.identifier_edit.text().strip()
 		local_folder = self.local_folder_edit.text().strip()
 		if server and (":" not in server):
 			server = "%s:5432" % (server)
-		return server, name, user, password, identifier, local_folder
+		return server, name, schema, user, password, identifier, local_folder
+	
+	def load_schemas(self):
+		
+		server, name, curr_schema, user, password, identifier, _ = self.get_values()
+		if not self._schemas[server][name]:
+			connstr = "postgres://%s:%s@%s/%s" % (user, password, server, name)
+			conn = None
+			try:
+				conn = psycopg2.connect(connstr)
+			except:
+				pass
+			if conn is not None:
+				cursor = conn.cursor()
+				cursor.execute("SELECT schema_name FROM information_schema.schemata")
+				self._schemas[server][name] = natsorted([row[0] for row in cursor.fetchall()])
+		if "public" not in self._schemas[server][name]:
+			self._schemas[server][name].append("public")
+		self.schema_name_combo.blockSignals(True)
+		self.schema_name_combo.clear()
+		self.schema_name_combo.addItems(self._schemas[server][name])
+		if curr_schema:
+			self.schema_name_combo.setCurrentText(curr_schema)
+		self.schema_name_combo.blockSignals(False)
 	
 	def check_db(self):
 		
 		self.identifier_edit.blockSignals(True)
-		server, name, user, password, identifier, _ = self.get_values()
-		connstr = "postgres://%s:%s@%s/%s" % (user, password, server, name)
+		server, name, schema, user, password, identifier, _ = self.get_values()
+		do_not_load = (self._schemas[server][name] and (schema not in self._schemas[server][name]))
+		connstr = "postgres://%s:%s@%s/%s?options=-csearch_path%%3D%s" % (user, password, server, name, schema)
 		if connstr != self._connstr_prev:
-			self._valid_db = False
 			self._identifier = None
 			self.identifier_edit.setText("")
-			if "" not in [server, name, user, password]:
+			if (not do_not_load) and ("" not in [server, name, schema, user, password]):
 				if self.dbrel.set_connstr(connstr):
-					self._valid_db = True
 					if self.dbrel.is_valid():
 						self._identifier = self.dbrel.get_identifier()
 						self.identifier_edit.setText(self._identifier)
@@ -127,8 +163,9 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 	
 	def update(self, *args):
 		
+		self.load_schemas()
 		self.check_db()
-		server, name, user, password, identifier, _ = self.get_values()
+		server, name, schema, user, password, identifier, local_folder = self.get_values()
 		is_valid = False
 		if as_identifier(identifier, default_base = "http://localhost/deposit") == self._identifier:
 			self.connect_button.setText(self.parent.connect_caption())
@@ -139,7 +176,9 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 		elif self.parent.creating_enabled():
 			self.connect_button.setText("Create")
 			is_valid = True
-		self.connect_button.setEnabled(is_valid and self._valid_db and ("" not in [server, name, user, password, identifier]))
+		if not local_folder:
+			is_valid = False
+		self.connect_button.setEnabled(is_valid and ("" not in [server, name, user, password, identifier]))
 	
 	def create_db(self, connstr, identifier, local_folder):
 		
@@ -147,7 +186,7 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 			return False
 		ds = self.temp_store.datasources.DBRel(connstr = connstr)
 		ds.set_identifier(identifier)
-		cursor, _ = ds.connect()
+		cursor, _ = ds.connect(create_schema = True)
 		if cursor:
 			return ds.save()
 		return False
@@ -163,7 +202,7 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 		server = self.server_combo.currentText().strip()
 		if data:
 			server, user, password, names = data
-			_, curr_name, curr_user, curr_password, _, _ = self.get_values()
+			_, curr_name, curr_schema, curr_user, curr_password, _, _ = self.get_values()
 			if not (curr_user or curr_password):
 				curr_user, curr_password = user, password
 				self.user_edit.blockSignals(True)
@@ -185,17 +224,15 @@ class DataSourceDBRel(DModule, QtWidgets.QFrame):
 		
 		path = QtWidgets.QFileDialog.getExistingDirectory(self, caption = "Select Local Folder")
 		if path:
+			self.local_folder_edit._edited = True
 			self.local_folder_edit.setText(os.path.normpath(os.path.abspath(path)))
-			self.local_folder_edit.blockSignals(True)
-			self.local_folder_edit.setText(os.path.normpath(os.path.abspath(path)))
-			self.local_folder_edit.blockSignals(False)
 	
 	def on_connect(self):
 		
-		server, name, user, password, identifier, local_folder = self.get_values()
-		if "" in [server, name, user, password, identifier]:
+		server, name, schema, user, password, identifier, local_folder = self.get_values()
+		if "" in [server, name, schema, user, password, identifier]:
 			return
-		connstr = "postgres://%s:%s@%s/%s" % (user, password, server, name)
+		connstr = "postgres://%s:%s@%s/%s?options=-csearch_path%%3D%s" % (user, password, server, name, schema)
 		identifier = as_identifier(identifier, default_base = "http://localhost/deposit")
 		if not os.path.isdir(local_folder):
 			os.mkdir(local_folder)

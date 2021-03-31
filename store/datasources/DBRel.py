@@ -170,7 +170,7 @@ class DBRel(DB):
 			else:
 				class_type = "\"#obj_id\" INTEGER"
 			columns = ", ".join([("\"%s\"" % descr_name) for descr_name in ["#obj_id"] + descriptor_names])
-			cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, class_type))
+			cursor.execute("CREATE TABLE %s.\"%s\" (%s);" % (self.schema, table, class_type))
 			data = [] # [{#obj_id: id, [descriptor_name]: json(label), ...}, ...]
 			for obj in objects:
 				row = {"#obj_id": obj.id}
@@ -204,7 +204,7 @@ class DBRel(DB):
 		
 		table = "#order"
 		order_type = "name TEXT, order_nr INTEGER"
-		cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, order_type))
+		cursor.execute("CREATE TABLE %s.\"%s\" (%s);" % (self.schema, table, order_type))
 		if class_order:
 			cursor.execute("""
 				DROP TYPE IF EXISTS order_;
@@ -252,7 +252,7 @@ class DBRel(DB):
 		
 		rel_type = "source_id INTEGER, target_id INTEGER"
 		for table in data:
-			cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, rel_type))
+			cursor.execute("CREATE TABLE %s.\"%s\" (%s);" % (self.schema, table, rel_type))
 			if data[table]:
 				cursor.execute("""
 					DROP TYPE IF EXISTS relation_;
@@ -262,7 +262,7 @@ class DBRel(DB):
 		
 		table = "#geotags"
 		geotag_type = "obj_id INTEGER, descriptor TEXT, geotag TEXT"
-		cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, geotag_type))
+		cursor.execute("CREATE TABLE %s.\"%s\" (%s);" % (self.schema, table, geotag_type))
 		data = []
 		for obj_id, descr_name, geotag in geotags:
 			data.append({"obj_id": obj_id, "descriptor": descr_name, "geotag": json.dumps(geotag)})
@@ -274,21 +274,21 @@ class DBRel(DB):
 			""" % (geotag_type, table), (json.dumps(data),))
 		
 		table = "#identifier"
-		cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, "uri TEXT"))
+		cursor.execute("CREATE TABLE %s.\"%s\" (%s);" % (self.schema, table, "uri TEXT"))
 		cursor.execute("INSERT INTO \"%s\" VALUES ('%s');" % (table, json.dumps(self.identifier)))
 		
 		table = "#changed"
-		cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, "timestamp TEXT"))
+		cursor.execute("CREATE TABLE %s.\"%s\" (%s);" % (self.schema, table, "timestamp TEXT"))
 		cursor.execute("INSERT INTO \"%s\" VALUES ('%s');" % (table, json.dumps(self.store.changed)))
 		
 		table = "#local_folder"
-		cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, "path TEXT"))
+		cursor.execute("CREATE TABLE %s.\"%s\" (%s);" % (self.schema, table, "path TEXT"))
 		if not self.store.local_folder is None:
 			cursor.execute("INSERT INTO \"%s\" VALUES ('%s');" % (table, json.dumps(self.store.local_folder)))
 		
 		table = "#events"
 		event_type = "time TEXT, user_ TEXT, delement TEXT, key TEXT, function TEXT, args TEXT"
-		cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, event_type))
+		cursor.execute("CREATE TABLE %s.\"%s\" (%s);" % (self.schema, table, event_type))
 		if self.store.save_events:
 			events = self.store.events.to_list()
 			if events:
@@ -304,7 +304,7 @@ class DBRel(DB):
 		
 		table = "#user_tools"
 		user_tools_type = "data TEXT"
-		cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, user_tools_type))
+		cursor.execute("CREATE TABLE %s.\"%s\" (%s);" % (self.schema, table, user_tools_type))
 		data_user_tools = self.store.user_tools.to_list()
 		if data_user_tools:
 			data = []
@@ -319,7 +319,7 @@ class DBRel(DB):
 
 		table = "#queries"
 		queries_type = "title TEXT, querystr TEXT"
-		cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, queries_type))
+		cursor.execute("CREATE TABLE %s.\"%s\" (%s);" % (self.schema, table, queries_type))
 		data_queries = self.store.queries.to_dict()
 		if data_queries:
 			data = []
@@ -332,7 +332,7 @@ class DBRel(DB):
 			""" % (queries_type, table), (json.dumps(data),))
 		
 		table = "#version"
-		cursor.execute("CREATE TABLE \"%s\" (%s);" % (table, "version TEXT"))
+		cursor.execute("CREATE TABLE %s.\"%s\" (%s);" % (self.schema, table, "version TEXT"))
 		cursor.execute("INSERT INTO \"%s\" VALUES ('%s');" % (table, json.dumps(__version__)))
 
 		cursor.connection.commit()
