@@ -113,19 +113,26 @@ class DClass(DElement):
 	
 	@event
 	def add_relation(self, rel, class_name):
-
+		
 		if class_name not in self.relations[rel]:
 			self.relations[rel].append(class_name)
-			self.relations[rel] = sorted(self.relations[rel], key=lambda class_name: self.store.classes[class_name].order if (class_name != "!*") else -1)
+			self.relations[rel] = sorted(self.relations[rel], key=lambda class_name2: self.store.classes[class_name2].order if (class_name2 != "!*") else -1)
 			self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
+		rels2 = self.store.classes[class_name].relations[self.store.reverse_relation(rel)]
+		if self.name not in rels2:
+			rels2.append(self.name)
+			rels2[:] = sorted(rels2, key=lambda class_name2: self.store.classes[class_name2].order if (class_name2 != "!*") else -1)
 	
 	@event
 	def del_relation(self, rel, class_name):
-
+		
 		if (rel in self.relations) and (class_name in self.relations[rel]):
+			
 			self.relations[rel].remove(class_name)
 			if not len(self.relations[rel]):
 				del self.relations[rel]
+			self.store.classes[class_name].relations[self.store.reverse_relation(rel)].remove(self.name)
+			
 			# also delete relation from classes objects
 			for id1 in self.objects:
 				if rel not in self.objects[id1].relations:
@@ -137,6 +144,7 @@ class DClass(DElement):
 				for id2 in to_del:
 					del self.store.objects[id1].relations[rel][id2]
 			self.broadcast(Broadcasts.ELEMENT_CHANGED, self)
+			self.broadcast(Broadcasts.ELEMENT_CHANGED, self.store.classes[class_name])
 	
 	def add_object(self):
 		
@@ -287,7 +295,15 @@ class DClasses(DElements):
 		else:
 			# delete from store
 			cls = self[name]
-
+			
+			# delete from class relations
+			for rel in cls.relations:
+				for name2 in cls.relations[rel]:
+					cls2 = self.store.classes[name2]
+					for rel2 in cls2.relations:
+						if name in cls2.relations[rel2]:
+							cls2.relations[rel2].remove(name)
+			
 			# delete from objects
 			for id in cls.objects:
 				del cls.objects[id].classes[cls.name]
@@ -303,7 +319,7 @@ class DClasses(DElements):
 					del self.store.classes[name2].subclasses[cls.name]
 				if cls.name in self.store.classes[name2].descriptors:
 					self.store.classes[name2].del_descriptor(cls.name)
-
+			
 			self.del_naive(name)
 			cls = DClass(self, name)
 			self.broadcast(Broadcasts.ELEMENT_DELETED, cls)
