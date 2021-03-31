@@ -4,17 +4,20 @@ from PySide2 import (QtWidgets, QtCore, QtGui)
 
 class QueryItem(DModule):
 	
-	def __init__(self, index, element, icons = None, relation = None):
+	def __init__(self, index, element, icons = None, relation = None, read_only = False):
 		
 		self.index = index
 		self.element = element
 		self.icons = icons
 		self.relation = relation
-
+		self.read_only = read_only
+		
 		DModule.__init__(self)
 	
 	def is_read_only(self):
 		
+		if self.read_only:
+			return True
 		if self.element is None:
 			return True
 		if self.element.__class__.__name__ == "DObject":

@@ -74,13 +74,13 @@ class TableModel(DModule, PrototypeDragModel, QtCore.QAbstractTableModel):
 			if item.descriptor is None:
 				return QueryItem(index, item.object, self.icons)
 			else:
-				return QueryItem(index, item.descriptor, self.icons)
+				return QueryItem(index, item.descriptor, self.icons, read_only = (self.query[row].object != item.object))
 		descr = name.split(".")
 		if len(descr) == 2:
-			descr = descr[1]
+			cls, descr = descr
 			if descr in self.model.descriptor_names:
-				return QueryItem(index, self.model.null_descriptor(self.query[row].object, self.model.classes[descr]), self.icons)
-		return QueryItem(index, None, self.icons)
+				return QueryItem(index, self.model.null_descriptor(self.query[row].object, self.model.classes[descr]), self.icons, read_only = (cls not in self.query[row].object.classes))
+		return QueryItem(index, None, self.icons, read_only = True)
 	
 	def rowCount(self, parent):
 		
