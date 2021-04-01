@@ -28,7 +28,7 @@ class ExternalSource(DModule):
 			for descr in labels:
 				if descr not in obj.descriptors:
 					to_set.append(descr)
-				if obj.descriptors[descr].label.value != labels[descr].value:
+				elif obj.descriptors[descr].label.value != labels[descr].value:
 					return False
 			if to_set:
 				return to_set
