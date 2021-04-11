@@ -145,9 +145,9 @@ class RelView(Frame, QtWidgets.QWidget):
 					self.tables.append(QueryLst(self.model, self.view, self.parent, query, obj.relations[rel]))
 					table_layout.addWidget(self.tables[-1])
 					table_widget.setVisible(visible)
-					header_widget.setEnabled(True)
+					header_widget.setVisible(True)
 			if not found:
-				header_widget.setEnabled(False)
+				header_widget.setVisible(False)
 	
 	def get_selected(self):
 		

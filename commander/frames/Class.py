@@ -1,5 +1,6 @@
 from deposit import Broadcasts
 from deposit.commander.frames._Frame import (Frame)
+from deposit.commander.frames.QueryMembers.QueryItem import (DModelIndex)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
@@ -83,5 +84,6 @@ class Class(Frame, QtWidgets.QWidget):
 	
 	def on_unlink(self, clsA, rel, clsB):
 		
-		self.view.dialogs.open("RemoveClassRelation", clsA, rel, clsB)
+		items = [DModelIndex(0, 0, self.model.classes[clsA], (rel, clsB)).data(QtCore.Qt.UserRole)]
+		self.view.dialogs.open("RemoveRelation", items)
 

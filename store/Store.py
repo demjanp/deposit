@@ -263,24 +263,28 @@ class Store(DModule):
 			result = self.data_source.save()
 		return result
 	
-	def add_objects(self, identifier_ds, connstr = None, ids = None, localise = False):
+	def add_objects(self, identifier_ds, connstr = None, selected_ids = None, localise = False):
 		# add objects from a different store, specified by identifier and connstr
 		# identifier_ds = identifier or DataSource
-		# if ids == None: import all objects
+		# if selected_ids == None: import all objects
 		
-		def collect_ids(id, store, found = set([])):
+		def collect_ids(id, selected_ids, selected_classes, store, found = set([])):
 			
 			obj = store.objects[id]
 			if obj is None:
 				return
 			found.add(id)
 			for rel in obj.relations:
-				if rel.startswith("~"):
+				if rel.startswith("~") and (id not in selected_ids):
 					continue
 				for id2 in obj.relations[rel]:
 					if id2 is None:
 						continue
-					collect_ids(id2, store, found)
+					if id2 in found:
+						continue
+					if (id2 not in selected_ids) and selected_classes.intersection(store.objects[id2].classes.keys()):
+						continue
+					collect_ids(id2, selected_ids, selected_classes, store, found)
 		
 		if isinstance(identifier_ds, dict):
 			self.stop_broadcasts()
@@ -299,10 +303,14 @@ class Store(DModule):
 			store.set_datasource(ds)
 		
 		found_ids = set([])
-		if ids is None:
-			ids = store.objects.keys()
-		for id in ids:
-			collect_ids(id, store, found_ids)
+		if selected_ids is None:
+			selected_ids = store.objects.keys()
+		selected_ids = set(selected_ids)
+		selected_classes = set([])
+		for id in selected_ids:
+			selected_classes.update(store.objects[id].classes.keys())
+		for id in selected_ids:
+			collect_ids(id, selected_ids, selected_classes, store, found_ids)
 		id_lookup = {} # {orig_id: new_id, ...}
 		for id_orig in found_ids:
 			id_lookup[id_orig] = self.objects.add().id
@@ -316,12 +324,12 @@ class Store(DModule):
 			for cls in obj_orig.classes:
 				obj_new.classes.add(cls)
 			for rel in obj_orig.relations:
-				if rel.startswith("~"):
-					continue
 				for id2 in obj_orig.relations[rel]:
 					if id2 is None:
 						continue
 					if id2 not in id_lookup:
+						continue
+					if (id2 not in selected_ids) and selected_classes.intersection(store.objects[id2].classes.keys()):
 						continue
 					weight = obj_orig.relations[rel].weight(id2)
 					obj_new.relations.add(rel, id_lookup[id2], weight)

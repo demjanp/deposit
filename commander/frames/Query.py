@@ -102,9 +102,11 @@ class Query(Frame, QtWidgets.QWidget):
 		self.connect_broadcast(Broadcasts.VIEW_SELECTED, self.on_query_selected)
 		self.tab_img.set_thumbnail_size(128)
 		
+		self.tabs.blockSignals(True)
 		self.tabs.insertTab(1, self.tab_img, "IMG")
 		self.tabs.removeTab(2)
 		self.tabs.setCurrentIndex(1)
+		self.tabs.blockSignals(False)
 		
 		self.on_sorted()
 	
@@ -113,18 +115,22 @@ class Query(Frame, QtWidgets.QWidget):
 		self.tab_geo = QueryGeo(self.model, self.view, self, self.query)
 		self.connect_broadcast(Broadcasts.VIEW_SELECTED, self.on_query_selected)
 		
+		self.tabs.blockSignals(True)
 		self.tabs.insertTab(2, self.tab_geo, "GEO")
 		self.tabs.removeTab(3)
 		self.tabs.setCurrentIndex(2)
+		self.tabs.blockSignals(False)
 	
 	def populate_tab_vis(self):
 		
 		self.tab_vis = QueryVis(self.model, self.view, self, self.query)
 		self.connect_broadcast(Broadcasts.VIEW_SELECTED, self.on_query_selected)
 		
+		self.tabs.blockSignals(True)
 		self.tabs.insertTab(3, self.tab_vis, "VIS")
 		self.tabs.removeTab(4)
 		self.tabs.setCurrentIndex(3)
+		self.tabs.blockSignals(False)
 	
 	def update(self):
 		

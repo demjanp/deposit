@@ -110,7 +110,7 @@ class QueryVis(Frame, QtWidgets.QMainWindow):
 		
 		self.toolbar.actionTriggered.connect(self.on_tool_triggered)
 	
-	def populate(self, reset_positions = False):
+	def populate(self, reset_positions = False, max_nodes = 1000, max_edges = 3000):
 		
 		self._nodes.clear()
 		self._edges.clear()
@@ -118,28 +118,35 @@ class QueryVis(Frame, QtWidgets.QMainWindow):
 		self._positions.clear()
 		
 		G = nx.MultiDiGraph()
-		ids_found = set([])
-		for row in self.query:
-			obj_id = row.object.id
-			ids_found.add(obj_id)
-			self._nodes[obj_id] = str(obj_id)
-			G.add_node(obj_id)
-			self._attributes[obj_id] = []
-			for column in row:
-				descriptor = row[column].descriptor
-				if descriptor is None:
-					continue
-				if descriptor.label.__class__.__name__ != "DString":
-					continue
-				if descriptor.label.value:
-					self._attributes[obj_id].append((column, descriptor.label.value))
-		for row in self.query:
-			obj_id1 = row.object.id
-			for rel in row.object.relations:
-				if rel.startswith("~"):
-					continue
-				for obj_id2 in ids_found.intersection(list(row.object.relations[rel])):
-					G.add_edge(obj_id1, obj_id2, name = rel)
+		if len(self.query) <= max_nodes:
+			ids_found = set([])
+			for row in self.query:
+				obj_id = row.object.id
+				ids_found.add(obj_id)
+				self._nodes[obj_id] = str(obj_id)
+				G.add_node(obj_id)
+				self._attributes[obj_id] = []
+				for column in row:
+					descriptor = row[column].descriptor
+					if descriptor is None:
+						continue
+					if descriptor.label.__class__.__name__ != "DString":
+						continue
+					if descriptor.label.value:
+						self._attributes[obj_id].append((column, descriptor.label.value))
+			n_edges = 0
+			for row in self.query:
+				if n_edges > max_edges:
+					self._nodes.clear()
+					self._attributes.clear()
+					break
+				obj_id1 = row.object.id
+				for rel in row.object.relations:
+					if rel.startswith("~"):
+						continue
+					for obj_id2 in ids_found.intersection(list(row.object.relations[rel])):
+						G.add_edge(obj_id1, obj_id2, name = rel)
+						n_edges += 1
 		
 		self._row_count = len(self._nodes)
 		
