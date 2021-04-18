@@ -23,6 +23,7 @@ class DGeometry(DLabel):
 
 		self._value, self._srid, self._srid_vertical = self.__convert_value(value, srid, srid_vertical)
 		self._prj = None
+		self._coords = None
 		
 		super(DGeometry, self).__init__(self._value)
 
@@ -56,11 +57,13 @@ class DGeometry(DLabel):
 	@property
 	def coords(self):
 		# ([[x, y], ...], type); type = geometry type (POINT, POLYGON, etc.)
-
-		try:
-			return [[float(val) for val in point.strip().split(" ")] for point in self._value[self._value.rfind("(") + 1 : self._value.find(")")].split(",")], self._value.split("(")[0].upper()
-		except:
-			return [], None
+		
+		if self._coords is None:
+			try:
+				self._coords = ([[float(val) for val in point.strip().split(" ")] for point in self._value[self._value.rfind("(") + 1 : self._value.find(")")].split(",")], self._value.split("(")[0].upper())
+			except:
+				self._coords = ([], None)
+		return self._coords
 
 	@property
 	def prj(self):
