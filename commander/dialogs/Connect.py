@@ -34,42 +34,43 @@ class Connect(DataSource):
 		
 		return logo_frame
 	
-	def on_connect(self, identifier, connstr, local_folder = None, created = False):
+	def on_connect(self, identifier, connstr, local_folder = None, created = False, no_import = False):
 		
 		ds_import = None
 		if (len(self.model.objects) > 0) or (len(self.model.classes) > 0):
 			
-			do_import = self.save
-			if not self.save:
-				msgbox = QtWidgets.QMessageBox()
-				msgbox.setWindowTitle("Import current data?")
-				msgbox.setText("Import current data into new database?")
-				button_import = msgbox.addButton("Import", QtWidgets.QMessageBox.YesRole)
-				button_import.setToolTip("Import current data into the newly opened database.")
-				button_no = msgbox.addButton("No", QtWidgets.QMessageBox.NoRole)
-				button_no.setToolTip("Just open the new database, without importing.")
-				button_cancel = msgbox.addButton("Cancel", QtWidgets.QMessageBox.RejectRole)
-				msgbox.setIcon(QtWidgets.QMessageBox.Question)
-				ret = msgbox.exec()
-				if msgbox.clickedButton() == button_cancel:
-					self.close()
-					return
-				do_import = (msgbox.clickedButton() == button_import)				
-			
-			if do_import:
-				ds_import = dict(
-					data_source_class = None,
-					identifier = None,
-					url = None,
-					connstr = None,
-					local_folder = self.model.local_folder,
-					changed = self.model.changed,
-					classes = self.model.classes.to_dict(), # {name: class data, ...}
-					objects = self.model.objects.to_dict(), # {id: object data, ...}
-					events = self.model.events.to_list(),
-					user_tools = self.model.user_tools.to_list(),
-					queries = self.model.queries.to_dict(),
-				)
+			if not no_import:
+				do_import = self.save
+				if not self.save:
+					msgbox = QtWidgets.QMessageBox()
+					msgbox.setWindowTitle("Import current data?")
+					msgbox.setText("Import current data into new database?")
+					button_import = msgbox.addButton("Import", QtWidgets.QMessageBox.YesRole)
+					button_import.setToolTip("Import current data into the newly opened database.")
+					button_no = msgbox.addButton("No", QtWidgets.QMessageBox.NoRole)
+					button_no.setToolTip("Just open the new database, without importing.")
+					button_cancel = msgbox.addButton("Cancel", QtWidgets.QMessageBox.RejectRole)
+					msgbox.setIcon(QtWidgets.QMessageBox.Question)
+					ret = msgbox.exec()
+					if msgbox.clickedButton() == button_cancel:
+						self.close()
+						return
+					do_import = (msgbox.clickedButton() == button_import)				
+				
+				if do_import:
+					ds_import = dict(
+						data_source_class = None,
+						identifier = None,
+						url = None,
+						connstr = None,
+						local_folder = self.model.local_folder,
+						changed = self.model.changed,
+						classes = self.model.classes.to_dict(), # {name: class data, ...}
+						objects = self.model.objects.to_dict(), # {id: object data, ...}
+						events = self.model.events.to_list(),
+						user_tools = self.model.user_tools.to_list(),
+						queries = self.model.queries.to_dict(),
+					)
 		
 		if identifier is None:
 			self.model.clear()

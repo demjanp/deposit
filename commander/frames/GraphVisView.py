@@ -426,7 +426,9 @@ class Edge(QtWidgets.QGraphicsItem):
 		if option.state & QtWidgets.QStyle.State_Selected:
 			pen_width = 2
 		
-		painter.setPen(QtGui.QPen(QtCore.Qt.gray, pen_width, QtCore.Qt.SolidLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin))
+		pen = QtGui.QPen(QtCore.Qt.gray, pen_width, QtCore.Qt.SolidLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
+		pen.setCosmetic(True)
+		painter.setPen(pen)
 		painter.drawLine(self.line)
 		
 		length = self.line.length()
