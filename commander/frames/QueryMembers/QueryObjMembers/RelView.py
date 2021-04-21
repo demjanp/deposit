@@ -15,7 +15,7 @@ class HeaderButton(QtWidgets.QToolButton):
 		QtWidgets.QToolButton.__init__(self, parent)
 		
 		self.setText(label)
-		self.setArrowType(QtCore.Qt.DownArrow)
+		self.setArrowType(QtCore.Qt.RightArrow)
 		self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
 		self.setAutoRaise(True)
 		self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
@@ -84,7 +84,7 @@ class RelView(Frame, QtWidgets.QWidget):
 				found.add((rel, "!*"))
 		for rel, cls in found:
 			self.relations.append([rel, cls])
-			self.visible_widgets["%s_%s" % (rel, cls)] = True
+			self.visible_widgets["%s_%s" % (rel, cls)] = False
 		
 		# sort relations by class order
 		self.relations = natsorted(self.relations, key = lambda row: [row[0], -1] if (row[1] == "!*") else [row[0], self.model.classes[row[1]].order])
