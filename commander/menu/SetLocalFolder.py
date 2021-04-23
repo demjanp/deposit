@@ -18,7 +18,7 @@ class SetLocalFolder(Tool):
 	
 	def enabled(self):
 		
-		return (self.model.data_source is not None) and (self.model.data_source.name != "JSON")
+		return (self.model.data_source is not None) and (self.model.data_source.name not in ["JSON", "Pickle"])
 	
 	def triggered(self, state):
 		

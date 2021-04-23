@@ -16,7 +16,7 @@ class ClearLocalFolder(Tool):
 	
 	def enabled(self):
 		
-		return (self.model.local_folder is not None) and (self.model.data_source is not None) and (self.model.data_source.name != "JSON")
+		return (self.model.local_folder is not None) and (self.model.data_source is not None) and (self.model.data_source.name not in ["JSON", "Pickle"])
 	
 	def triggered(self, state):
 		

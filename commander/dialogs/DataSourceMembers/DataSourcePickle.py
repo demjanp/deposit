@@ -7,6 +7,6 @@ from PySide2 import (QtWidgets, QtCore, QtGui)
 from pathlib import Path
 import os
 
-class DataSourceJSON(DataSourceFile):
+class DataSourcePickle(DataSourceFile):
 	
-	EXTENSION = "json"
+	EXTENSION = "pickle"

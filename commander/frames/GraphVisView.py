@@ -550,8 +550,6 @@ class GraphVisView(QtWidgets.QGraphicsView):
 	
 	def scale_view(self, factor):
 		
-		f = self.matrix().scale(factor, factor).mapRect(QtCore.QRectF(0, 0, 1, 1)).width()
-		
 		self.scale(factor, factor)
 	
 	def save_pdf(self, path):

@@ -16,6 +16,7 @@ from deposit.store.externalsources._ExternalSources import (ExternalSources)
 from deposit.store.Conversions import (as_url, to_unique)
 
 import time
+import sys
 import os
 
 class Store(DModule):
@@ -28,6 +29,7 @@ class Store(DModule):
 		self.classes = None
 
 		self.json = None
+		self.pickle = None
 		
 		self.datasources = DataSources(self)
 		self.externalsources = ExternalSources(self)
@@ -44,7 +46,7 @@ class Store(DModule):
 		self._local_resource_uris = []
 		self.save_events = False
 
-		self.data_source = None # DB / DBRel / JSON / RDFGraph / None
+		self.data_source = None # DB / DBRel / JSON / Pickle / RDFGraph / None
 
 		DModule.__init__(self)
 		
@@ -52,6 +54,7 @@ class Store(DModule):
 		self.classes = DClasses(self)
 		
 		self.json = self.datasources.JSON()
+		self.pickle = self.datasources.Pickle()
 		
 		self.files = Files(self)
 		self.images = Images(self)
@@ -228,19 +231,18 @@ class Store(DModule):
 			
 		elif not identifier is None:
 			
+#			dsources = {"json": store.datasources.JSON, "rdf": store.datasources.RDF, "pickle": store.datasources.Pickle}
+			dsources = {"json": store.datasources.JSON, "pickle": store.datasources.Pickle}  # TODO implement RDF
 			if identifier[-1] == "#":
-				ds = store.datasources.JSON(url = "%s.json" % (identifier[:-1]))
-				if (ds is not None) and ds.load():
-					return ds
-				ds = store.datasources.RDFGraph(url = "%s.rdf" % (identifier[:-1]))
-				if (ds is not None) and ds.load():
-					return ds
+				for ext in dsources:
+					ds = dsources[ext](url = "%s.%s" % (identifier[:-1], ext))
+					if (ds is not None) and ds.load():
+						return ds
 			
+			ds = None
 			ext = identifier.split(".")[-1].lower().strip()
-			if ext == "json":
-				ds = store.datasources.JSON(url = identifier)
-			elif ext == "rdf":
-				ds = store.datasources.RDFGraph(url = identifier)
+			if ext in dsources:
+				ds = dsources[ext](url = identifier)
 			if (ds is not None) and ds.load():
 				return ds
 		
@@ -268,10 +270,16 @@ class Store(DModule):
 		# identifier_ds = identifier or DataSource
 		# if selected_ids == None: import all objects
 		
-		def collect_ids(id, selected_ids, selected_classes, store, found = set([])):
+		recursion_limit = max(1, sys.getrecursionlimit() - 1)
+		
+		def collect_ids(id, selected_ids, selected_classes, store, found = set([]), depth = 0):
 			
+			if depth >= recursion_limit:
+				return
 			obj = store.objects[id]
 			if obj is None:
+				return
+			if id in found:
 				return
 			found.add(id)
 			for rel in obj.relations:
@@ -284,7 +292,10 @@ class Store(DModule):
 						continue
 					if (id2 not in selected_ids) and selected_classes.intersection(store.objects[id2].classes.keys()):
 						continue
-					collect_ids(id2, selected_ids, selected_classes, store, found)
+					depth += 1
+					if depth >= recursion_limit:
+						return
+					collect_ids(id2, selected_ids, selected_classes, store, found, depth)
 		
 		if isinstance(identifier_ds, dict):
 			self.stop_broadcasts()
@@ -341,11 +352,11 @@ class Store(DModule):
 						label._path = None
 				descr = obj_new.descriptors.add(descr, label)
 				descr.geotag = obj_orig.descriptors[descr].geotag
+		self.populate_descriptor_names()
+		self.populate_relation_names()
 		if localise:
 			ids = [id_lookup[id_orig] for id_orig in id_lookup]
 			self.localise_resources(True, ids)
-		self.populate_descriptor_names()
-		self.populate_relation_names()
 		self.resume_broadcasts()
 	
 	def populate_descriptor_names(self):

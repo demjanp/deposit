@@ -3,6 +3,7 @@ from deposit.DModule import (DModule)
 from deposit.store.datasources.DB import (DB)
 from deposit.store.datasources.DBRel import (DBRel)
 from deposit.store.datasources.JSON import (JSON)
+from deposit.store.datasources.Pickle import (Pickle)
 from deposit.store.datasources.RDFGraph import (RDFGraph)
 
 class DataSources(DModule):
@@ -10,7 +11,7 @@ class DataSources(DModule):
 	def __init__(self, store):
 		
 		self.store = store
-		self._classes = dict([(cls.__name__, cls) for cls in [DB, DBRel, JSON, RDFGraph]]) # {name: DataSource, ...}
+		self._classes = dict([(cls.__name__, cls) for cls in [DB, DBRel, JSON, Pickle, RDFGraph]]) # {name: DataSource, ...}
 
 		DModule.__init__(self)
 
