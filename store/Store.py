@@ -401,9 +401,9 @@ class Store(DModule):
 						weight = relation._weights[id2]
 					obj2 = store.objects[id2]
 					rel_collect[rel][1].update(obj2.classes.keys())
-					obj_new.relations[rel][id2] = obj2
+					obj_new.relations[rel][id_lookup[id2]] = obj2
 					if weight is not None:
-						obj_new.relations[rel]._weights[id2] = weight
+						obj_new.relations[rel]._weights[id_lookup[id2]] = weight
 			for descr in obj_orig.descriptors:
 				label = obj_orig.descriptors[descr].label
 				if label.__class__.__name__ == "DResource":
