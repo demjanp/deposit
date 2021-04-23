@@ -2,6 +2,7 @@ from deposit import Broadcasts
 from deposit.DModule import (DModule)
 from deposit.store.DElements.DObjects import (DObjects)
 from deposit.store.DElements.DClasses import (DClasses)
+from deposit.store.DElements.DRelations import (DRelation)
 from deposit.store.DElements.DDescriptors import (DDescriptor)
 from deposit.store.DLabel.DNone import (DNone)
 from deposit.store.Files import (Files)
@@ -16,7 +17,6 @@ from deposit.store.externalsources._ExternalSources import (ExternalSources)
 from deposit.store.Conversions import (as_url, to_unique)
 
 import time
-import sys
 import os
 
 class Store(DModule):
@@ -270,39 +270,83 @@ class Store(DModule):
 		# identifier_ds = identifier or DataSource
 		# if selected_ids == None: import all objects
 		
-		recursion_limit = max(1, sys.getrecursionlimit() - 1)
-		
-		def collect_ids(id, selected_ids, selected_classes, store, found = set([]), depth = 0):
+		def set_data(data):
+			# data = {local_folder, changed, classes, objects, events, user_tools, queries}
 			
-			if depth >= recursion_limit:
-				return
-			obj = store.objects[id]
-			if obj is None:
-				return
-			if id in found:
-				return
-			found.add(id)
-			for rel in obj.relations:
-				if rel.startswith("~") and (id not in selected_ids):
+			resource_uris = []
+			for id in data["objects"]:
+				for name in data["objects"][id]["descriptors"]:
+					if (data["objects"][id]["descriptors"][name]["label"]["dtype"] == "DResource") and (not data["objects"][id]["descriptors"][name]["label"]["path"] is None):
+						if not data["objects"][id]["descriptors"][name]["label"]["value"] in resource_uris:
+							resource_uris.append(data["objects"][id]["descriptors"][name]["label"]["value"])
+			local_folder = self.local_folder
+			self.clear()
+			self.local_folder = local_folder
+			self.classes.from_dict(data["classes"])
+			self.objects.from_dict(data["objects"])
+			self.set_local_resource_uris(resource_uris)
+			self.changed = data["changed"]
+			self.events.from_list(data["events"])
+			self.user_tools.from_list(data["user_tools"])
+			self.queries.from_dict(data["queries"])
+			self.localise_resources(True)
+			self.images.load_thumbnails()
+		
+		def add_data(data): # TODO implement
+			
+			resource_uris = []
+			for id in data["objects"]:
+				for name in data["objects"][id]["descriptors"]:
+					if (data["objects"][id]["descriptors"][name]["label"]["dtype"] == "DResource") and (not data["objects"][id]["descriptors"][name]["label"]["path"] is None):
+						if not data["objects"][id]["descriptors"][name]["label"]["value"] in resource_uris:
+							resource_uris.append(data["objects"][id]["descriptors"][name]["label"]["value"])
+			# TODO
+			# add data["classes"] = {name: class data, ...}
+			#	name, objects, subclasses, descriptors, relations
+			# add data["objects"] = {id: object data, ...}
+			# set_local_resource_uris
+			# add data["user_tools"]
+			# add data["queries"]
+			# localise_resources(True, ids)
+			self.images.load_thumbnails()
+			
+		
+		def collect_ids(id, selected_ids, selected_classes, store, found):
+			
+			queue = set([id])
+			while queue:
+				print("\r%d            " % (len(queue)), end = "")
+				id1 = queue.pop()
+				if id1 in found:
 					continue
-				for id2 in obj.relations[rel]:
-					if id2 is None:
+				obj = store.objects[id]
+				if obj is None:
+					return
+				found.add(id1)
+				for rel in obj.relations:
+					if rel.startswith("~") and (id1 not in selected_ids):
 						continue
-					if id2 in found:
-						continue
-					if (id2 not in selected_ids) and selected_classes.intersection(store.objects[id2].classes.keys()):
-						continue
-					depth += 1
-					if depth >= recursion_limit:
-						return
-					collect_ids(id2, selected_ids, selected_classes, store, found, depth)
+					for id2 in obj.relations[rel]:
+						if id2 is None:
+							continue
+						if id2 in found:
+							continue
+						if (id2 not in selected_ids) and selected_classes.intersection(store.objects[id2].classes.keys()):
+							continue
+						queue.add(id2)
 		
 		if isinstance(identifier_ds, dict):
 			self.stop_broadcasts()
+			if (not len(self.objects)) and (not len(self.classes)):
+				set_data(identifier_ds)
+				self.resume_broadcasts()
+				return
+			# TODO else use add_data
 			store = Store()
 			ds = DataSource(store)
 			ds.from_dict(identifier_ds)
 			store.set_datasource(ds)
+			
 		else:
 			if (identifier_ds == self.identifier) and (connstr == self.connstr):
 				return
@@ -313,20 +357,25 @@ class Store(DModule):
 			self.stop_broadcasts()
 			store.set_datasource(ds)
 		
-		found_ids = set([])
 		if selected_ids is None:
-			selected_ids = store.objects.keys()
-		selected_ids = set(selected_ids)
-		selected_classes = set([])
-		for id in selected_ids:
-			selected_classes.update(store.objects[id].classes.keys())
-		for id in selected_ids:
-			collect_ids(id, selected_ids, selected_classes, store, found_ids)
+			found_ids = set(list(store.objects.keys()))
+			selected_ids = found_ids
+			selected_classes = set(list(store.classes.keys()))
+		else:
+			selected_ids = set(selected_ids)
+			selected_classes = set([])
+			found_ids = set([])
+			for id in selected_ids:
+				selected_classes.update(store.objects[id].classes.keys())
+			for id in selected_ids:
+				collect_ids(id, selected_ids, selected_classes, store, found_ids)
+		
 		id_lookup = {} # {orig_id: new_id, ...}
 		for id_orig in found_ids:
 			id_lookup[id_orig] = self.objects.add().id
 		cmax = len(found_ids)
 		cnt = 1
+		rel_collect = {}  # {rel: [[cls_name, ...], [cls_name, ...]], ...}
 		for id_orig in found_ids:
 			print("\rImporting %d/%d            " % (cnt, cmax), end = "")
 			cnt += 1
@@ -335,15 +384,26 @@ class Store(DModule):
 			for cls in obj_orig.classes:
 				obj_new.classes.add(cls)
 			for rel in obj_orig.relations:
-				for id2 in obj_orig.relations[rel]:
+				if rel not in rel_collect:
+					rel_collect[rel] = [set([]), set([])]
+				rel_collect[rel][0].update(obj_orig.classes.keys())
+				relation = obj_orig.relations[rel]
+				obj_new.relations[rel] = DRelation(obj_new.relations, rel)
+				for id2 in relation:
 					if id2 is None:
 						continue
 					if id2 not in id_lookup:
 						continue
 					if (id2 not in selected_ids) and selected_classes.intersection(store.objects[id2].classes.keys()):
 						continue
-					weight = obj_orig.relations[rel].weight(id2)
-					obj_new.relations.add(rel, id_lookup[id2], weight)
+					weight = None
+					if id2 in relation._weights:
+						weight = relation._weights[id2]
+					obj2 = store.objects[id2]
+					rel_collect[rel][1].update(obj2.classes.keys())
+					obj_new.relations[rel][id2] = obj2
+					if weight is not None:
+						obj_new.relations[rel]._weights[id2] = weight
 			for descr in obj_orig.descriptors:
 				label = obj_orig.descriptors[descr].label
 				if label.__class__.__name__ == "DResource":
@@ -352,6 +412,20 @@ class Store(DModule):
 						label._path = None
 				descr = obj_new.descriptors.add(descr, label)
 				descr.geotag = obj_orig.descriptors[descr].geotag
+		for rel in rel_collect:
+			if rel.startswith("~"):
+				continue
+			classes1, classes2 = rel_collect[rel]
+			if not classes1:
+				continue
+			else:
+				for name1 in classes1:
+					if not classes2:
+						self.classes[name1].add_relation(rel, "!*")
+					else:
+						for name2 in classes2:
+							self.classes[name1].add_relation(rel, name2)
+		
 		self.populate_descriptor_names()
 		self.populate_relation_names()
 		if localise:
