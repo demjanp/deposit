@@ -309,7 +309,6 @@ class Store(DModule):
 			# add data["queries"]
 			# localise_resources(True, ids)
 			self.images.load_thumbnails()
-			
 		
 		def collect_ids(id, selected_ids, selected_classes, store, found):
 			
@@ -319,7 +318,7 @@ class Store(DModule):
 				id1 = queue.pop()
 				if id1 in found:
 					continue
-				obj = store.objects[id]
+				obj = store.objects[id1]
 				if obj is None:
 					return
 				found.add(id1)
@@ -346,7 +345,7 @@ class Store(DModule):
 			ds = DataSource(store)
 			ds.from_dict(identifier_ds)
 			store.set_datasource(ds)
-			
+		
 		else:
 			if (identifier_ds == self.identifier) and (connstr == self.connstr):
 				return
@@ -361,6 +360,7 @@ class Store(DModule):
 			found_ids = set(list(store.objects.keys()))
 			selected_ids = found_ids
 			selected_classes = set(list(store.classes.keys()))
+		
 		else:
 			selected_ids = set(selected_ids)
 			selected_classes = set([])
