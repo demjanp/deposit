@@ -2,7 +2,6 @@ from deposit.commander.toolbar._Tool import (Tool)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
-
 class Export(Tool):
 	
 	FORMAT_XLSX = "Excel 2007+ Workbook (*.xlsx)"

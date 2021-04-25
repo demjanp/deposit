@@ -1,6 +1,6 @@
 
 ordering = [
-	["Data",	"Connect", "Save"],
+	["Data",	"Connect", "Save", "SaveAsFile"],
 	["Data",	"LoadExternal", "Import", "Export"],
 	["Data",	"ClearRecent"],
 	["Edit",	"Copy", "Paste"],

@@ -6,6 +6,7 @@ from deposit.commander.menu._ordering import ordering as MENU_ORDERING
 from deposit.commander.menu._ordering import recent as MENU_RECENT
 from deposit.commander.toolbar._Toolbar import (Action)
 
+from deposit.commander.menu.SaveAsFile import (SaveAsFile)
 from deposit.commander.menu.ClearLocalFolder import (ClearLocalFolder)
 from deposit.commander.menu.ClearRecent import (ClearRecent)
 from deposit.commander.menu.Copy import (Copy)
@@ -28,7 +29,7 @@ class Menu(CmdDict, MRUDMenu):
 		self.menubar = None
 		self.actions = {} # {name: Action, ...}
 		
-		CmdDict.__init__(self, ClearLocalFolder, ClearRecent, Copy, Paste, SetLocalFolder, LocaliseResources, SaveHistory, History, About)
+		CmdDict.__init__(self, SaveAsFile, ClearLocalFolder, ClearRecent, Copy, Paste, SetLocalFolder, LocaliseResources, SaveHistory, History, About)
 		MRUDMenu.__init__(self, model, view)
 		
 	def set_up(self):
