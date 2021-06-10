@@ -11,7 +11,7 @@ class Node(QtWidgets.QGraphicsItem):
 	def __init__(self, node_id, label = ""):
 		
 		self.node_id = node_id
-		self.label = label
+		self.label = str(label)
 		self.edges = []  # [Edge, ...]
 		self.font = QtGui.QFont("Calibri", 16)
 		self.label_w = 0
@@ -91,7 +91,7 @@ class NodeWithAttributes(QtWidgets.QGraphicsItem):
 	def __init__(self, node_id, label = "", descriptors = []):
 		
 		self.node_id = node_id
-		self.label = label
+		self.label = str(label)
 		self.descriptors = []
 		self.edges = []  # [Edge, ...]
 		self.font = QtGui.QFont("Calibri", 14)
@@ -235,7 +235,7 @@ class NodeWithSimpleAttributes(QtWidgets.QGraphicsItem):
 		QtWidgets.QGraphicsItem.__init__(self)
 		
 		for _, value in descriptors:
-			self.descriptors.append(value)
+			self.descriptors.append(str(value))
 		
 		self.adjust()
 		
@@ -331,9 +331,10 @@ class NodeWithSimpleAttributes(QtWidgets.QGraphicsItem):
 
 class Edge(QtWidgets.QGraphicsItem):
 	
-	def __init__(self, source, target, label = ""):
+	def __init__(self, source, target, label = "", color = None):
 		
 		self.label = label
+		self.color = QtCore.Qt.gray if color is None else color
 		self.source = weakref.ref(source)
 		self.target = weakref.ref(target)
 		
@@ -346,7 +347,6 @@ class Edge(QtWidgets.QGraphicsItem):
 		self.line = None
 		self.selection_polygon = None
 		self.selection_shape = None
-		
 		
 		QtWidgets.QGraphicsItem.__init__(self)
 		
@@ -426,7 +426,7 @@ class Edge(QtWidgets.QGraphicsItem):
 		if option.state & QtWidgets.QStyle.State_Selected:
 			pen_width = 2
 		
-		pen = QtGui.QPen(QtCore.Qt.gray, pen_width, QtCore.Qt.SolidLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
+		pen = QtGui.QPen(self.color, pen_width, QtCore.Qt.SolidLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
 		pen.setCosmetic(True)
 		painter.setPen(pen)
 		painter.drawLine(self.line)
@@ -444,7 +444,7 @@ class Edge(QtWidgets.QGraphicsItem):
 		arrow_p1 = arrow_pos + QtCore.QPointF(math.sin(angle - math.pi / 3) * self.arrow_size, math.cos(angle - math.pi / 3) * self.arrow_size)
 		arrow_p2 = arrow_pos + QtCore.QPointF(math.sin(angle - math.pi + math.pi / 3) * self.arrow_size, math.cos(angle - math.pi + math.pi / 3) * self.arrow_size)
 		
-		painter.setBrush(QtCore.Qt.gray)
+		painter.setBrush(self.color)
 		painter.drawPolygon(QtGui.QPolygonF([arrow_pos, arrow_p1, arrow_p2]))
 		if self.label != "":
 			painter.setFont(self.font)
@@ -495,7 +495,7 @@ class GraphVisView(QtWidgets.QGraphicsView):
 	
 	def set_data(self, nodes, edges, attributes, positions, show_attributes = 0):
 		# nodes = {node_id: label, ...}
-		# edges = [[source_id, target_id, label], ...]
+		# edges = [[source_id, target_id, label], ...] or [[source_id, target_id, label, color], ...]
 		# attributes = {node_id: [(name, value), ...], ...}
 		# positions = {node_id: (x, y), ...}
 		# show_attributes = 0 (none) / 1 (values only) / 2 (node_id, attribute names and values)
@@ -515,10 +515,22 @@ class GraphVisView(QtWidgets.QGraphicsView):
 				self._nodes[node_id].setPos(x*4, y*4)
 			else:
 				self._nodes[node_id].setPos(x*2, y*2)
-		for source_id, target_id, label in edges:
+		for row in edges:
+			if len(row) == 3:
+				source_id, target_id, label = row
+				color = None
+			elif len(row) == 4:
+				source_id, target_id, label, color = row
+				if isinstance(color, str):
+					try:
+						color = getattr(QtCore.Qt, color)
+					except:
+						color = None
+			else:
+				raise Exception("Invalid edge format: %s" % (str(row)))
 			if (source_id not in self._nodes) or (target_id not in self._nodes):
 				continue
-			self._edges.append(Edge(self._nodes[source_id], self._nodes[target_id], label))
+			self._edges.append(Edge(self._nodes[source_id], self._nodes[target_id], label, color))
 			self.scene().addItem(self._edges[-1])
 	
 	def get_selected(self):
