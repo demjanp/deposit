@@ -1,5 +1,6 @@
 
 from PySide2 import (QtWidgets, QtCore, QtGui, QtPrintSupport)
+from copy import copy
 import weakref
 import math
 
@@ -355,8 +356,10 @@ class Edge(QtWidgets.QGraphicsItem):
 			self.label_w = rect.width()
 			self.label_h = rect.height()
 		
+		self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
 		self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
 		self.setFlag(QtWidgets.QGraphicsItem.ItemIsFocusable, True)
+		self.setCacheMode(self.DeviceCoordinateCache)
 		self.setZValue(-2)
 		
 		self.source().add_edge(self)
@@ -564,17 +567,45 @@ class GraphVisView(QtWidgets.QGraphicsView):
 		
 		self.scale(factor, factor)
 	
-	def save_pdf(self, path):
+	def get_scale(self):
+		
+		return self.transform().m11()
+	
+	def save_pdf(self, path, dpi = 72):
 		
 		self.scene().clearSelection()
 		
-		rect = self.scene().itemsBoundingRect().marginsAdded(QtCore.QMarginsF(10, 10, 10, 10))
-		w, h = rect.width(), rect.height()	
+		scale = self.get_scale()
+		
+		rect = self.scene().itemsBoundingRect()
+		m = min(rect.width(), rect.height())*0.05
+		rect = rect.marginsAdded(QtCore.QMarginsF(m, m, m, m))
+		w, h = rect.width(), rect.height()
+		
 		printer = QtPrintSupport.QPrinter()
-		printer.setPageSize(QtGui.QPageSize(QtCore.QSize(w, h)))
-		printer.setOrientation(QtPrintSupport.QPrinter.Portrait)
+		printer.setWinPageSize(QtGui.QPageSize.A4)
+		printer.setFullPage(True)
+		is_landscape = False
+		if w > h:
+			is_landscape = True
+			printer.setOrientation(QtPrintSupport.QPrinter.Landscape)
+		else:
+			printer.setOrientation(QtPrintSupport.QPrinter.Portrait)
 		printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
 		printer.setOutputFileName(path)
+		size = printer.pageLayout().pageSize().sizePoints()
+		if is_landscape:
+			pw, ph = size.height(), size.width()
+		else:
+			pw, ph = size.width(), size.height()
+		scale = min(pw / w, ph / h)
+		printer.setResolution(int(round(dpi / scale)))
+		ph = int(round(h * (pw / w)))
+		if is_landscape:
+			printer.setPageSize(QtGui.QPageSize(QtCore.QSize(ph, pw), units = QtGui.QPageSize.Point))
+		else:
+			printer.setPageSize(QtGui.QPageSize(QtCore.QSize(pw, ph), units = QtGui.QPageSize.Point))
+		
 		painter = QtGui.QPainter(printer)
 		self.scene().render(painter, source = rect)
 		painter.end()
