@@ -103,6 +103,8 @@ class DB(DataSource):
 	
 	def connect(self, create_schema = False):
 		
+		if not self.connstr:
+			return None, []
 		try:
 			conn = psycopg2.connect(self.connstr)
 		except:
