@@ -171,6 +171,7 @@ class Files(DModule):
 				new_uri = "%s_%d%s" % (uri, n, ext)
 				if not new_uri in self.store.local_resource_uris:
 					break
+				n += 1
 			uri = new_uri
 			
 		# get local path based on uri

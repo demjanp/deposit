@@ -159,7 +159,7 @@ class MdiArea(ViewChild, QtWidgets.QMdiArea):
 		if mimedata.hasUrls():
 			for url in mimedata.urls():
 				url = str(url.toString())
-				if url.split(".")[-1].lower() in ["json", "xlsx", "csv", "shp"]:
+				if url.split(".")[-1].lower() in ["pickle", "json", "xlsx", "csv", "shp"]:
 					return "url", url
 		return None, None
 	
@@ -184,7 +184,7 @@ class MdiArea(ViewChild, QtWidgets.QMdiArea):
 		typ, data = self.get_drag_data(event)
 		if typ == "url":
 			ext = data.split(".")[-1].lower()
-			if ext == "json":
+			if ext in ["json", "pickle"]:
 				url = "%s" % (data)
 				self.view.dialogs.open("OpenOrImport", url)
 				return
