@@ -23,7 +23,7 @@ class FileSource(DataSource):
 			self.identifier = None
 		else:
 			self.url = url
-			self.identifier = os.path.splitext(url)[0] + "#"
+			self.identifier = os.path.splitext(self.url)[0] + "#"
 		if self.store.data_source == self:
 			self.broadcast(Broadcasts.STORE_DATA_SOURCE_CHANGED)
 	
@@ -47,7 +47,7 @@ class FileSource(DataSource):
 		self.store.clear()
 		
 		parsed = urlparse(self.url)
-		path = os.path.normpath(os.path.abspath(parsed.path.strip("//")))
+		path = os.path.normpath(os.path.abspath(parsed.path.strip("//").replace("%20"," ")))
 		
 		data = None
 		if not os.path.isfile(path):
@@ -140,7 +140,7 @@ class FileSource(DataSource):
 		)
 		
 		parsed = urlparse(self.url)
-		path = os.path.normpath(os.path.abspath(parsed.path.strip("//")))
+		path = os.path.normpath(os.path.abspath(parsed.path.strip("//").replace("%20"," ")))
 		
 		saved_path = os.path.join(self.store.files.get_temp_path(), os.path.split(path)[1])
 		self.save_file(data, saved_path)

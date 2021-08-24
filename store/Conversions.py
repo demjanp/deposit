@@ -117,7 +117,7 @@ def as_path(url, check_if_exists = True):
 	parsed = urlparse(url)
 	if parsed.scheme != "file":
 		return None
-	path = os.path.normpath(os.path.abspath(parsed.path.strip("/").strip("\\")))
+	path = os.path.normpath(os.path.abspath(parsed.path.strip("/").strip("\\").replace("%20"," ")))
 	if (not check_if_exists) or os.path.isfile(path):
 		return path
 	return None
