@@ -674,6 +674,7 @@ class Parse(object):
 				for cls1 in related.classes1:
 					for cls2 in related.classes2:
 						relations_done.add((cls1, cls2))
+						relations_done.add((cls2, cls1))
 			classes = set()
 			for select in self.selects:
 				classes.update(select.classes)
