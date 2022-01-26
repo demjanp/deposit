@@ -9,14 +9,18 @@ Peter Demján (peter.demjan@gmail.com)
 Institute of Archaeology of the Czech Academy of Sciences, Prague, v.v.i.
 
 ## Table of Contents
-1. [Deposit (DEP) RDF Schema](#rdf_schema)
-2. [DLabel classes](#dlabel_classes)
-3. [Concepts](#concepts)
-4. [RDFLib definitions](#rdflib_definitions)
-5. [Deposit graph RDF definitions](#graph_rdf_definitions)
-6. [Querying](#querying)
-7. [Acknowledgements](#acknowledgements)
-8. [License](#license)
+1. [Installation](#installation)
+2. [Deposit (DEP) RDF Schema](#rdf_schema)
+3. [DLabel classes](#dlabel_classes)
+4. [Concepts](#concepts)
+5. [RDFLib definitions](#rdflib_definitions)
+6. [Deposit graph RDF definitions](#graph_rdf_definitions)
+7. [Querying](#querying)
+8. [Acknowledgements](#acknowledgements)
+9. [License](#license)
+
+## Installation <a name="installation"></a>
+An installer of the Windows executable version can be downloaded via the <a href="https://github.com/demjanp/deposit/releases/latest">GitHub Releases page</a>.
 
 ## Deposit (DEP) RDF Schema: <a name="rdf_schema"></a>
 
