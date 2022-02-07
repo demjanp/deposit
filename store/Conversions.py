@@ -122,6 +122,20 @@ def as_path(url, check_if_exists = True):
 		return path
 	return None
 
+def check_path_invalid_chars(path):
+	
+	path = os.path.normpath(path)
+	url = as_url(path)
+	path2 = as_path(url, check_if_exists = False)
+	if path2 == path:
+		return []
+	invalid = set([])
+	for i in range(len(path)):
+		if path2.find(path[i]) == -1:
+			invalid.add(path[i])
+	invalid = sorted(list(invalid))
+	return invalid
+
 def to_unique(values):
 	
 	if not values:
@@ -137,3 +151,4 @@ def to_unique(values):
 	if out[-1] != values[-1]:
 		out.append(values[-1])
 	return out
+

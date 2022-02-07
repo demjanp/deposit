@@ -1,5 +1,5 @@
 from deposit.DModule import (DModule)
-from deposit.store.Conversions import (as_url)
+from deposit.store.Conversions import (as_url, check_path_invalid_chars)
 
 from PySide2 import (QtWidgets, QtCore, QtGui)
 
@@ -96,6 +96,11 @@ class DataSourceFile(DModule, QtWidgets.QFrame):
 		
 		if (not os.path.isfile(path)) and (not self.parent.creating_enabled()):
 			QtWidgets.QMessageBox.critical(self, "Error", "Could not create database.")
+			return None
+		
+		invalid = check_path_invalid_chars(path)
+		if invalid:
+			QtWidgets.QMessageBox.critical(self, "Error", "Invalid characters in path: %s" % (" ".join(invalid)))
 			return None
 		
 		url = as_url(path)
