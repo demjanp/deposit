@@ -33,7 +33,7 @@ class BroadcastHook(object):
 		self._on_broadcast = func
 
 	def add(self, broadcaster, signal, args):
-
+		
 		if self._stopped:
 			return
 		if signal in self._connected:
@@ -86,13 +86,13 @@ class BroadcastHook(object):
 			func(args)
 
 	def stop(self, module_id):
-
+		
 		if self._stopped:
 			return
 		self._stopped = module_id
 
 	def resume(self, module_id):
-
+		
 		if self._stopped == module_id:
 			self._stopped = False
 

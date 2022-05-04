@@ -214,7 +214,7 @@ class Store(DModule):
 
 		return Query(self, querystr)
 	
-	def get_datasource(self, identifier, connstr, store = None):
+	def get_datasource(self, identifier, connstr, store = None, create = True):
 		
 		if store is None:
 			store = self
@@ -240,14 +240,14 @@ class Store(DModule):
 			if identifier[-1] == "#":
 				for ext in dsources:
 					ds = dsources[ext](url = "%s.%s" % (identifier[:-1], ext))
-					if (ds is not None) and ds.load():
+					if (ds is not None) and ds.load(create = create):
 						return ds
 			
 			ds = None
 			ext = identifier.split(".")[-1].lower().strip()
 			if ext in dsources:
 				ds = dsources[ext](url = identifier)
-			if (ds is not None) and ds.load():
+			if (ds is not None) and ds.load(create = create):
 				return ds
 		
 		return None
@@ -354,7 +354,7 @@ class Store(DModule):
 			if (identifier_ds == self.identifier) and (connstr == self.connstr):
 				return
 			store = Store()
-			ds = self.get_datasource(identifier_ds, connstr, store)
+			ds = self.get_datasource(identifier_ds, connstr, store, create = False)
 			if ds is None:
 				return
 			self.stop_broadcasts()

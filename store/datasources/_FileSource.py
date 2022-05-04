@@ -37,20 +37,18 @@ class FileSource(DataSource):
 		
 		pass
 	
-	def load(self):
+	def load(self, create = True):
 		
 		if self.url is None:
 			return False
-		
-		self.stop_broadcasts()
-		self.store.events.stop_recording()
-		self.store.clear()
 		
 		parsed = urlparse(self.url)
 		path = os.path.normpath(os.path.abspath(parsed.path.strip("//").replace("%20"," ")))
 		
 		data = None
 		if not os.path.isfile(path):
+			if not create:
+				return False
 			self.save()
 		if not self.wait_if_busy():
 			return False
@@ -66,6 +64,10 @@ class FileSource(DataSource):
 			if name not in data:
 				self.is_busy = False
 				return False
+		
+		self.stop_broadcasts()
+		self.store.events.stop_recording()
+		self.store.clear()
 		
 		self.store.local_folder = os.path.split(path)[0]
 		
