@@ -3,21 +3,44 @@
 #
 
 from setuptools import setup, find_packages
+import pathlib
 
-from deposit import __version__
+here = pathlib.Path(__file__).parent.resolve()
+
+long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
-	name='deposit',
-	version=__version__,
-	author='Peter Demján',
-	author_email='peter.demjan@gmail.com',
-	packages=find_packages(include = ['deposit', 'deposit.*']),
+    name="deposit",
+    version="1.4.2",
+    description="Graph-based database engine",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/demjanp/deposit",
+    author="Peter Demján",
+    author_email="peter.demjan@gmail.com",
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Science/Research",
+        "Topic :: Database",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Programming Language :: Python :: 3.10",
+        "Operating System :: Microsoft :: Windows :: Windows 10",
+    ],
+    keywords="database, graph",
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
+    python_requires=">=3.10, <4",
 	install_requires=[
-		'networkx>=2.6.3'
+		'natsort>=8.1.0',
+		'networkit>=10.0',
+		'networkx>=2.6.3',
+		'openpyxl>=3.0.10',
+		'Pillow>=9.1.1',
+		'psycopg2>=2.9.3',
+		'pyshp>=2.3.0',
+		'PySide2>=5.15.2.1',
+		'Shapely>=1.8.2',
+		'Unidecode>=1.3.4',
+		'validators>=0.20.0',
 	],
-	scripts=[],
-	license='LICENSE',
-	description='Graph-based data storage and exchange',
-	long_description=open('README.md').read(),
-	python_requires='>=3.10',
 )
