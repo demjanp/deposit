@@ -5,14 +5,23 @@
 from setuptools import setup, find_packages
 import pathlib
 
+try:
+    from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+    class bdist_wheel(_bdist_wheel):
+        def finalize_options(self):
+            _bdist_wheel.finalize_options(self)
+            self.root_is_pure = False
+except ImportError:
+    bdist_wheel = None
+
 here = pathlib.Path(__file__).parent.resolve()
 
 long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="deposit",
-    version="1.4.2",
-    description="Graph-based database engine",
+    version="1.4.0",
+    description="Graph database focused on scientific data collection.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/demjanp/deposit",
@@ -43,4 +52,5 @@ setup(
 		'Unidecode>=1.3.4',
 		'validators>=0.20.0',
 	],
+	cmdclass={'bdist_wheel': bdist_wheel},
 )

@@ -1,5 +1,5 @@
 # ![](dep_cube.svg)Deposit
-Graph-based data collection and storage
+Open source graph database engine focused on scientific data collection.
 
 Created on 29. 4. 2013
 
