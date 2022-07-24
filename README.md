@@ -3,10 +3,19 @@ Open source graph database engine focused on scientific data collection.
 
 Created on 29. 4. 2013
 
-### Author of the code:
+### Author:
 Peter Demján (peter.demjan@gmail.com)
 
 Institute of Archaeology of the Czech Academy of Sciences, Prague, v.v.i.
+
+## Installation
+
+To install the latest version of Deposit from the Python package index, use the following command:
+```
+pip install deposit
+```
+
+For the GUI installer see [Deposit GUI](https://github.com/demjanp/deposit_gui/releases/latest)
 
 ## Acknowledgements: <a name="acknowledgements"></a>
 

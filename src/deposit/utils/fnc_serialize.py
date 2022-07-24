@@ -64,10 +64,10 @@ def value_to_str(value):
 
 def parse_connstr(connstr):
 	
-	values = re.match('postgres://(.*?):(.*?)@(.*?)/(.*)\?currentSchema=(.*)', connstr).groups()
+	values = re.match('postgres://(.*?):(.*?)@(.*?)/(.*)\?currentSchema=(.*)', connstr)
 	if values is None:
 		return {}
-	username, password, host, dbname, schema = values
+	username, password, host, dbname, schema = values.groups()
 	return dict(
 		username = username,
 		password = password,
