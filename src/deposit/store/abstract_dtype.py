@@ -44,6 +44,6 @@ class AbstractDType(object):
 		return self.__str__()
 	
 	def __eq__(self, other):
-
+		
 		return (self.__class__ == other.__class__) and (self.get_value() == other.get_value())
 

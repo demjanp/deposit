@@ -74,14 +74,21 @@ class Query(object):
 		
 		self.process()
 	
-	def _get_descriptor_value(self, obj_id, descriptor_name, descr_lookup, obj_if_none = False):
+	def set_progress(self, progress):
+		
+		self._progress = progress
+	
+	def _get_descriptor_value(self, obj_id, class_name, descriptor_name, class_lookup, descr_lookup, obj_if_none = False):
+		
+		if class_name not in class_lookup[obj_id][0]:
+			return None
 		
 		if descriptor_name is None:
 			if obj_if_none:
 				return obj_id
 			return None
 		
-		return descr_lookup[obj_id].get(descriptor_name, None)
+		return descr_lookup[obj_id].get((class_name, descriptor_name), None)
 	
 	def _get_order(self, class_name, descriptor_name):
 		
@@ -118,13 +125,21 @@ class Query(object):
 			set(self._store.get_descriptor_names())
 		)
 		
-		if not self.parse.selects:
+		selects = []
+		for class_name, descriptor_name in self.parse.selects:
+			if (class_name not in self.parse.classes) and (class_name not in ["*", "!*"]) and (not isinstance(class_name, tuple)):
+				continue
+			if (descriptor_name not in self.parse.descriptors) and (descriptor_name not in [None, "*"]):
+				continue
+			selects.append((class_name, descriptor_name))
+		
+		if not selects:
 			return
 		
-		self._main_class = self.parse.selects[0][0]
+		self._main_class = selects[0][0]
 		
 		keys = set()  # {(class_name, descriptor_name), ...}
-		for class_name, descriptor_name in self.parse.selects:
+		for class_name, descriptor_name in selects:
 			keys.add((class_name, descriptor_name))
 			if class_name not in self._classes:
 				self._classes.append(class_name)
@@ -147,7 +162,11 @@ class Query(object):
 		key_lookup = defaultdict(set)
 		
 		# get connected objects based on selects and relations
-		paths = self._store.get_class_connections(self.parse.classes_used, self.parse.relations, progress = self._progress)
+		paths = self._store.get_class_connections(
+			self.parse.classes_used, 
+			self.parse.relations, 
+			progress = self._progress
+		)
 		
 		obj_ids = set()
 		for path in paths:
@@ -157,30 +176,39 @@ class Query(object):
 		cnt = 1
 		
 		class_lookup = {}  # {obj_id: [classes, superclasses], ...}
-		descr_lookup = {}  # {obj_id: {descriptor_name: value, ...}, ...}
-		class_names = set()
+		class_descr_lookup = {"!*": [], "*": []}
 		for obj_id in obj_ids:
-			if (self._progress is not None) and (cnt % 20000 == 0):
-				self._progress.update_state(text = "Populating Query", value = cnt, maximum = cmax)
-			cnt += 1
 			class_lookup[obj_id] = [set(), set()]
-			descr_lookup[obj_id] = {}
-			obj = self._store.G.get_object_data(obj_id)
-			for descr in obj._descriptors:
-				descr_lookup[obj_id][descr.name] = obj._descriptors[descr]
-		class_descr_lookup = {}
 		for class_name in self._classes:
 			class_descr_lookup[class_name] = []
 			cls = self._store.get_class(class_name)
 			if cls is not None:
 				class_descr_lookup[class_name] = cls.get_descriptor_names()
-				
 				for tgt in self._store.G.iter_class_children(cls.name):
 					if tgt in class_lookup:
 						class_lookup[tgt][0].add(cls.name)
 				for tgt in self._store.G.iter_class_descendants(cls.name):
 					if tgt in class_lookup:
 						class_lookup[tgt][1].add(cls.name)
+		for obj_id in obj_ids:
+			if not class_lookup[obj_id][0]:
+				class_lookup[obj_id][0].add(None)
+		
+		descr_lookup = {}  # {obj_id: {(class_name, descriptor_name): value, ...}, ...}
+		class_names = set()
+		for obj_id in obj_ids:
+			if (self._progress is not None) and (cnt % 20000 == 0):
+				self._progress.update_state(text = "Populating Query", value = cnt, maximum = cmax)
+			cnt += 1
+			descr_lookup[obj_id] = {}
+			obj = self._store.G.get_object_data(obj_id)
+			for descr in obj._descriptors:
+				classes = class_lookup[obj_id][0].union(class_lookup[obj_id][1])
+				if classes:
+					for class_name in classes:
+						descr_lookup[obj_id][(class_name, descr.name)] = obj._descriptors[descr]
+				else:
+					descr_lookup[obj_id][(None, descr.name)] = obj._descriptors[descr]
 		
 		rows = []  # [(obj, {key: value, ...}), ...]; key = (class_name, descriptor_name)
 		done = set()  # {(obj_id, ...), ...}; to avoid duplicate rows
@@ -199,9 +227,13 @@ class Query(object):
 					class_names = class_lookup[obj_id][0]
 					for name in self.parse.where_vars:
 						class_name, descriptor_name = self.parse.where_vars[name]
+						if class_name == "!*":
+							class_name = None
 						if (not isinstance(class_name, tuple)) and class_names and (class_name not in class_names):
 							continue
-						values[name] = self._get_descriptor_value(obj_id, descriptor_name, descr_lookup, obj_if_none = True)
+						value = self._get_descriptor_value(obj_id, class_name, descriptor_name, class_lookup, descr_lookup, obj_if_none = True)
+						if value is not None:
+							values[name] = value
 				if not eval(self.parse.where_expr, values):
 					continue
 			
@@ -221,16 +253,16 @@ class Query(object):
 					elif class_name == "!*":
 						class_name = None
 					if descriptor_name != "*":
-						data[(class_name, descriptor_name)] = (obj_id, self._get_descriptor_value(obj_id, descriptor_name, descr_lookup))
+						data[(class_name, descriptor_name)] = (obj_id, self._get_descriptor_value(obj_id, class_name, descriptor_name, class_lookup, descr_lookup))
 						key_lookup[key].add((class_name, descriptor_name))
 					else:
 						descriptor_names = class_descr_lookup["!*" if class_name is None else class_name]
-						for descriptor_name in descr_lookup[obj_id]:
+						for _, descriptor_name in descr_lookup[obj_id]:
 							if descriptor_name not in descriptor_names:
 								descriptor_names.append(descriptor_name)
 						if descriptor_names:
 							for descriptor_name in descriptor_names:
-								data[(class_name, descriptor_name)] = (obj_id, self._get_descriptor_value(obj_id, descriptor_name, descr_lookup))
+								data[(class_name, descriptor_name)] = (obj_id, self._get_descriptor_value(obj_id, class_name, descriptor_name, class_lookup, descr_lookup))
 								key_lookup[key].add((class_name, descriptor_name))
 						else:
 							data[(class_name, None)] = (obj_id, None)
@@ -413,7 +445,7 @@ class Query(object):
 			if idx[1:] in self._column_idxs:
 				col = self._column_idxs[idx[1:]]
 		if col is None:
-			raise IndexError()
+			return (None, None)
 		
 		return self._rows[row][col]
 	

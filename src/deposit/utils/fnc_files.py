@@ -38,10 +38,10 @@ def url_to_path(url):
 	return url2pathname(parsed.path)
 
 
-def get_temp_path(subdir = "temp"):
+def get_temp_path(subdir = "temp", appdir = "deposit"):
 	# return temporary path
 	
-	tempdir = os.path.normpath(os.path.abspath(os.path.join(tempfile.gettempdir(), "deposit", subdir)))
+	tempdir = os.path.normpath(os.path.abspath(os.path.join(tempfile.gettempdir(), appdir, subdir)))
 	if not os.path.isdir(tempdir):
 		try:
 			os.makedirs(tempdir)
@@ -50,9 +50,9 @@ def get_temp_path(subdir = "temp"):
 	return tempdir
 
 
-def clear_temp_dir():
+def clear_temp_dir(appdir = "deposit"):
 	
-	tempdir = os.path.normpath(os.path.abspath(os.path.join(tempfile.gettempdir(), "deposit")))
+	tempdir = os.path.normpath(os.path.abspath(os.path.join(tempfile.gettempdir(), appdir)))
 	if os.path.isdir(tempdir):
 		shutil.rmtree(tempdir)
 

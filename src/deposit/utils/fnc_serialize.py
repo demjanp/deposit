@@ -92,8 +92,8 @@ def legacy_data_to_store(data, store, path, progress = None):
 		local_folder = os.path.normpath(os.path.abspath(os.path.dirname(path)))
 	
 	for obj_id in data["objects"]:
-		obj = DObject(store, obj_id)
-		store.G.add_object(obj_id, obj)
+		obj = DObject(store, int(obj_id) + 1)
+		store.G.add_object(int(obj_id) + 1, obj)
 	
 	for name in data["classes"]:
 		order = data["classes"][name]["order"]
@@ -126,7 +126,7 @@ def legacy_data_to_store(data, store, path, progress = None):
 		for obj_id in data["classes"][name]["objects"]:
 			if obj_id not in data["objects"]:
 				continue
-			store.G.add_class_child(name, obj_id)
+			store.G.add_class_child(name, int(obj_id) + 1)
 			class_lookup[obj_id].add(name)
 		
 		for name_subclass in data["classes"][name]["subclasses"]:
@@ -204,7 +204,7 @@ def legacy_data_to_store(data, store, path, progress = None):
 			if value is not None:
 				obj_data["descriptors"][name] = value
 		
-		store.G.get_object_data(obj_id).from_dict_1(obj_data)
+		store.G.get_object_data(int(obj_id) + 1).from_dict_1(obj_data)
 		
 		for label in data["objects"][obj_id]["relations"]:
 			for obj_id_tgt in data["objects"][obj_id]["relations"][label]["objects"]:
@@ -214,7 +214,7 @@ def legacy_data_to_store(data, store, path, progress = None):
 				if ("weights" in data["objects"][obj_id]["relations"][label]) and \
 					(obj_id_tgt in data["objects"][obj_id]["relations"][label]["weights"]):
 					weight = data["objects"][obj_id]["relations"][label]["weights"][obj_id_tgt]
-				store.G.add_object_relation(obj_id, obj_id_tgt, label, weight)
+				store.G.add_object_relation(int(obj_id) + 1, int(obj_id_tgt) + 1, label, weight)
 				for src_class in class_lookup[obj_id]:
 					for tgt_class in class_lookup[obj_id_tgt]:
 						collect_rels.add((src_class, tgt_class, label))

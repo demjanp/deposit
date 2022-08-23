@@ -59,6 +59,10 @@ class DGeometry(AbstractDType):
 			raise Exception("Invalid value specified: %s" % (str(value)))
 		args = [None, None, -1, -1]
 		args[:len(value)] = value
+		if isinstance(args[1], tuple):
+			args[1] = list(args[1])
+		if not isinstance(args[1], list):
+			raise Exception("Invalid coords specified: %s" % (str(args[1])))
 		value = tuple(args)
 		AbstractDType.set_value(self, value)
 	

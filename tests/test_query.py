@@ -165,19 +165,26 @@ def test_11(store_q):
 
 def test_12(store_q):
 	
+	query = store_q.get_query("SELECT Find.*")
+	
+	assert query.columns == [('Find', 'Name'), ('Find', 'Material')]
+	assert [row for row in query] == [[(8, 'A1.F1.1'), (8, 'Bone')], [(9, 'A1.F1.2'), (9, 'Ceramics')], [(10, 'A1.F1.3'), (10, 'Ceramics')], [(11, 'A1.F2.1'), (11, 'Bronze')], [(12, 'A1.F2.2'), (12, None)], [(13, 'A1.F3.1'), (13, None)], [(14, 'A2.F4.1'), (14, None)]]
+
+def test_13(store_q):
+	
 	query = store_q.get_query("SELECT !*")
 	
 	assert query.columns == [(None, None)]
 	assert [row for row in query] == [[(18, None)], [(19, None)]]
 
-def test_13(store_q):
+def test_14(store_q):
 	
 	query = store_q.get_query("SELECT !*.*")
 	
 	assert query.columns == [(None, 'Name')]
 	assert [row for row in query] == [[(18, 'Classless 1')], [(19, 2)]]
 
-def test_14(store_q):
+def test_15(store_q):
 	
 	query = store_q.get_query("SELECT !*.Name WHERE isinstance(!*.Name, str) and !*.Name.startswith('Class')")
 	

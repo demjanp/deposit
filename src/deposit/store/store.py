@@ -27,20 +27,21 @@ class Store(object):
 		self._queries = {}
 		self._local_folder = None		# folder to store DResource files flagged as is_stored
 		self._keep_temp = keep_temp
+		self._saved = True
 		
 		self._min_free_id = None
 		self._max_order = 0
 		self._descriptors = None
 		self._relation_labels = None
 		
-		self._callback_added = None
-		self._callback_deleted = None
-		self._callback_changed = None
-		self._callback_saved = None
-		self._callback_loaded = None
-		self._callback_local_folder_changed = None
-		self._callback_user_tools_changed = None
-		self._callback_queries_changed = None
+		self._callback_added = set()
+		self._callback_deleted = set()
+		self._callback_changed = set()
+		self._callback_saved = set()
+		self._callback_loaded = set()
+		self._callback_local_folder_changed = set()
+		self._callback_user_tools_changed = set()
+		self._callback_queries_changed = set()
 		
 	def _init_min_free_id(self) -> None:
 		
@@ -86,82 +87,90 @@ class Store(object):
 	def set_callback_added(self, func):
 		# func(elements: list); elements = [DObject, DClass, ...]
 		
-		self._callback_added = func
+		self._callback_added.add(func)
 	
 	def callback_added(self, elements):
 		
-		if self._callback_added is not None:
-			self._callback_added(elements)
+		self._saved = False
+		for func in self._callback_added:
+			func(elements)
 	
 	def set_callback_deleted(self, func):
 		# func(elements: list); elements = [obj_id, name, ...]
 		
-		self._callback_deleted = func
+		self._callback_deleted.add(func)
 	
 	def callback_deleted(self, elements):
 		
-		if self._callback_deleted is not None:
-			self._callback_deleted(elements)
+		self._saved = False
+		for func in self._callback_deleted:
+			func(elements)
 	
 	def set_callback_changed(self, func):
 		# func(elements: list); elements = [DObject, DClass, ...]
 		
-		self._callback_changed = func
+		self._callback_changed.add(func)
 	
 	def callback_changed(self, elements):
 		
-		if self._callback_changed is not None:
-			self._callback_changed(elements)
+		self._saved = False
+		for func in self._callback_changed:
+			func(elements)
 	
 	def set_callback_saved(self, func):
 		# func(datasource)
 		
-		self._callback_saved = func
+		self._callback_saved.add(func)
 	
 	def callback_saved(self, datasource):
 		
-		if self._callback_saved is not None:
-			self._callback_saved(datasource)
+		self._saved = True
+		for func in self._callback_saved:
+			func(datasource)
 	
 	def set_callback_loaded(self, func):
 		# func()
 		
-		self._callback_loaded = func
+		self._callback_loaded.add(func)
 	
 	def callback_loaded(self):
 		
-		if self._callback_loaded is not None:
-			self._callback_loaded()
+		self._saved = True
+		for func in self._callback_loaded:
+			func()
 	
 	def set_callback_local_folder_changed(self, func):
 		# func()
 		
-		self._callback_local_folder_changed = func
+		self._callback_local_folder_changed.add(func)
 	
 	def callback_local_folder_changed(self):
 		
-		if self._callback_local_folder_changed is not None:
-			self._callback_local_folder_changed()
+		self._saved = False
+		for func in self._callback_local_folder_changed:
+			func()
 	
 	def set_callback_queries_changed(self, func):
 		# func()
 		
-		self._callback_queries_changed = func
+		self._callback_queries_changed.add(func)
 	
 	def callback_queries_changed(self):
 		
-		if self._callback_queries_changed is not None:
-			self._callback_queries_changed()
+		self._saved = False
+		for func in self._callback_queries_changed:
+			func()
 	
 	def set_callback_user_tools_changed(self, func):
 		# func()
 		
-		self._callback_user_tools_changed = func
+		self._callback_user_tools_changed.add(func)
 	
 	def callback_user_tools_changed(self):
 		
-		if self._callback_user_tools_changed is not None:
-			self._callback_user_tools_changed()
+		self._saved = False
+		for func in self._callback_user_tools_changed:
+			func()
 	
 	
 	# ---- General
@@ -174,6 +183,7 @@ class Store(object):
 		self._user_tools = []
 		self._queries = {}
 		self._local_folder = None
+		self._saved = False
 		
 		self._min_free_id = None
 		self._max_order = 0
@@ -398,12 +408,13 @@ class Store(object):
 		else:
 			obj.set_descriptor(name, value)
 	
-	def add_object_with_descriptors(self, cls, data, locations = {}):
+	def add_object_with_descriptors(self, cls, data, locations = {}, obj = None):
 		# cls = DClass or None
 		# data = {descriptor_name: value, ...}
 		# locations = {descriptor_name: location, ...}
 		
-		obj = self.add_object()
+		if obj is None:
+			obj = self.add_object()
 		if cls is not None:
 			cls.add_member(obj.id)
 		for descriptor_name in data:
@@ -414,15 +425,24 @@ class Store(object):
 		
 		return obj
 	
-	def add_data_row(self, data: dict, relations: set = set(), unique: set = set()) -> None:
+	def add_data_row(self, 
+		data: dict, 
+		relations: set = set(), 
+		unique: set = set(), 
+		existing = {}, 
+		return_added = False,
+	):
 		# add multiple objects with classes at once & automatically add relations 
 		#	based on class relations or as specified in the relations attribute
 		# data = {(Class name, Descriptor name): value, ...}
 		# relations = {(Class name 1, label, Class name 2), ...}
 		# unique = {Class name, ...}; always add a new object to classes 
 		#	specified here, otherwise re-use objects with identical descriptors
+		# existing = {Class name: Object, ...}
+		#	use existing object for specified classes (i.e. just update descriptors)
 		#
-		# returns number of added Objects
+		# returns n_added or (n_added, added) if return_added == True
+		#	added = {Class name: Object, ...}
 		
 		collect = defaultdict(dict)
 		for key in data:
@@ -454,26 +474,32 @@ class Store(object):
 			for cls2, label in cls1.get_relations():
 				if cls2 in data:
 					collect[cls1].add((label, cls2))
-		relations = collect  # {cls1: [(label, cls2), ...], ...}
+		relations_all = collect  # {cls1: [(label, cls2), ...], ...}
 		
 		n_added = 0
 		added = {}  # {cls: obj, ...}
 		for cls in data:
 			added[cls] = None
-			if cls.name not in unique:
+			if cls.name in existing:
+				added[cls] = self.add_object_with_descriptors(
+					cls, data[cls], obj = existing[cls.name]
+				)
+			elif cls.name not in unique:
 				added[cls] = self.find_object_with_descriptors([cls], data[cls])
 			if added[cls] is None:
 				added[cls] = self.add_object_with_descriptors(cls, data[cls])
 				n_added += 1
 		
-		for cls1 in relations:
+		for cls1 in relations_all:
 			if cls1 not in added:
 				continue
-			for label, cls2 in relations[cls1]:
+			for label, cls2 in relations_all[cls1]:
 				if cls2 not in added:
 					continue
 				added[cls1].add_relation(added[cls2], label)
 		
+		if return_added:
+			return n_added, dict([(cls.name, added[cls]) for cls in added])
 		return n_added
 	
 	def import_store(self, store, unique: set = set(), progress = None) -> None:
@@ -664,9 +690,15 @@ class Store(object):
 				return set([obj.id for obj in self.get_objects() if not obj.has_class()])
 			if isinstance(class_name, tuple):
 				return set(list(class_name))
-			return set([obj.id for obj in self.get_class(class_name).get_members()])
+			cls = self.get_class(class_name)
+			if cls is None:
+				return set()
+			return set([obj.id for obj in cls.get_members()])
 		
-		def get_paths(src, relation_objs, n_relations, class_objs, n_classes, has_asterisk_label):
+		def get_paths(src, objects2, relation_objs, n_relations, class_objs, n_classes, has_asterisk_label):
+			
+			if (not objects2) and (not relation_objs):
+				return set([(src,)])
 			
 			queue = [[[src], set(), class_objs.get(src, set()).copy()]]  
 			# queue = [[path, found_relations, found_classes], ...]
@@ -718,6 +750,10 @@ class Store(object):
 					relation_objs[(tgt, rev_label, src)] = idx
 		n_relations = len(relations)
 		
+		classes = [class_name for class_name in classes if \
+			(self.has_class(class_name) or \
+			isinstance(class_name, tuple) or \
+			(class_name in ["*", "!*"]))]
 		class_objs = defaultdict(set)
 		for class_name in classes:
 			for obj_id in get_class_members(class_name):
@@ -726,6 +762,9 @@ class Store(object):
 		
 		paths = set()
 		objects1 = get_class_members(classes[0])
+		objects2 = set()
+		for class_name in classes[1:]:
+			objects2.update(get_class_members(class_name))
 		cmax = len(objects1)
 		cnt = 1
 		for obj_id in objects1:
@@ -735,7 +774,7 @@ class Store(object):
 				progress.update_state(value = cnt, maximum = cmax)
 			cnt += 1
 			found = False
-			paths_ = get_paths(obj_id, relation_objs, n_relations, class_objs, n_classes, has_asterisk_label)
+			paths_ = get_paths(obj_id, objects2, relation_objs, n_relations, class_objs, n_classes, has_asterisk_label)
 			if paths_:
 				paths.update(paths_)
 			elif not relations:
@@ -986,6 +1025,9 @@ class Store(object):
 			return True
 		return False
 	
+	def is_saved(self):
+		
+		return self._saved
 	
 	def __del__(self):
 		
