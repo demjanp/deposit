@@ -4,6 +4,7 @@ from deposit.store.dresource import DResource
 from deposit.utils.fnc_files import (as_url, url_to_path, copy_resources)
 from deposit.utils.fnc_serialize import (legacy_data_to_store)
 
+import sys
 import os
 
 class AbstractFileSource(AbstractDatasource):

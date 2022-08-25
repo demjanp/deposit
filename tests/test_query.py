@@ -98,14 +98,14 @@ def test_2(store_q):
 	query = store_q.get_query("SELECT Area.*, Feature.*, Find.*")
 	
 	assert query.columns == [('Area', 'Name'), ('Feature', 'Area'), ('Feature', 'Name'), ('Find', 'Name'), ('Find', 'Material')]
-	assert [row for row in query] == [[(1, 'A1'), (3, 2), (3, 'A1.F1'), (8, 'A1.F1.1'), (8, 'Bone')], [(1, 'A1'), (3, 2), (3, 'A1.F1'), (9, 'A1.F1.2'), (9, 'Ceramics')], [(1, 'A1'), (3, 2), (3, 'A1.F1'), (10, 'A1.F1.3'), (10, 'Ceramics')], [(1, 'A1'), (4, 3), (4, 'A1.F2'), (11, 'A1.F2.1'), (11, 'Bronze')], [(1, 'A1'), (4, 3), (4, 'A1.F2'), (12, 'A1.F2.2'), (12, None)], [(1, 'A1'), (5, None), (5, 'A1.F3'), (13, 'A1.F3.1'), (13, None)], [(2, 'A2'), (6, 4), (6, 'A2.F4'), (14, 'A2.F4.1'), (14, None)], [(2, 'A2'), (7, None), (7, 'A2.F5'), (14, 'A2.F4.1'), (14, None)]]
+	assert [row for row in query] == [[(1, 'A1'), (3, 2), (3, 'A1.F1'), (8, 'A1.F1.1'), (8, 'Bone')], [(1, 'A1'), (3, 2), (3, 'A1.F1'), (9, 'A1.F1.2'), (9, 'Ceramics')], [(1, 'A1'), (3, 2), (3, 'A1.F1'), (10, 'A1.F1.3'), (10, 'Ceramics')], [(1, 'A1'), (4, 3), (4, 'A1.F2'), (11, 'A1.F2.1'), (11, 'Bronze')], [(1, 'A1'), (4, 3), (4, 'A1.F2'), (12, 'A1.F2.2'), (12, None)], [(1, 'A1'), (5, None), (5, 'A1.F3'), (13, 'A1.F3.1'), (13, None)], [(2, 'A2'), (6, 4), (6, 'A2.F4'), (14, 'A2.F4.1'), (14, None)], [(2, 'A2'), (7, None), (7, 'A2.F5'), (None, None), (None, None)]]
 
 def test_3(store_q):
 	
 	query = store_q.get_query("SELECT Area.Name, Feature.Name, COUNT(Find) AS [Cnt Find] WHERE Find is not None GROUP BY Area.Name, Feature.Name")
 	
 	assert query.columns == [('Area', 'Name'), ('Feature', 'Name'), (None, 'Cnt Find')]
-	assert [row for row in query] == [[(1, 'A1'), (3, 'A1.F1'), (None, 3)], [(1, 'A1'), (4, 'A1.F2'), (None, 2)], [(1, 'A1'), (5, 'A1.F3'), (None, 1)], [(2, 'A2'), (6, 'A2.F4'), (None, 1)], [(2, 'A2'), (7, 'A2.F5'), (None, 1)]]
+	assert [row for row in query] == [[(1, 'A1'), (3, 'A1.F1'), (None, 3)], [(1, 'A1'), (4, 'A1.F2'), (None, 2)], [(1, 'A1'), (5, 'A1.F3'), (None, 1)], [(2, 'A2'), (6, 'A2.F4'), (None, 1)]]
 
 def test_4(store_q):
 	
@@ -119,7 +119,7 @@ def test_5(store_q):
 	query = store_q.get_query("SELECT Area.Name, Feature.Name, Find.Name WHERE Find is not None")
 	
 	assert query.columns == [('Area', 'Name'), ('Feature', 'Name'), ('Find', 'Name')]
-	assert [row for row in query] == [[(1, 'A1'), (3, 'A1.F1'), (8, 'A1.F1.1')], [(1, 'A1'), (3, 'A1.F1'), (9, 'A1.F1.2')], [(1, 'A1'), (3, 'A1.F1'), (10, 'A1.F1.3')], [(1, 'A1'), (4, 'A1.F2'), (11, 'A1.F2.1')], [(1, 'A1'), (4, 'A1.F2'), (12, 'A1.F2.2')], [(1, 'A1'), (5, 'A1.F3'), (13, 'A1.F3.1')], [(2, 'A2'), (6, 'A2.F4'), (14, 'A2.F4.1')], [(2, 'A2'), (7, 'A2.F5'), (14, 'A2.F4.1')]]
+	assert [row for row in query] == [[(1, 'A1'), (3, 'A1.F1'), (8, 'A1.F1.1')], [(1, 'A1'), (3, 'A1.F1'), (9, 'A1.F1.2')], [(1, 'A1'), (3, 'A1.F1'), (10, 'A1.F1.3')], [(1, 'A1'), (4, 'A1.F2'), (11, 'A1.F2.1')], [(1, 'A1'), (4, 'A1.F2'), (12, 'A1.F2.2')], [(1, 'A1'), (5, 'A1.F3'), (13, 'A1.F3.1')], [(2, 'A2'), (6, 'A2.F4'), (14, 'A2.F4.1')]]
 
 def test_6(store_q):
 	
@@ -133,21 +133,21 @@ def test_7(store_q):
 	query = store_q.get_query("SELECT Feature.Name RELATED Feature.disturbs.Feature")
 	
 	assert query.columns == [('Feature', 'Name')]
-	assert [row for row in query] == [[(3, 'A1.F1')], [(4, 'A1.F2')], [(6, 'A2.F4')], [(7, 'A2.F5')]]
+	assert [row for row in query] == [[(3, 'A1.F1')], [(6, 'A2.F4')]]
 
 def test_8(store_q):
 	
 	query = store_q.get_query("SELECT Feature.Name RELATED OBJ(3).disturbs.Feature")
 	
 	assert query.columns == [('Feature', 'Name')]
-	assert [row for row in query] == [[(3, 'A1.F1')], [(4, 'A1.F2')]]
+	assert [row for row in query] == [[(3, 'A1.F1')]]
 
 def test_9(store_q):
 	
 	query = store_q.get_query("SELECT Feature.Name RELATED OBJ(3).*.Feature")
 	
 	assert query.columns == [('Feature', 'Name')]
-	assert [row for row in query] == [[(3, 'A1.F1')], [(4, 'A1.F2')], [(5, 'A1.F3')]]
+	assert [row for row in query] == [[(3, 'A1.F1')]]
 
 def test_10(store_q):
 	
@@ -161,7 +161,7 @@ def test_11(store_q):
 	query = store_q.get_query("SELECT [;Weird.Cls, SELECT].* RELATED [;Weird.Cls, SELECT].[weird rel, WHERE].[;Weird.Cls, SELECT]")
 	
 	assert query.columns == [(';Weird.Cls, SELECT', ';Weird.Descr, SELECT')]
-	assert [row for row in query] == [[(16, 'WB1')], [(17, 'WB2')]]
+	assert [row for row in query] == [[(16, 'WB1')]]
 
 def test_12(store_q):
 	

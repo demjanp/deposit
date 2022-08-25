@@ -13,6 +13,7 @@ from deposit.utils.fnc_files import (
 
 from collections import defaultdict
 from natsort import natsorted
+from itertools import product
 import os
 
 class Store(object):
@@ -671,18 +672,17 @@ class Store(object):
 		
 		return self._relation_labels
 	
+	def reverse_relation(self, label):
+		
+		if label.startswith("~"):
+			return label[1:]
+		return "~" + label
 	
-	def get_class_connections(self, classes: list, relations: list, progress = None) -> list:
+	def get_class_connections(self, classes, relations, progress = None):
 		# classes = [class_name, ...]
 		# relations = [(class1, label, class2), ...]
-		#
-		# returns [path, ...]; where path = [obj_id, ...]
-		# 	first obj in path is a member of class_name from the first select
-		# at least one class must be specified
-		# if relations are specified, only accept connections between 
-		# 	[class1] and [class2] if they are labeled [label]
 		
-		def get_class_members(class_name):
+		def _get_class_members(class_name, leave_names = False):
 			
 			if class_name == "*":
 				return set([obj.id for obj in self.get_objects()])
@@ -693,103 +693,245 @@ class Store(object):
 			cls = self.get_class(class_name)
 			if cls is None:
 				return set()
+			if leave_names:
+				return class_name
 			return set([obj.id for obj in cls.get_members()])
 		
-		def get_paths(src, objects2, relation_objs, n_relations, class_objs, n_classes, has_asterisk_label):
+		def _get_class_names(cls):
 			
-			if (not objects2) and (not relation_objs):
-				return set([(src,)])
+			if cls == "*":
+				return set([cls_.name for cls_ in self.get_classes()])
+			if cls == "!*":
+				return set(["!*"])
+			if isinstance(cls, tuple):
+				clss = set.union(*[set([cls_.name for cls_ in \
+					self.get_object(obj_id).get_classes()]) for \
+						obj_id in list(cls)])
+				if not clss:
+					clss = set(["!*"])
+				return clss
+			return set([cls])
+		
+		def _get_within_class_rel(cls1, cls2):
 			
-			queue = [[[src], set(), class_objs.get(src, set()).copy()]]  
-			# queue = [[path, found_relations, found_classes], ...]
+			clss1 = _get_class_names(cls1)
+			clss2 = _get_class_names(cls2)
+			return clss1.intersection(clss2)
+		
+		def _get_paths(
+			obj_id0, cls_lookup, rels, within_cls_rels, 
+			asterisk_rels, classes, connecting, mandatory_classes,
+		):
+			
+			'''
+			Get all paths from obj_id0 to objects from specified classes.
+			1. If classes or relations contains object specifications OBJ(1, ...)
+			require each path to contain one of those objects
+			2. If a cls1.*.cls2 relation is specified, the path must contain an 
+			edge between cls1 and cls2.
+			3. The paths cannot have within-class edges unless explicitly
+			specified in relations.
+			4. If a path contains an edge between classes as specified in 
+			relations, it must have a label as specified in relations.
+			'''
+			queue = [[[obj_id0], set(), cls_lookup[obj_id0].copy(), False, False]]
+			# queue = [[path, found_asterisk, found_classes, rule1, rule3], ...]
 			done = set()
+			skip = set()
 			while queue:
-				path, found_rels, found_clss = queue.pop()
-				found = False
-				src_clss = class_objs.get(path[-1], set())
-				for tgt, label in self.G.iter_object_relations(path[-1]):
-					if tgt in path:
-						continue
-					idx = relation_objs.get((path[-1], label, tgt), None) if relation_objs else 0
-					if (idx is None) and has_asterisk_label:
-						idx = relation_objs.get((path[-1], "*", tgt), None)
-					if idx is None:
-						continue
-					tgt_clss = class_objs.get(tgt, set())
-					found_clss.update(tgt_clss)
-					is_same_class = (len(tgt_clss.intersection(src_clss)) > 0)
-					if len(found_clss) >= n_classes:
-						done.add(tuple(sorted(path + ([] if is_same_class else [tgt]))))
-					else:
-						found_rels.add(idx)
-						queue.append([path + [tgt], found_rels, found_clss])
-					found = True
-				if (not found) and (len(found_rels) >= n_relations):
-					done.add(tuple(sorted(path)))
-			
+				path, found_asterisk, found_classes, rule1, rule3 = queue.pop()
+				found_next = False
+				if not mandatory_classes:
+					rule1 = True
+				if (len(found_classes) < len(classes)) or within_cls_rels:
+					
+					src = path[-1]
+					clss_src = cls_lookup.get(src, None)
+					
+					# rule 1 - first stage, source
+					if (not rule1) and (clss_src is not None) and \
+						clss_src.intersection(mandatory_classes):
+							rule1 = True
+					
+					for tgt, label in self.G.iter_object_relations(src):
+						
+						# already processed
+						if tgt in skip:
+							continue
+						skip.add(tgt)
+						
+						# circular path
+						if tgt in path:
+							continue
+						
+						clss_tgt = cls_lookup.get(tgt, None)
+						
+						# only check objects with specified classes or from the connecting set
+						if (clss_tgt is None) and (tgt not in connecting):
+							continue
+						
+						# collect all combinations of source & target classes
+						clss = []
+						if (clss_src is not None) and (clss_tgt is not None):
+							if rels or asterisk_rels:
+								clss = list(product(clss_src, clss_tgt))
+						
+						# rule 2 - first stage
+						if clss and asterisk_rels:
+							for cls_src, cls_tgt in clss:
+								if (cls_src, cls_tgt) in asterisk_rels:
+									found_asterisk.add((cls_src, cls_tgt))
+						
+						# rule 3 - first stage
+						found_classes_ = found_classes.copy()
+						if clss_tgt is not None:
+							common = found_classes_.intersection(clss_tgt)
+							if common:
+								if (not rule3) and (clss_src is not None):
+									for cls in clss_src:
+										if (cls in within_cls_rels) and (within_cls_rels[cls].intersection([label, "*"])):
+											rule3 = True
+											break
+								continue
+						
+						# rule 1 - first stage, target
+						if clss_tgt is not None:
+							if (not rule1) and clss_tgt.intersection(mandatory_classes):
+								rule1 = True
+						
+						# rule 4
+						if clss:
+							found_rel = False
+							found_label = False
+							if rels:
+								for cls_src, cls_tgt in clss:
+									if (cls_src, cls_tgt) in rels:
+										found_rel = True
+										if rels[(cls_src, cls_tgt)].intersection(
+											[label, "*"]
+										) or rels[(cls_tgt, cls_src)].intersection(
+											[self.reverse_relation(label), "*"]
+										):
+											found_label = True
+											break
+							if found_rel and not found_label:
+								continue
+						
+						if clss_tgt is not None:
+							found_classes_.update(clss_tgt)
+						
+						queue.append([path + [tgt], found_asterisk, found_classes_, rule1, rule3])
+						found_next = True
+				
+				if found_next:
+					continue
+				
+				# rule 2 - second stage
+				rule2 = True
+				for cls1, cls2 in asterisk_rels:
+					if not (((cls1, cls2) in found_asterisk) or \
+						((cls2, cls1) in found_asterisk)):
+							rule2 = False
+							break
+				if not rule2:
+					continue
+				
+				# rule 3 - second stage
+				if within_cls_rels and not rule3:
+					continue
+				
+				# rule 1 - second stage
+				if mandatory_classes and not rule1:
+					continue
+				
+				# only add objects from specified classes
+				done.add(tuple(sorted(
+					[obj_id for obj_id in path if obj_id in cls_lookup]
+				)))
+				
 			return done
 		
-		relation_objs = {}
-		has_asterisk_label = False
-		for idx in range(len(relations)):
-			cls1, label, cls2 = relations[idx]
-			if (cls1, label, cls2) == ("*","*","*"):
-				continue
-			objects1 = get_class_members(cls1)
-			objects2 = get_class_members(cls2)
-			if label.startswith("~"):
-				rev_label = label[1:]
-			elif label == "*":
-				has_asterisk_label = True
-				rev_label = "*"
+		rels = defaultdict(set)  # {(class1, class2): set(label, ...), ...}
+		within_cls_rels = defaultdict(set)  # {class: set(label, ...), ...}
+		asterisk_rels = set()  # set((class1, class2), ...)
+		mandatory_classes = set() # set(class, ...)
+		for cls1, lbl, cls2 in relations:
+			if isinstance(cls1, tuple):
+				mandatory_classes.add(cls1)
+			if isinstance(cls2, tuple):
+				mandatory_classes.add(cls2)
+			if lbl == "*":
+				asterisk_rels.add((cls1, cls2))
+				asterisk_rels.add((cls2, cls1))
+			clss = _get_within_class_rel(cls1, cls2)
+			if clss:
+				within_cls_rels[cls1].add(lbl)
 			else:
-				rev_label = "~" + label
-			for src in objects1:
-				for tgt in objects2:
-					relation_objs[(src, label, tgt)] = idx
-					relation_objs[(tgt, rev_label, src)] = idx
-		n_relations = len(relations)
+				rels[(cls1, cls2)].add(lbl)
+				rels[(cls2, cls1)].add(self.reverse_relation(lbl))
 		
-		classes = [class_name for class_name in classes if \
-			(self.has_class(class_name) or \
-			isinstance(class_name, tuple) or \
-			(class_name in ["*", "!*"]))]
-		class_objs = defaultdict(set)
-		for class_name in classes:
-			for obj_id in get_class_members(class_name):
-				class_objs[obj_id].add(class_name)
-		n_classes = len(classes)
+		cls0 = classes[0]
+		objects0 = _get_class_members(cls0)
+		if not objects0:
+			# no objects found in the first specified class
+			return set()
+		
+		cls_lookup = defaultdict(set)
+		collect = []
+		for cls in classes:
+			if isinstance(cls, tuple):
+				mandatory_classes.add(cls1)
+			objs = objects0 if (cls == cls0) else _get_class_members(cls)
+			if objs:
+				collect.append(cls)
+				for obj_id in objs:
+					cls_lookup[obj_id].add(cls)
+		classes = collect
+		
+		if (len(classes) == 1) and (classes[0] not in within_cls_rels):
+			# only one class and no within-class relations apply
+			return set([(obj_id,) for obj_id in objects0])
+		
+		connecting = set()
+		cls0_ = _get_class_members(cls0, leave_names = True)
+		if len(classes) > 1:
+			# collect objects from unspecified classes at shortest paths between specified classes
+			for cls1 in classes[1:]:
+				if (cls0, cls1) in rels:
+					continue
+				cls1_ = _get_class_members(cls1, leave_names = True)
+				connecting.update(self.G.shortest_path_between_classes(cls0_, cls1_))
+			connecting = connecting.difference(classes)
+			if connecting:
+				connecting = set.union(*[_get_class_members(cls) for cls in connecting])
 		
 		paths = set()
-		objects1 = get_class_members(classes[0])
-		objects2 = set()
-		for class_name in classes[1:]:
-			objects2.update(get_class_members(class_name))
-		cmax = len(objects1)
+		cmax = len(objects0)
 		cnt = 1
-		for obj_id in objects1:
-			if (progress is not None) and (cnt % 1000 == 0):
+		if progress is not None:
+			progress.update_state(value = 0, maximum = cmax)
+		for obj_id0 in objects0:
+#			print("\r%d/%d           " % (cnt, cmax), end = "") # DEBUG
+			if (progress is not None) and (cnt % 100 == 0):
 				if progress.cancel_pressed():
 					return []
-				progress.update_state(value = cnt, maximum = cmax)
+				progress.update_state(value = cnt)
 			cnt += 1
-			found = False
-			paths_ = get_paths(obj_id, objects2, relation_objs, n_relations, class_objs, n_classes, has_asterisk_label)
+			paths_ = _get_paths(
+				obj_id0, cls_lookup, rels, within_cls_rels, 
+				asterisk_rels, classes, connecting, mandatory_classes,
+			)
 			if paths_:
 				paths.update(paths_)
-			elif not relations:
-				paths.add((obj_id,))
 		
 		if progress is not None:
-			progress.update_state(value = cmax, maximum = cmax)
+			progress.update_state(value = cmax)
 		
 		return paths
-	
 	
 	def get_query(self, querystr: str, **kwargs) -> object:
 		
 		return Query(self, querystr, **kwargs)
-	
 	
 	def get_subgraph(self, objects: list, progress = None):
 		# returns store which contains specified objects with their descriptors

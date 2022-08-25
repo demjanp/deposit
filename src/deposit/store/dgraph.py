@@ -3,6 +3,7 @@ with warnings.catch_warnings():
 	 warnings.simplefilter("ignore")
 	 import networkit as nk
 import networkx as nx
+from itertools import product
 
 class DGraph(object):
 	
@@ -135,6 +136,8 @@ class DGraph(object):
 		
 		if not self._GOR.hasEdge(src_id, tgt_id):
 			return False
+		if label == "*":
+			return True
 		return label in self._GOR_labels[(src_id, tgt_id)]
 	
 	def get_object_relation_weight(self, src_id, tgt_id, label):
@@ -269,6 +272,59 @@ class DGraph(object):
 			for tgt in self._GCR.iterNeighbors(node_id):
 				for label in self._GCR_labels[(node_id, tgt)]:
 					yield self._GCR_names[tgt], label
+	
+	def shortest_path_between_classes(self, src, tgt):
+		# src / tgt = class_name or set(obj_id, ...)
+		
+		def _get_GOR_ids(name):
+			
+			if isinstance(name, set):
+				return set([self._GOR_lookup[obj_id] for obj_id in name])
+			elif name in self._GCM_lookup:
+				collect = set()
+				for node_id in self._GCM.iterNeighbors(self._GCM_lookup[name]):
+					obj_id = self._GCM_names[node_id]
+					if isinstance(obj_id, int):
+						collect.add(self._GOR_lookup[obj_id])
+				return collect
+			return set()
+		
+		if (not isinstance(src, set)) and (not isinstance(tgt, set)) and \
+			(src in self._GCR_lookup) and (tgt in self._GCR_lookup):
+				src_id = self._GCR_lookup[src]
+				tgt_id = self._GCR_lookup[tgt]
+				
+				bi_dij = nk.distance.BidirectionalDijkstra(self._GCR, src_id, tgt_id)
+				bi_dij.run()
+				
+				path = [self._GCR_names[node_id] for node_id in bi_dij.getPath()]
+				if path:
+					return path
+		
+		path_opt = None
+		nodes_src = _get_GOR_ids(src)
+		nodes_tgt = _get_GOR_ids(tgt)
+		nodes_src, nodes_tgt = nodes_src.difference(nodes_tgt), nodes_tgt.difference(nodes_src)
+		if nodes_src and nodes_tgt:
+			for node_src, node_tgt in product(nodes_src, nodes_tgt):
+				bi_dij = nk.distance.BidirectionalDijkstra(self._GOR, node_src, node_tgt)
+				bi_dij.run()
+				path = [node_src] + bi_dij.getPath() + [node_tgt]
+				if len(path) < 2:
+					continue
+				if (len(path) > 1) and ((path_opt is None) or (len(path) < len(path_opt))):
+					path_opt = path
+				if len(path_opt) == 2:
+					break
+		
+		collect = []
+		if path_opt is not None:
+			for node_id in path_opt:
+				for src_ in self._GCM.iterInNeighbors(self._GCM_lookup[self._GOR_names[node_id]]):
+					name = self._GCM_names[src_]
+					if name not in collect:
+						collect.append(name)
+		return collect
 	
 	def add_class_child(self, name, child):
 		# child = obj_id or subclass_name
