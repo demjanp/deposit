@@ -30,7 +30,7 @@ class Pickle(AbstractFileSource):
 				user_tools = store._user_tools,
 				queries = store._queries,
 				deposit_version = __version__,
-			), f, pickle.HIGHEST_PROTOCOL)
+			), f, pickle.HIGHEST_PROTOCOL, fix_imports = False)
 		
 		for obj in store.G.iter_objects_data():
 			obj._store = store
@@ -45,7 +45,7 @@ class Pickle(AbstractFileSource):
 		
 		self.update_progress(1, 10)
 		with open(path, "rb") as f:
-			data = pickle.load(f)
+			data = pickle.load(f, fix_imports = False)
 		return data
 	
 	def data_to_store(self, data, store):

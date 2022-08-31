@@ -4,6 +4,8 @@ from deposit.store.dresource import DResource
 from deposit.utils.fnc_files import (as_url, url_to_path, copy_resources)
 from deposit.utils.fnc_serialize import (legacy_data_to_store)
 
+import datetime, time
+import shutil
 import sys
 import os
 
@@ -86,6 +88,21 @@ class AbstractFileSource(AbstractDatasource):
 		
 		return {}
 	
+	def backup(self, store, folder):
+		
+		tgt_file, ext = os.path.splitext(os.path.split(self._path)[-1])
+		tgt_file = "%s_%s" % (
+			tgt_file, 
+			datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d'),
+		)
+		n = 1
+		while True:
+			tgt_path = os.path.join(folder, "%s_%d%s" % (tgt_file, n, ext))
+			if not os.path.isfile(tgt_path):
+				break
+			n += 1
+		shutil.copy2(self._path, tgt_path)
+	
 	def save(self, store, progress = None, path = None, url = None, *args, **kwargs):
 		
 		self.set_progress(progress)
@@ -113,9 +130,11 @@ class AbstractFileSource(AbstractDatasource):
 			dst_folder = src_folder
 		else:
 			dst_folder = os.path.normpath(os.path.abspath(os.path.dirname(path)))
+		
 		resources = {}
 		if dst_folder == src_folder:
 			resources = store._resources
+		
 		elif store._resources:
 			cmax = len(store._resources)
 			cnt = 1
@@ -184,8 +203,3 @@ class AbstractFileSource(AbstractDatasource):
 		# re-implement
 		
 		return False
-	
-	def __str__(self):
-		
-		return "%s (%s)" % (self.__class__.__name__, self.get_path())
-

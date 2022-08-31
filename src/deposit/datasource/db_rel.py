@@ -706,4 +706,7 @@ class DBRel(AbstractDBSource):
 			self.disconnect()
 		
 		return True
-
+	
+	def __str__(self):
+		
+		return "PostgreSQL Relational"

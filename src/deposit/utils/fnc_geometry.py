@@ -26,6 +26,35 @@ def split_srid_from_wkt(wkt):
 	
 	return wkt, srid, srid_vertical
 
+def get_coords_properties(coords):
+	
+	ndims = 1
+	ncoords = len(coords)
+	c = coords[0]
+	while isinstance(c, list):
+		ncoords = len(c)
+		c = c[0]
+		ndims += 1
+	
+	return ndims, ncoords
+
+def get_ndims_required(geom_type):
+	
+	geom_type_ = geom_type.upper().rstrip("Z").rstrip("M")
+	
+	lookup = {
+		"POINT": 1,
+		"MULTIPOINT": 2,
+		"LINESTRING": 2,
+		"POLYGON": 3,
+		"MULTIPOLYGON": 4,
+	}
+	if geom_type_ not in lookup:
+		raise Exception("Invalid geometry type: %s" % (geom_type))
+	
+	return lookup[geom_type_]
+	
+
 def coords_to_wkt(geom_type: str, coords: list, srid: int = None, srid_vertical: int = None) -> str:
 	
 	def _to_list(crds):
@@ -66,13 +95,7 @@ def coords_to_wkt(geom_type: str, coords: list, srid: int = None, srid_vertical:
 		geom_type = geom_type.rstrip("Z")
 	if is_m:
 		geom_type = geom_type.rstrip("M")
-	ndims = 1
-	ncoords = len(coords)
-	c = coords[0]
-	while isinstance(c, list):
-		ncoords = len(c)
-		c = c[0]
-		ndims += 1
+	ndims, ncoords = get_coords_properties(coords)
 	if is_z and ncoords != 3:
 		raise Exception("Invalid number of coordinates (%d). Required: 3." % (ncoords))
 	if is_m and ncoords != 4:
@@ -80,13 +103,8 @@ def coords_to_wkt(geom_type: str, coords: list, srid: int = None, srid_vertical:
 	is_z = (ncoords == 3)
 	is_m = (ncoords == 4)
 	
-	ndims_required = {
-		"POINT": 1,
-		"MULTIPOINT": 2,
-		"LINESTRING": 2,
-		"POLYGON": 3,
-		"MULTIPOLYGON": 4,
-	}[geom_type]
+	ndims_required = get_ndims_required(geom_type)
+	
 	if ndims != ndims_required:
 		raise Exception("Invalid number of dimensions (%d) for geometry type %s. Required: %d." % (ndims, geom_type, ndims_required))
 	

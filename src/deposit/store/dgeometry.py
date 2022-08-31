@@ -1,5 +1,7 @@
 from deposit.store.abstract_dtype import AbstractDType
-from deposit.utils.fnc_geometry import (coords_to_wkt, wkt_to_coords)
+from deposit.utils.fnc_geometry import (
+	coords_to_wkt, wkt_to_coords, get_coords_properties, get_ndims_required
+)
 
 class DGeometry(AbstractDType):
 	
@@ -57,6 +59,12 @@ class DGeometry(AbstractDType):
 		
 		if (not (isinstance(value, tuple) or isinstance(value, list))) or (len(value) < 2):
 			raise Exception("Invalid value specified: %s" % (str(value)))
+		
+		ndims, ncoords = get_coords_properties(value[1])
+		ndims_required = get_ndims_required(value[0])
+		if ndims != ndims_required:
+			raise Exception("Invalid number of dimensions (%d) for geometry type %s. Required: %d." % (ndims, value[0], ndims_required))
+		
 		args = [None, None, -1, -1]
 		args[:len(value)] = value
 		if isinstance(args[1], tuple):

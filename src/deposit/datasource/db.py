@@ -460,3 +460,7 @@ class DB(AbstractDBSource):
 		
 		return True
 
+	
+	def __str__(self):
+		
+		return "PostgreSQL"

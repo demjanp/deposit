@@ -2,12 +2,17 @@ from deposit import __version__
 from deposit.datasource.abstract_datasource import AbstractDatasource
 from deposit.store.abstract_delement import AbstractDElement
 
-from deposit.utils.fnc_serialize import (parse_connstr, legacy_data_to_store, json_data_to_store, GRAPH_ATTRS)
+from deposit.utils.fnc_serialize import (
+	parse_connstr, legacy_data_to_store, json_data_to_store, GRAPH_ATTRS
+)
+from deposit.utils.fnc_files import (sanitize_filename)
 
 from collections import defaultdict
 from natsort import natsorted
+import datetime, time
 import psycopg2
 import sys
+import os
 
 class AbstractDBSource(AbstractDatasource):
 	
@@ -21,6 +26,7 @@ class AbstractDBSource(AbstractDatasource):
 		self._database = None
 		self._schema = None
 		self._identifier = None
+		self._local_folder = None
 		
 		self._cursor = None
 		self._tables = []  # [tablename, ...]
@@ -76,6 +82,14 @@ class AbstractDBSource(AbstractDatasource):
 		
 		return "postgres://%s:%s@%s/%s?currentSchema=%s" % (username, password, host, database, schema)
 	
+	def get_folder(self):
+		
+		return None
+	
+	def get_local_folder(self):
+		
+		return self._local_folder
+
 	def get_cursor(self):
 		
 		if self._cursor is None:
@@ -183,7 +197,6 @@ class AbstractDBSource(AbstractDatasource):
 			conn.close()
 			self._cursor = None
 	
-	
 	def is_connected(self):
 		
 		if (self._cursor is None) or self._cursor.closed:
@@ -204,10 +217,6 @@ class AbstractDBSource(AbstractDatasource):
 		if not was_connected:
 			self.disconnect()
 		return ret
-	
-	def get_folder(self):
-		
-		return None
 	
 	def create(self):
 		
@@ -266,6 +275,25 @@ class AbstractDBSource(AbstractDatasource):
 		
 		pass
 	
+	def backup(self, store, folder):
+		
+		name = sanitize_filename(self.get_name())
+		tgt_file = "%s_%s" % (
+			name,
+			datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d'),
+		)
+		ext = ".pickle"
+		n = 1
+		while True:
+			tgt_path = os.path.join(folder, "%s_%d%s" % (tgt_file, n, ext))
+			if not os.path.isfile(tgt_path):
+				break
+			n += 1
+		do_backup = store._do_backup
+		store._do_backup = False
+		store.save(path = tgt_path)
+		store._do_backup = do_backup
+	
 	def save(self, store, progress = None, identifier = None, connstr = None, *args, **kwargs):
 		
 		def delements_to_dict(data):
@@ -286,6 +314,8 @@ class AbstractDBSource(AbstractDatasource):
 		if not self.can_create():
 			return False
 		self.create()
+		
+		self._local_folder = store._local_folder
 		
 		db_meta = dict(
 			deposit_version = __version__,

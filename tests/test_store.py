@@ -252,7 +252,7 @@ def test_geometry_descriptor(store):
 		]
 	]
 	
-	coords_polygon_z_2 = [
+	coords_polygon_z_1 = [
 		# exterior
 		[
 			[1,2,7],
@@ -321,7 +321,7 @@ def test_geometry_descriptor(store):
 	pytest.obj4.set_geometry_descriptor("Geo MultiPoint", "MultiPointZ", coords_multipoint_z, srid = 1234)
 	pytest.obj4.set_geometry_descriptor("Geo LineString", "LineString", coords_linestring_m)
 	pytest.obj4.set_geometry_descriptor("Geo Polygon 1", "POLYGON", coords_polygon_1)
-	pytest.obj4.set_geometry_descriptor("Geo Polygon 2", "PolygonZ", coords_polygon_z_2)
+	pytest.obj4.set_geometry_descriptor("Geo PolygonZ 1", "PolygonZ", coords_polygon_z_1)
 	pytest.obj4.set_geometry_descriptor("Geo MultiPolygon 1", "MultiPolygonZ", coords_multipolygon_z_1)
 	pytest.obj4.set_geometry_descriptor("Geo MultiPolygon 2", "MULTIPOLYGON", coords_multipolygon_m_2)
 	

@@ -54,6 +54,10 @@ class AbstractDatasource(object):
 		
 		pass
 	
+	def backup(self, store, folder):
+		
+		pass
+	
 	def save(self, store, progress = None, *args, **kwargs):
 		
 		pass

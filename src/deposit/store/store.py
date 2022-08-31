@@ -8,7 +8,7 @@ from deposit.query.query import Query
 from deposit.utils.fnc_files import (
 	as_url, url_to_path, extract_filename, get_image_format, delete_stored, 
 	store_locally, update_image_filename, get_updated_local_url, open_url, 
-	clear_temp_dir, prune_local_files
+	clear_temp_dir, get_named_path, prune_local_files
 )
 
 from collections import defaultdict
@@ -28,6 +28,7 @@ class Store(object):
 		self._queries = {}
 		self._local_folder = None		# folder to store DResource files flagged as is_stored
 		self._keep_temp = keep_temp
+		self._do_backup = True
 		self._saved = True
 		
 		self._min_free_id = None
@@ -43,6 +44,7 @@ class Store(object):
 		self._callback_local_folder_changed = set()
 		self._callback_user_tools_changed = set()
 		self._callback_queries_changed = set()
+		self._callback_settings_changed = set()
 		
 	def _init_min_free_id(self) -> None:
 		
@@ -173,6 +175,16 @@ class Store(object):
 		for func in self._callback_user_tools_changed:
 			func()
 	
+	def set_callback_settings_changed(self, func):
+		# func()
+		
+		self._callback_settings_changed.add(func)
+	
+	def callback_settings_changed(self):
+		
+		for func in self._callback_settings_changed:
+			func()
+	
 	
 	# ---- General
 	# ------------------------------------------------------------------------
@@ -208,14 +220,23 @@ class Store(object):
 			return
 		if not os.path.isdir(path):
 			os.makedirs(path, exist_ok = True)
+		prev_local_folder = self._local_folder
 		self._local_folder = os.path.normpath(os.path.abspath(path))
 		
 		cmax = len(self.get_objects())
 		cnt = 1
 		to_del = set()
+		added_urls = set()
 		for obj in self.get_objects():
 			if progress is not None:
+				if progress.cancel_pressed():
+					self._local_folder = prev_local_folder
+					for url_new in added_urls:
+						del self._resources[url_new]
+					progress.stop()
+					return
 				progress.update_state(text = "Copying Resources", value = cnt, maximum = cmax)
+				cnt += 1
 			for descr in obj.get_descriptors():
 				resource = obj.get_descriptor(descr)
 				if isinstance(resource, DResource):
@@ -227,6 +248,7 @@ class Store(object):
 						resource.value = (url_new, filename, is_stored, is_image)
 						self._resources[url_new] = resource
 						to_del.add(url)
+						added_urls.add(url_new)
 		for url in to_del:
 			if url in self._resources:
 				del self._resources[url]
@@ -622,7 +644,7 @@ class Store(object):
 	
 	
 	def get_descriptors(self, ordered = False) -> list:
-		# return [DClass, ...]
+		# returns [DClass, ...]
 		
 		if self._descriptors is None:
 			self._descriptors = set()
@@ -638,9 +660,23 @@ class Store(object):
 		return list(self._descriptors)
 	
 	def get_descriptor_names(self, ordered = False) -> list:
-		# return [name, ...]
+		# returns [name, ...]
 		
 		return [cls.name for cls in self.get_descriptors(ordered)]
+	
+	def get_descriptor_values(self, class_name, descriptor_name, direct_only = True) -> list:
+		# direct_only = if True, don't return members of subclasses
+		#
+		# returns [value, ...]
+		
+		cls = self.get_class(class_name)
+		descr = self.get_class(descriptor_name)
+		if (cls is None) or (descr is None):
+			return []
+		for obj in cls.get_members(direct_only):
+			value = obj.get_descriptor(descr)
+			if value is not None:
+				yield value
 	
 	
 	def get_user_tools(self):
@@ -880,7 +916,7 @@ class Store(object):
 		collect = []
 		for cls in classes:
 			if isinstance(cls, tuple):
-				mandatory_classes.add(cls1)
+				mandatory_classes.add(cls)
 			objs = objects0 if (cls == cls0) else _get_class_members(cls)
 			if objs:
 				collect.append(cls)
@@ -1046,7 +1082,10 @@ class Store(object):
 			obj_id = obj_id.id
 		if not self.G.has_object(obj_id):
 			return
-		if self.get_object(obj_id).has_descriptors():
+		obj = self.get_object(obj_id)
+		if obj.has_descriptors():
+			for descr in obj.get_descriptors():
+				obj.del_descriptor(descr)
 			self._descriptors = None
 		self.G.del_object(obj_id)
 		self._init_min_free_id()
@@ -1149,7 +1188,23 @@ class Store(object):
 		
 		self._datasource = datasource
 	
+	def has_auto_backup(self):
+		
+		return self._do_backup
+	
+	def set_auto_backup(self, state):
+		
+		self._do_backup = state
+		self.callback_settings_changed()
+	
 	def save(self, datasource = None, *args, **kwargs):
+		
+		if self._do_backup and (self._datasource is not None):
+			folder = self._datasource.get_folder()
+			if folder is None:
+				folder = self.get_folder()
+			folder = get_named_path("_backup", folder)
+			self._datasource.backup(self, folder)
 		
 		# datasource = Datasource or format
 		datasource = self.init_datasource(datasource, kwargs)

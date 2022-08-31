@@ -114,6 +114,8 @@ class DGraph(object):
 				for label in self._GOR_labels[(src, tgt)]:
 					yield self._GOR_names[src], self._GOR_names[tgt], label
 		else:
+			if obj_id not in self._GOR_lookup:
+				return []
 			node_id = self._GOR_lookup[obj_id]
 			for tgt in self._GOR.iterNeighbors(node_id):
 				for label in self._GOR_labels[(node_id, tgt)]:
@@ -244,6 +246,8 @@ class DGraph(object):
 	
 	def iter_class_parents(self, child):
 		
+		if child not in self._GCM_lookup:
+			return []
 		node_id = self._GCM_lookup[child]
 		for src in self._GCM.iterInNeighbors(node_id):
 			yield self._GCM_names[src]
@@ -265,13 +269,15 @@ class DGraph(object):
 		
 		if name is None:
 			for src, tgt in self._GCR.iterEdges():
-				for label in self._GCR_labels[(src, tgt)]:
-					yield self._GCR_names[src], self._GCR_names[tgt], label
+				if (src, tgt) in self._GCR_labels:
+					for label in self._GCR_labels[(src, tgt)]:
+						yield self._GCR_names[src], self._GCR_names[tgt], label
 		else:
 			node_id = self._GCR_lookup[name]
 			for tgt in self._GCR.iterNeighbors(node_id):
-				for label in self._GCR_labels[(node_id, tgt)]:
-					yield self._GCR_names[tgt], label
+				if (node_id, tgt) in self._GCR_labels:
+					for label in self._GCR_labels[(node_id, tgt)]:
+						yield self._GCR_names[tgt], label
 	
 	def shortest_path_between_classes(self, src, tgt):
 		# src / tgt = class_name or set(obj_id, ...)
@@ -521,11 +527,22 @@ class DGraph(object):
 		G = nx.node_link_graph(data, directed = True, multigraph = False, attrs = graph_attrs)
 		self.members_from_nx(G)
 	
+	def _graph_to_pickle(self, G):
+		
+		if G.numberOfNodes() == 0:
+			return None
+		return G
+	
+	def _graph_from_pickle(self, data):
+		
+		if data is None:
+			return nk.graph.Graph(directed = True)
+		return data
 	
 	def objects_to_pickle(self):
 		
 		return [
-			self._GOR,
+			self._graph_to_pickle(self._GOR),
 			self._GOR_names,
 			self._GOR_lookup,
 			self._GOR_data,
@@ -535,7 +552,7 @@ class DGraph(object):
 	def classes_to_pickle(self):
 		
 		return [
-			self._GCR,
+			self._graph_to_pickle(self._GCR),
 			self._GCR_names,
 			self._GCR_lookup,
 			self._GCR_data,
@@ -545,7 +562,7 @@ class DGraph(object):
 	def members_to_pickle(self):
 		
 		return [
-			self._GCM,
+			self._graph_to_pickle(self._GCM),
 			self._GCM_names,
 			self._GCM_lookup,
 		]
@@ -553,28 +570,31 @@ class DGraph(object):
 	def objects_from_pickle(self, data):
 		
 		[
-			self._GOR,
+			GOR,
 			self._GOR_names,
 			self._GOR_lookup,
 			self._GOR_data,
 			self._GOR_labels,
 		] = data
+		self._GOR = self._graph_from_pickle(GOR)
 	
 	def classes_from_pickle(self, data):
 		
 		[
-			self._GCR,
+			GCR,
 			self._GCR_names,
 			self._GCR_lookup,
 			self._GCR_data,
 			self._GCR_labels,		
 		] = data
+		self._GCR = self._graph_from_pickle(GCR)
 	
 	def members_from_pickle(self, data):
 		
 		[
-			self._GCM,
+			GCM,
 			self._GCM_names,
 			self._GCM_lookup,
 		] = data
+		self._GCM = self._graph_from_pickle(GCM)
 
