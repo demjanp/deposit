@@ -82,9 +82,9 @@ class DGraph(object):
 		queue = set([node_id])
 		while queue:
 			for src in self._GCM.iterInNeighbors(queue.pop()):
-				if tgt not in ancestors:
-					queue.add(tgt)
-				ancestors.add(tgt)
+				if src not in ancestors:
+					queue.add(src)
+				ancestors.add(src)
 		for node in ancestors:
 			yield self._GCM_names[node]
 	
@@ -259,9 +259,9 @@ class DGraph(object):
 		queue = set([node_id])
 		while queue:
 			for src in self._GCM.iterInNeighbors(queue.pop()):
-				if tgt not in ancestors:
-					queue.add(tgt)
-				ancestors.add(tgt)
+				if src not in ancestors:
+					queue.add(src)
+				ancestors.add(src)
 		for node in ancestors:
 			yield self._GCM_names[node]
 	
