@@ -527,6 +527,7 @@ class DGraph(object):
 		G = nx.node_link_graph(data, directed = True, multigraph = False, attrs = graph_attrs)
 		self.members_from_nx(G)
 	
+	'''
 	def _graph_to_pickle(self, G):
 		
 		if G.numberOfNodes() == 0:
@@ -598,3 +599,4 @@ class DGraph(object):
 		] = data
 		self._GCM = self._graph_from_pickle(GCM)
 
+	'''  # TODO obsolete (only kept to load data saved in previous format)

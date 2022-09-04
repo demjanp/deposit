@@ -31,7 +31,7 @@ def get_coords_properties(coords):
 	ndims = 1
 	ncoords = len(coords)
 	c = coords[0]
-	while isinstance(c, list):
+	while (isinstance(c, list) or isinstance(c, tuple)):
 		ncoords = len(c)
 		c = c[0]
 		ndims += 1
