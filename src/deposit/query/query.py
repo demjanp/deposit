@@ -368,7 +368,7 @@ class Query(object):
 		
 		# sort and prune rows
 		rows = natsorted(rows)[::-1]
-		self._rows = []
+		collect = []
 		check_row_last = None
 		for row in rows:
 			check_row = set([item[0] if (item[0] is not None) else item[1] for item in row if item != (None, None)])
@@ -377,8 +377,45 @@ class Query(object):
 			elif check_row.issubset(check_row_last):
 				continue
 			check_row_last = check_row
-			self._rows.append(row)
-		self._rows = self._rows[::-1]
+			collect.append(row)
+		rows = collect[::-1]
+		
+		# merge redundant rows
+		if (len(rows) > 1) and (len(rows[0]) > 1):
+			found = True
+			while found:
+				found = False
+				collect = [rows[0]]
+				last = rows[0]
+				for row in rows[1:]:
+					if row[0] != last[0]:
+						collect.append(row)
+						last = row
+						continue
+					isnone_row = set()
+					isnone_last = set()
+					merge = True
+					for j in range(1, len(row)):
+						if row[j] == (None, None):
+							isnone_row.add(j)
+						elif last[j] == (None, None):
+							isnone_last.add(j)
+						elif row[j] != last[j]:
+							merge = False
+							break
+					if merge:
+						found = True
+						merged = collect[-1]
+						for j in isnone_last:
+							merged[j] = row[j]
+						collect[-1] = merged
+						last = merged
+					else:
+						collect.append(row)
+						last = row
+				rows = collect
+		
+		self._rows = rows
 		
 		for _, alias, class_name, descriptor_name in keys_columns:
 			if alias is None:

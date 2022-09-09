@@ -8,12 +8,14 @@ from deposit.query.query import Query
 from deposit.utils.fnc_files import (
 	as_url, url_to_path, extract_filename, get_image_format, delete_stored, 
 	store_locally, update_image_filename, get_updated_local_url, open_url, 
-	clear_temp_dir, get_named_path, prune_local_files
+	clear_temp_dir, get_named_path, get_free_subfolder, get_unique_path, 
+	prune_local_files,
 )
 
 from collections import defaultdict
 from natsort import natsorted
 from itertools import product
+import shutil
 import os
 
 class Store(object):
@@ -24,6 +26,8 @@ class Store(object):
 		
 		self._datasource = Datasource.Memory()
 		self._resources = {}			# {url: DResource, ...}
+		self._added = set()				# set(path, ...)
+		self._deleted = set()			# set((filename, path), ...)
 		self._user_tools = []
 		self._queries = {}
 		self._local_folder = None		# folder to store DResource files flagged as is_stored
@@ -191,6 +195,7 @@ class Store(object):
 	def clear(self) -> None:
 		
 		self.G.clear()
+		self.flush_added_deleted()
 		
 		self._resources = {}
 		self._user_tools = []
@@ -202,6 +207,21 @@ class Store(object):
 		self._max_order = 0
 		self._descriptors = None
 		self._relation_labels = None
+	
+	def flush_added_deleted(self):
+		
+		for path in self._added:
+			filename = os.path.basename(path)
+			tgt_path = os.path.join(get_named_path("_deleted", self.get_folder()), filename)
+			shutil.move(path, tgt_path)
+		
+		for filename, path in self._deleted:
+			filename = os.path.basename(path)
+			tgt_path = get_unique_path(filename, get_free_subfolder(self.get_folder()))
+			shutil.move(path, tgt_path)
+		
+		self._added = set()
+		self._deleted = set()
 	
 	def get_updated_url(self, resource):
 		
@@ -282,10 +302,11 @@ class Store(object):
 		if folder is None:
 			return (url, False)
 		
-		url_new = store_locally(url, filename, folder, self.get_resource_urls())
-		if url_new is None:
+		path = store_locally(url, filename, folder, self.get_resource_urls())
+		if path is None:
 			return (url, False)
-		return (url_new, True)
+		self._added.add(path)
+		return (as_url(path), True)
 	
 	def prune_resources(self):
 		
@@ -341,7 +362,12 @@ class Store(object):
 		
 		return self.G.get_class_data(name)
 	
-	def add_resource(self, url: str, filename: str = None, is_stored: bool = None, is_image: bool = None) -> DResource:
+	def add_resource(self, 
+		url: str, 
+		filename: str = None, 
+		is_stored: bool = None, 
+		is_image: bool = None
+	) -> DResource:
 		# filename = "name.ext"; if None, determine automatically
 		# is_stored = True if resource is stored in local folder
 		#	= False, not stored locally
@@ -1120,7 +1146,9 @@ class Store(object):
 	def del_resource(self, resource: DResource) -> None:
 		
 		if resource.is_stored:
-			delete_stored(resource.url, self.get_folder())
+			filename, path = delete_stored(resource.url, self.get_folder())
+			if path is not None:
+				self._deleted.add((filename, path))
 		url = resource.url
 		if url in self._resources:
 			del self._resources[url]
@@ -1209,6 +1237,8 @@ class Store(object):
 		# datasource = Datasource or format
 		datasource = self.init_datasource(datasource, kwargs)
 		if datasource.save(self, datasource = datasource, *args, **kwargs):
+			self._added = set()
+			self._deleted = set()
 			self.callback_saved(datasource)
 			return True
 		return False

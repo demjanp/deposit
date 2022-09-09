@@ -109,6 +109,7 @@ class SHP(AbstractExternalsource):
 			"MULTIPOINTM": 28,
 		}
 		for _, geometry_type in geometries:
+			geometry_type = geometry_type.upper()
 			if geometry_type not in shape_types:
 				raise Exception("Unknown geometry type")
 			if shapeType > -1:
@@ -122,6 +123,7 @@ class SHP(AbstractExternalsource):
 		shp_types = {bool: "C", int: "N", float: "N", str: "C"}
 		conv_order = ["N", "C"]
 		data = {}
+		has_data = False
 		for i, row in enumerate(row_idxs):
 			data[i] = {}
 			for col in range(n_cols):
@@ -129,6 +131,7 @@ class SHP(AbstractExternalsource):
 				if item.is_geometry():
 					continue
 				data[i][col] = try_numeric(item.get_display_data())
+				has_data = True
 				typ = type(data[i][col])
 				typ = shp_types[typ] if typ in shp_types else "C"
 				if (not col in types) or (
@@ -136,6 +139,11 @@ class SHP(AbstractExternalsource):
 					(conv_order.index(typ) > conv_order.index(types[col]))
 				):
 					types[col] = typ
+		if not has_data:
+			types[0] = "N"
+			columns_abbrev[0] = "ID"
+			for i in range(len(geometries)):
+				data[i][0] = i + 1
 		for col in range(n_cols):
 			if col in types:
 				sf.field(columns_abbrev[col], fieldType = types[col], size = "128")

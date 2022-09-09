@@ -238,19 +238,19 @@ def store_locally(url, filename, local_folder, existing_urls = None):
 	if not copy_url(url, path_dst):
 		return None
 	
-	return as_url(path_dst)
+	return path_dst
 
 
 def delete_stored(url, local_folder):
 	
 	url = get_updated_local_url(url, local_folder)
 	if url is None:
-		return
+		return None, None
 	src_path = url_to_path(url)
 	if not os.path.isfile(src_path):
-		return False
-	filename = os.path.basename(src_path)
-	tgt_path0 = os.path.join(get_named_path("_deleted", local_folder), filename)
+		return None, None
+	src_filename = os.path.basename(src_path)
+	tgt_path0 = os.path.join(get_named_path("_deleted", local_folder), src_filename)
 	path, filename = os.path.split(tgt_path0)
 	name, ext = os.path.splitext(filename)
 	tgt_path = tgt_path0
@@ -259,7 +259,7 @@ def delete_stored(url, local_folder):
 		tgt_path = os.path.join(path, "%s_%d%s" % (name, n, ext))
 		n += 1
 	shutil.move(src_path, tgt_path)
-	return True
+	return src_filename, tgt_path
 
 
 def open_url(url):

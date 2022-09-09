@@ -10,9 +10,14 @@ from deposit.utils.fnc_files import (as_url, get_updated_local_url)
 from deposit.utils.fnc_geometry import (add_srid_to_wkt)
 from deposit.query.parse import (remove_quoted, remove_bracketed_all)
 
+from cryptography.fernet import Fernet, InvalidToken
 from collections import defaultdict
 import datetime
+import hashlib
+import base64
+import uuid
 import json
+import html
 import re
 import os
 
@@ -481,4 +486,74 @@ def load_user_tool(path):
 				))
 	
 	return data
+
+def get_machine_key():
+	
+	uid = uuid.getnode()
+	uid_ = uuid.getnode()
+	if uid != uid_:
+		key = "rO7%83CsJxD#"
+	else:
+		key = str(uid)
+	key = base64.urlsafe_b64encode(hashlib.sha256(key.encode()).digest())
+	
+	return key
+
+def encrypt_password(password):
+	
+	token = Fernet(get_machine_key()).encrypt(password.encode())
+	
+	return token.decode()
+
+def decrypt_password(token):
+	
+	try:
+		password = Fernet(get_machine_key()).decrypt(token.encode()).decode()
+	except InvalidToken:
+		password = ""
+	
+	return password
+
+def encrypt_connstr(connstr):
+	
+	parsed = parse_connstr(connstr)
+	if not parsed:
+		return connstr
+	if not parsed["password"]:
+		return connstr
+	
+	token = encrypt_password(parsed["password"])
+	connstr = "postgres://%s:-@%s/%s?currentSchema=%s" % (
+		parsed["username"],
+		parsed["host"], 
+		parsed["dbname"], 
+		parsed["schema"]
+	)
+	connstr = html.escape(token) + "\"" + html.escape(connstr)
+	
+	return connstr
+
+def decrypt_connstr(connstr):
+	
+	connstr_orig = connstr
+	connstr = connstr.split("\"")
+	if len(connstr) != 2:
+		return connstr_orig
+	token, connstr = connstr
+	token = html.unescape(token)
+	connstr = html.unescape(connstr)
+	parsed = parse_connstr(connstr)
+	if not parsed:
+		return connstr_orig
+	password = decrypt_password(token)
+	if not password:
+		return connstr_orig
+	connstr = "postgres://%s:%s@%s/%s?currentSchema=%s" % (
+		parsed["username"],
+		password,
+		parsed["host"], 
+		parsed["dbname"], 
+		parsed["schema"]
+	)
+	return connstr
 
