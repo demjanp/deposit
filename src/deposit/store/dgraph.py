@@ -527,76 +527,88 @@ class DGraph(object):
 		G = nx.node_link_graph(data, directed = True, multigraph = False, attrs = graph_attrs)
 		self.members_from_nx(G)
 	
-	'''
-	def _graph_to_pickle(self, G):
+	def _graph_to_pickle(self, G, names):
 		
-		if G.numberOfNodes() == 0:
-			return None
-		return G
+		nodes = list(names.values())
+		edges = []
+		for node_src, node_tgt in G.iterEdges():
+			edges.append((names[node_src], names[node_tgt]))
+		
+		return [nodes, edges]
+	
+	def _labels_to_pickle(self, labels, names):
+		
+		data = {}
+		for key in labels:
+			node_src, node_tgt = key
+			data[(names[node_src], names[node_tgt])] = labels[key]
+		return data
 	
 	def _graph_from_pickle(self, data):
 		
-		if data is None:
-			return nk.graph.Graph(directed = True)
+		nodes, edges = data
+		G = nk.graph.Graph(directed = True)
+		G.addNodes(len(nodes))
+		names = {}
+		lookup = {}
+		for i, name in enumerate(nodes):
+			names[i] = name
+			lookup[name] = i
+		for name_src, name_tgt in edges:
+			G.addEdge(lookup[name_src], lookup[name_tgt])
+		
+		return G, names, lookup
+	
+	def _labels_from_pickle(self, labels, lookup):
+		
+		data = {}
+		for key in labels:
+			name_src, name_tgt = key
+			data[(lookup[name_src], lookup[name_tgt])] = labels[key]
+		
 		return data
 	
 	def objects_to_pickle(self):
 		
 		return [
-			self._graph_to_pickle(self._GOR),
-			self._GOR_names,
-			self._GOR_lookup,
+			self._graph_to_pickle(self._GOR, self._GOR_names),
 			self._GOR_data,
-			self._GOR_labels,
+			self._labels_to_pickle(self._GOR_labels, self._GOR_names),
 		]
 	
 	def classes_to_pickle(self):
 		
 		return [
-			self._graph_to_pickle(self._GCR),
-			self._GCR_names,
-			self._GCR_lookup,
+			self._graph_to_pickle(self._GCR, self._GCR_names),
 			self._GCR_data,
-			self._GCR_labels,		
+			self._labels_to_pickle(self._GCR_labels, self._GCR_names),
 		]
 	
 	def members_to_pickle(self):
 		
-		return [
-			self._graph_to_pickle(self._GCM),
-			self._GCM_names,
-			self._GCM_lookup,
-		]
+		return self._graph_to_pickle(self._GCM, self._GCM_names)
 	
 	def objects_from_pickle(self, data):
 		
 		[
-			GOR,
-			self._GOR_names,
-			self._GOR_lookup,
+			graph_data,
 			self._GOR_data,
-			self._GOR_labels,
+			labels,
 		] = data
-		self._GOR = self._graph_from_pickle(GOR)
+		self._GOR, self._GOR_names, self._GOR_lookup = self._graph_from_pickle(graph_data)
+		self._GOR_labels = self._labels_from_pickle(labels, self._GOR_lookup)
 	
 	def classes_from_pickle(self, data):
 		
 		[
-			GCR,
-			self._GCR_names,
-			self._GCR_lookup,
+			graph_data,
 			self._GCR_data,
-			self._GCR_labels,		
+			labels,
 		] = data
-		self._GCR = self._graph_from_pickle(GCR)
+		self._GCR, self._GCR_names, self._GCR_lookup = self._graph_from_pickle(graph_data)
+		self._GCR_labels = self._labels_from_pickle(labels, self._GCR_lookup)
 	
 	def members_from_pickle(self, data):
 		
-		[
-			GCM,
-			self._GCM_names,
-			self._GCM_lookup,
-		] = data
-		self._GCM = self._graph_from_pickle(GCM)
+		self._GCM, self._GCM_names, self._GCM_lookup = self._graph_from_pickle(data)
 
-	'''  # TODO obsolete (only kept to load data saved in previous format)

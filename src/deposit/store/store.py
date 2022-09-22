@@ -40,6 +40,7 @@ class Store(object):
 		self._descriptors = None
 		self._relation_labels = None
 		
+		self._callbacks_paused = False
 		self._callback_added = set()
 		self._callback_deleted = set()
 		self._callback_changed = set()
@@ -91,6 +92,10 @@ class Store(object):
 	
 	# ---- Callbacks
 	# ------------------------------------------------------------------------
+	def set_callbacks_paused(self, state):
+		
+		self._callbacks_paused = state
+	
 	def set_callback_added(self, func):
 		# func(elements: list); elements = [DObject, DClass, ...]
 		
@@ -99,28 +104,38 @@ class Store(object):
 	def callback_added(self, elements):
 		
 		self._saved = False
+		if self._callbacks_paused:
+			return
 		for func in self._callback_added:
 			func(elements)
 	
 	def set_callback_deleted(self, func):
 		# func(elements: list); elements = [obj_id, name, ...]
 		
+		if self._callbacks_paused:
+			return
 		self._callback_deleted.add(func)
 	
 	def callback_deleted(self, elements):
 		
 		self._saved = False
+		if self._callbacks_paused:
+			return
 		for func in self._callback_deleted:
 			func(elements)
 	
 	def set_callback_changed(self, func):
 		# func(elements: list); elements = [DObject, DClass, ...]
 		
+		if self._callbacks_paused:
+			return
 		self._callback_changed.add(func)
 	
 	def callback_changed(self, elements):
 		
 		self._saved = False
+		if self._callbacks_paused:
+			return
 		for func in self._callback_changed:
 			func(elements)
 	
@@ -132,6 +147,8 @@ class Store(object):
 	def callback_saved(self, datasource):
 		
 		self._saved = True
+		if self._callbacks_paused:
+			return
 		for func in self._callback_saved:
 			func(datasource)
 	
@@ -143,6 +160,8 @@ class Store(object):
 	def callback_loaded(self):
 		
 		self._saved = True
+		if self._callbacks_paused:
+			return
 		for func in self._callback_loaded:
 			func()
 	
@@ -154,6 +173,8 @@ class Store(object):
 	def callback_local_folder_changed(self):
 		
 		self._saved = False
+		if self._callbacks_paused:
+			return
 		for func in self._callback_local_folder_changed:
 			func()
 	
@@ -165,6 +186,8 @@ class Store(object):
 	def callback_queries_changed(self):
 		
 		self._saved = False
+		if self._callbacks_paused:
+			return
 		for func in self._callback_queries_changed:
 			func()
 	
@@ -176,6 +199,8 @@ class Store(object):
 	def callback_user_tools_changed(self):
 		
 		self._saved = False
+		if self._callbacks_paused:
+			return
 		for func in self._callback_user_tools_changed:
 			func()
 	
@@ -186,6 +211,8 @@ class Store(object):
 	
 	def callback_settings_changed(self):
 		
+		if self._callbacks_paused:
+			return
 		for func in self._callback_settings_changed:
 			func()
 	
@@ -1247,9 +1274,12 @@ class Store(object):
 		# datasource = Datasource or format
 		
 		datasource = self.init_datasource(datasource, kwargs)
+		self.set_callbacks_paused(True)
 		if datasource.load(self, datasource = datasource, *args, **kwargs):
+			self.set_callbacks_paused(False)
 			self.callback_loaded()
 			return True
+		self.set_callbacks_paused(False)
 		return False
 	
 	def is_saved(self):
