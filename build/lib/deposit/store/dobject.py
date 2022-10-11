@@ -66,7 +66,6 @@ class DObject(AbstractDElement):
 		self._json_locations = None
 	
 	
-	# ---- Descriptors -------------------------------------------------------
 	def set_descriptor(self, name, value):
 		
 		if value == self.get_descriptor(name):
@@ -83,9 +82,7 @@ class DObject(AbstractDElement):
 		self._store._on_descriptor_set(descr)
 		self._store.callback_changed([self])
 	
-	def set_resource_descriptor(
-		self, name, url, filename = None, is_stored = None, is_image = None
-	):
+	def set_resource_descriptor(self, name, url, filename = None, is_stored = None, is_image = None):
 		# filename = "name.ext"; if None, determine automatically
 		# is_stored = True if resource is stored in local folder
 		#	= False, not stored locally
@@ -96,9 +93,7 @@ class DObject(AbstractDElement):
 		value.add_object(self.id)
 		self.set_descriptor(name, value)
 	
-	def set_geometry_descriptor(
-		self, name, geometry_type, coords, srid = None, srid_vertical = None
-	):
+	def set_geometry_descriptor(self, name, geometry_type, coords, srid = None, srid_vertical = None):
 		# geometry_type = str (POINT / MULTIPOINT / LINESTRING / POLYGON / MULTIPOLYGON / POINTZ etc. / POINTM etc.)
 		# coords = POINT: [x,y]
 		# 	POINTZ: [x, y, z] etc.
@@ -179,7 +174,6 @@ class DObject(AbstractDElement):
 			self._store.callback_changed([self])
 	
 	
-	# ---- Locations ---------------------------------------------------------
 	def set_location(self, name, value):
 		# set location of the object on an image resource by a geometric shape ([0,0] being the bottom-left corner)
 		# value = DGeometry
@@ -216,7 +210,6 @@ class DObject(AbstractDElement):
 			self._store.callback_changed([self])
 	
 	
-	# ---- Classes -----------------------------------------------------------
 	def get_classes(self, ordered = False, superclasses = False):
 		# returns [DClass, ...]
 		
@@ -233,12 +226,6 @@ class DObject(AbstractDElement):
 			return sorted(list(classes), key = lambda cls: cls.order)
 		return list(classes)
 	
-	def get_class_names(self, ordered = False, superclasses = False):
-		# returns [name, ...]
-		
-		return [cls.name for cls in self.get_classes(ordered, superclasses)]
-		
-	
 	def has_class(self, name = None):
 		
 		if name.__class__.__name__ == "DClass":
@@ -252,7 +239,6 @@ class DObject(AbstractDElement):
 		return False
 	
 	
-	# ---- Relations ---------------------------------------------------------
 	def add_relation(self, obj_id_tgt, label, weight = None):
 		
 		if isinstance(obj_id_tgt, DObject):
@@ -304,6 +290,7 @@ class DObject(AbstractDElement):
 			self._store._on_relation_deleted()
 			obj = self._store.G.get_object_data(obj_id_tgt)
 			self._store.callback_changed([self, obj])
+
 	
 	
 	def __repr__(self):
