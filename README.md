@@ -1,4 +1,4 @@
-# ![](dep_cube.svg)Deposit
+# <img src="dep_cube.svg" width="32">Deposit
 Open source graph database engine focused on scientific data collection.
 
 Created on 29. 4. 2013
