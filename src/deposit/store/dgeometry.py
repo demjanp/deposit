@@ -3,6 +3,8 @@ from deposit.utils.fnc_geometry import (
 	coords_to_wkt, wkt_to_coords, get_coords_properties, get_ndims_required
 )
 
+import copy
+
 class DGeometry(AbstractDType):
 	
 	@property
@@ -13,7 +15,7 @@ class DGeometry(AbstractDType):
 	@property
 	def coords(self):
 		
-		return self.get_value()[1]
+		return copy.deepcopy(self.get_value()[1])
 	
 	@property
 	def srid(self):
