@@ -83,6 +83,12 @@ def parse_connstr(connstr):
 
 def legacy_data_to_store(data, store, path, progress = None):
 	
+	def _as_key(obj_id, is_json):
+		
+		if is_json:
+			return str(obj_id)
+		return int(obj_id)
+	
 	for name in ["classes", "objects"]:
 		if name not in data:
 			return False
@@ -96,9 +102,14 @@ def legacy_data_to_store(data, store, path, progress = None):
 	if local_folder is None:	
 		local_folder = os.path.normpath(os.path.abspath(os.path.dirname(path)))
 	
+	is_json = False
+	
+	obj_id = 0
 	for obj_id in data["objects"]:
 		obj = DObject(store, int(obj_id) + 1)
 		store.G.add_object(int(obj_id) + 1, obj)
+	if isinstance(obj_id, str):
+		is_json = True
 	
 	for name in data["classes"]:
 		order = data["classes"][name]["order"]
@@ -129,7 +140,7 @@ def legacy_data_to_store(data, store, path, progress = None):
 		)
 		
 		for obj_id in data["classes"][name]["objects"]:
-			if str(obj_id) not in data["objects"]:
+			if _as_key(obj_id, is_json) not in data["objects"]:
 				continue
 			store.G.add_class_child(name, obj_id + 1)
 			class_lookup[obj_id].add(name)
@@ -213,15 +224,15 @@ def legacy_data_to_store(data, store, path, progress = None):
 		
 		for label in data["objects"][obj_id]["relations"]:
 			for obj_id_tgt in data["objects"][obj_id]["relations"][label]["objects"]:
-				if str(obj_id_tgt) not in data["objects"]:
+				if _as_key(obj_id_tgt, is_json) not in data["objects"]:
 					continue
 				weight = None
 				if ("weights" in data["objects"][obj_id]["relations"][label]) and \
-					(str(obj_id_tgt) in data["objects"][obj_id]["relations"][label]["weights"]):
-					weight = data["objects"][obj_id]["relations"][label]["weights"][str(obj_id_tgt)]
+					(_as_key(obj_id_tgt, is_json) in data["objects"][obj_id]["relations"][label]["weights"]):
+					weight = data["objects"][obj_id]["relations"][label]["weights"][_as_key(obj_id_tgt, is_json)]
 				store.G.add_object_relation(int(obj_id) + 1, int(obj_id_tgt) + 1, label, weight)
 				for src_class in class_lookup[int(obj_id)]:
-					for tgt_class in class_lookup[obj_id_tgt]:
+					for tgt_class in class_lookup[int(obj_id_tgt)]:
 						collect_rels.add((src_class, tgt_class, label))
 	
 	collect_rels = cls_rels_done.difference(cls_rels_done)
