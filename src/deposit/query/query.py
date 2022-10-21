@@ -102,12 +102,11 @@ class Query(object):
 	
 	def process(self):
 		
-		self._process()  # DEBUG
-		return  # DEBUG
 		try:
 			self._process()
 		except:
-			print("QUERY ERROR:", sys.exc_info())
+			_, exc_value, _ = sys.exc_info()
+			self._store.callback_error("QUERY ERROR: %s" % (str(exc_value)))
 	
 	def _process(self):
 		

@@ -384,21 +384,21 @@ class AbstractDBSource(AbstractDatasource):
 		if not self.is_valid():
 			return False
 		
-		data = self.load_data(progress)  # DEBUG
-#		try:
-#			data = self.load_data(progress)
-#		except:
-#			print("LOAD ERROR: %s" % (str(sys.exc_info())))  # DEBUG
-#			return False
+		try:
+			data = self.load_data(progress)
+		except:
+			_, exc_value, _ = sys.exc_info()
+			store.callback_error("LOAD ERROR: %s" % (str(exc_value)))
+			return False
 		
 		if "classes" in data:
 			local_folder = data["local_folder"]
 			if not legacy_data_to_store(data, store, local_folder, progress = self._progress):
-				print("LOAD ERROR: Invalid legacy file format")  # DEBUG
+				store.callback_error("LOAD ERROR: Invalid legacy file format")
 				return False
 		else:	
 			if not json_data_to_store(data, store, self._progress):
-				print("LOAD ERROR: Loading data")  # DEBUG
+				store.callback_error("LOAD ERROR: Loading data")
 				return False
 		
 		store.set_datasource(self)

@@ -169,18 +169,19 @@ class AbstractFileSource(AbstractDatasource):
 		
 		path = self.get_path()
 		if path is None:
-			print("LOAD ERROR: Path not specified")  # DEBUG
+			store.callback_error("LOAD ERROR: Path not specified")
 			return False
 		
 		try:
 			data = self.load_data(path)
 		except:
-			print("LOAD ERROR: %s" % (str(sys.exc_info())))  # DEBUG
+			_, exc_value, _ = sys.exc_info()
+			store.callback_error("LOAD ERROR: %s" % (str(exc_value)))
 			return False
 		
 		if "classes" in data:
 			if not legacy_data_to_store(data, store, path, progress = self._progress):
-				print("LOAD ERROR: Invalid legacy file format")  # DEBUG
+				store.callback_error("LOAD ERROR: Invalid legacy file format")
 				return False
 		
 		else:
@@ -188,11 +189,11 @@ class AbstractFileSource(AbstractDatasource):
 				"local_folder", "max_order", "deposit_version", "user_tools", "queries",
 			]:
 				if name not in data:
-					print("LOAD ERROR: Invalid file format")  # DEBUG
+					store.callback_error("LOAD ERROR: Invalid file format")
 					return False
 			
 			if not self.data_to_store(data, store):
-				print("LOAD ERROR: Loading data")  # DEBUG
+				store.callback_error("LOAD ERROR: Loading data")
 				return False
 		
 		store.set_datasource(self)

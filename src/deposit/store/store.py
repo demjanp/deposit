@@ -50,6 +50,7 @@ class Store(object):
 		self._callback_user_tools_changed = set()
 		self._callback_queries_changed = set()
 		self._callback_settings_changed = set()
+		self._callback_error = set()
 		
 	def _init_min_free_id(self) -> None:
 		
@@ -215,6 +216,16 @@ class Store(object):
 			return
 		for func in self._callback_settings_changed:
 			func()
+	
+	def set_callback_error(self, func):
+		
+		self._callback_error.add(func)
+	
+	def callback_error(self, message):
+		
+		print(message)
+		for func in self._callback_error:
+			func(message)
 	
 	
 	# ---- General
@@ -1000,7 +1011,6 @@ class Store(object):
 		if progress is not None:
 			progress.update_state(value = 0, maximum = cmax)
 		for obj_id0 in objects0:
-#			print("\r%d/%d           " % (cnt, cmax), end = "") # DEBUG
 			if (progress is not None) and (cnt % 100 == 0):
 				if progress.cancel_pressed():
 					return []
