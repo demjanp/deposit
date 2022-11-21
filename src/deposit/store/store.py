@@ -1075,6 +1075,18 @@ class Store(object):
 				queue.add(orig2.id)
 				done.add(orig2.id)
 		
+		# add within-class relations
+		for orig_id in obj_lookup:
+			orig = self.get_object(orig_id)
+			classes = set([cls.name for cls in orig.get_classes()])
+			for orig2, label in orig.get_relations():
+				if orig2.id not in obj_lookup:
+					continue
+				if not classes.intersection([cls.name for cls in orig2.get_classes()]):
+					continue
+				weight = orig.get_relation_weight(orig2, label)
+				obj_lookup[orig_id].add_relation(obj_lookup[orig2.id], label, weight = weight)
+		
 		# collect descriptor names
 		for orig_id in obj_lookup:
 			for descr in self.get_object(orig_id).get_descriptors():

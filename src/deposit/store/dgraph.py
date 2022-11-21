@@ -171,9 +171,11 @@ class DGraph(object):
 		del self._GOR_lookup[obj_id]
 		del self._GOR_data[obj_id]
 		for tgt in self._GOR.iterNeighbors(node_id):
-			del self._GOR_labels[(node_id, tgt)]
+			if (node_id, tgt) in self._GOR_labels:
+				del self._GOR_labels[(node_id, tgt)]
 		for src in self._GOR.iterInNeighbors(node_id):
-			del self._GOR_labels[(src, node_id)]
+			if (src, node_id) in self._GOR_labels:
+				del self._GOR_labels[(src, node_id)]
 		self._GOR.removeNode(node_id)
 		
 		node_id = self._GCM_lookup[obj_id]
@@ -397,9 +399,11 @@ class DGraph(object):
 		del self._GCR_lookup[name]
 		del self._GCR_data[name]
 		for tgt in self._GCR.iterNeighbors(node_id):
-			del self._GCR_labels[(node_id, tgt)]
+			if (node_id, tgt) in self._GCR_labels:
+				del self._GCR_labels[(node_id, tgt)]
 		for src in self._GCR.iterInNeighbors(node_id):
-			del self._GCR_labels[(src, node_id)]
+			if (src, node_id) in self._GCR_labels:
+				del self._GCR_labels[(src, node_id)]
 		self._GCR.removeNode(node_id)
 		
 		node_id = self._GCM_lookup[name]
