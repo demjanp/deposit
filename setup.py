@@ -20,7 +20,7 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
 	name="deposit",
-	version="1.4.33",
+	version="1.4.35",
 	description="Graph database focused on scientific data collection.",
 	long_description=long_description,
 	long_description_content_type="text/markdown",

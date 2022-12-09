@@ -262,6 +262,13 @@ def legacy_data_to_store(data, store, path, progress = None):
 	if "queries" in data:
 		store._queries = data["queries"]
 	
+	store._resources = {}
+	for obj in store.get_objects():
+		for name in obj.get_descriptor_names():
+			descr = obj.get_descriptor(name)
+			if isinstance(descr, DResource):
+				store._resources[descr.url] = descr
+	
 	return True
 
 def json_data_to_store(data, store, progress = None):
@@ -329,6 +336,12 @@ def json_data_to_store(data, store, progress = None):
 	store._user_tools = data["user_tools"]
 	store._queries = data["queries"]
 	store._local_folder = data["local_folder"]
+	store._resources = {}
+	for obj in store.get_objects():
+		for name in obj.get_descriptor_names():
+			descr = obj.get_descriptor(name)
+			if isinstance(descr, DResource):
+				store._resources[descr.url] = descr
 	
 	if progress is not None:
 		progress.update_state(value = cmax, maximum = cmax)
