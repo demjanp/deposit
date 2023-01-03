@@ -34,6 +34,8 @@ def is_local_url(url):
 
 def url_to_path(url):
 	
+	if url is None:
+		return None
 	parsed = urlparse(url)
 	return url2pathname(parsed.path)
 

@@ -108,8 +108,10 @@ def coords_to_wkt(geom_type: str, coords: list, srid: int = None, srid_vertical:
 	if ndims != ndims_required:
 		raise Exception("Invalid number of dimensions (%d) for geometry type %s. Required: %d." % (ndims, geom_type, ndims_required))
 	
-	if geom_type.endswith("POLYGON"):
-		_close_polygons(coords)
+	# by WKT standard a polygon must be closed, so the first and last points in the WKT must match 
+#	if geom_type.endswith("POLYGON"):
+#		_close_polygons(coords)
+	# DEBUG
 	
 	if is_z:
 		geom_type += "Z"
