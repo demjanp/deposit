@@ -1204,6 +1204,8 @@ class Store(object):
 	
 	def del_user_tool(self, label):
 		
+		if isinstance(label, list):
+			label = label[0]
 		self._user_tools = [user_tool for user_tool in self._user_tools if user_tool["label"] != label]
 		self.callback_user_tools_changed()
 	

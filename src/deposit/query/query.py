@@ -106,7 +106,9 @@ class Query(object):
 			self._process()
 		except:
 			_, exc_value, _ = sys.exc_info()
-			self._store.callback_error("QUERY ERROR: %s" % (str(exc_value)))
+			self._store.callback_error(
+				"QUERY ERROR in \"%s\": %s" % (self.querystr, str(exc_value))
+			)
 	
 	def _process(self):
 		

@@ -1,8 +1,8 @@
-version_info = (1, 4, 35)
+version_info = (1, 4, 36)
 
 __version__ = '.'.join(map(str, version_info))
 __title__ = 'Deposit'
-__date__ = "3.1.2023"
+__date__ = "12.2.2023"
 
 from deposit.store.store import Store
 
