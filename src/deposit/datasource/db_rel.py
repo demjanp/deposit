@@ -4,6 +4,7 @@ from deposit.utils.fnc_files import (is_local_url, url_to_path)
 from deposit.utils.fnc_serialize import (GRAPH_ATTRS)
 
 from collections import defaultdict
+import time
 import json
 
 LEGACY_RESERVED_TABLES = ["#identifier", "#changed", "#local_folder", "#geotags", "#events", "#user_tools", "#queries", "#classless", "#version", "#order"]
@@ -58,9 +59,10 @@ class DBRel(AbstractDBSource):
 		if self._current_identifier is None:
 			was_connected = self.is_connected()
 			cursor = self.get_cursor()
+			schema = self.get_schema()
 			identifier_name = "#identifier" if self.is_legacy_db() else "identifier"
 			if identifier_name in self.get_tables():
-				cursor.execute("SELECT * FROM \"%s\";" % (identifier_name,))
+				cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, identifier_name,))
 				for row in cursor.fetchall():
 					self._current_identifier = json.loads(row[0])
 					break
@@ -121,6 +123,7 @@ class DBRel(AbstractDBSource):
 		was_connected = self.is_connected()
 		cursor = self.get_cursor()
 		tables = self.get_tables()
+		schema = self.get_schema()
 		
 		src_ = GRAPH_ATTRS["source"]
 		tgt_ = GRAPH_ATTRS["target"]
@@ -169,7 +172,7 @@ class DBRel(AbstractDBSource):
 		data["class_membership_graph"][relations_] = []
 		
 		table = "db_meta"
-		cursor.execute("SELECT * FROM \"%s\";" % (table,))
+		cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, table,))
 		rows = cursor.fetchall()
 		if rows:
 			data_table = {}
@@ -183,7 +186,7 @@ class DBRel(AbstractDBSource):
 		pg_class_lookup = {}  # {name: pg_name, ...}
 		class_node_lookup = {}  # {name: index in data["class_relation_graph"]["nodes"], ...}
 		table = "classes"
-		cursor.execute("SELECT * FROM \"%s\";" % (table,))
+		cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, table,))
 		rows = cursor.fetchall()
 		for row in rows:
 			pg_name, name, order = row
@@ -199,7 +202,7 @@ class DBRel(AbstractDBSource):
 				data["class_membership_graph"]["nodes"].append({id_: name})
 		
 		table = "subclasses"
-		cursor.execute("SELECT * FROM \"%s\";" % (table,))
+		cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, table,))
 		rows = cursor.fetchall()
 		for row in rows:
 			name, subclass = row
@@ -207,7 +210,7 @@ class DBRel(AbstractDBSource):
 		
 		pg_relation_lookup = {}  # {(source, relation, target): pg_name, ...}
 		table = "relations"
-		cursor.execute("SELECT * FROM \"%s\";" % (table,))
+		cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, table,))
 		rows = cursor.fetchall()
 		for row in rows:
 			pg_name, source, relation, target = row
@@ -223,7 +226,7 @@ class DBRel(AbstractDBSource):
 		
 		for key in pg_relation_lookup:
 			source, relation, target = key
-			cursor.execute("SELECT * FROM \"%s\";" % (pg_relation_lookup[key],))
+			cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, pg_relation_lookup[key],))
 			rows = cursor.fetchall()
 			for row in rows:
 				source, target, weight = row
@@ -237,7 +240,7 @@ class DBRel(AbstractDBSource):
 		
 		obj_node_lookup = {}  # {obj_id: index in data["object_relation_graph"]["nodes"], ...}
 		for class_name in pg_class_lookup:
-			cursor.execute("SELECT * FROM \"%s\";" % (pg_class_lookup[class_name],))
+			cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, pg_class_lookup[class_name],))
 			descr_names = [desc[0] for desc in cursor.description][1:]
 			if class_name is not None:
 				data["class_relation_graph"]["nodes"][class_node_lookup[class_name]]["data"]["descriptors"] = descr_names
@@ -259,7 +262,7 @@ class DBRel(AbstractDBSource):
 				data["object_relation_graph"]["nodes"].append(data_row)
 		
 		table = "locations"
-		cursor.execute("SELECT * FROM \"%s\";" % (table,))
+		cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, table,))
 		rows = cursor.fetchall()
 		for row in rows:
 			obj_id, descr_name, location = row
@@ -269,13 +272,13 @@ class DBRel(AbstractDBSource):
 			obj_data["locations"][descr_name] = json.loads(location)
 		
 		table = "user_tools"
-		cursor.execute("SELECT * FROM \"%s\";" % (table,))
+		cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, table,))
 		rows = cursor.fetchall()
 		for row in rows:
 			data["user_tools"].append(json.loads(row[0]))
 		
 		table = "queries"
-		cursor.execute("SELECT * FROM \"%s\";" % (table,))
+		cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, table,))
 		rows = cursor.fetchall()
 		for row in rows:
 			data["queries"][row[0]] = json.loads(row[1])
@@ -310,6 +313,7 @@ class DBRel(AbstractDBSource):
 		was_connected = self.is_connected()
 		cursor = self.get_cursor()
 		tables = self.get_tables()
+		schema = self.get_schema()
 		
 		data = dict(
 			classes = {},
@@ -334,7 +338,7 @@ class DBRel(AbstractDBSource):
 		queries[title] = querystr
 		'''
 		
-		cursor.execute("SELECT * FROM \"%s\";" % ("#local_folder",))
+		cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, "#local_folder",))
 		for row in cursor.fetchall():
 			local_folder = json.loads(row[0])
 			if is_local_url(local_folder):
@@ -357,7 +361,7 @@ class DBRel(AbstractDBSource):
 		descriptor_names = set()
 		for table in tables:
 			if (not table.startswith("#")) or (table == "#classless"):
-				cursor.execute("SELECT * FROM \"%s\";" % (table,))
+				cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, table,))
 				descr_names = [desc[0] for desc in cursor.description][1:]
 				if table != "#classless":
 					for name in descr_names:
@@ -403,7 +407,7 @@ class DBRel(AbstractDBSource):
 					_, cls1, rel, cls2 = table.split("#")
 					if cls2 not in data["classes"][cls1]["relations"][rel]:
 						data["classes"][cls1]["relations"][rel].append(cls2)
-				cursor.execute("SELECT * FROM \"%s\";" % (table,))
+				cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, table,))
 				rows = cursor.fetchall()
 				for row in rows:
 					source_id, target_id = row
@@ -419,21 +423,21 @@ class DBRel(AbstractDBSource):
 		
 		# load class order
 		table = "#order"
-		cursor.execute("SELECT * FROM \"%s\";" % (table,))
+		cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, table,))
 		rows = cursor.fetchall()
 		for row in rows:
 			data["classes"][row[0]]["order"] = row[1]
 		
 		# load user tools
 		table = "#user_tools"
-		cursor.execute("SELECT * FROM \"%s\";" % (table,))
+		cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, table,))
 		rows = cursor.fetchall()
 		for row in rows:
 			data["user_tools"].append(json.loads(row[0]))
 		
 		# load queries
 		table = "#queries"
-		cursor.execute("SELECT * FROM \"%s\";" % (table,))
+		cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, table,))
 		rows = cursor.fetchall()
 		for row in rows:
 			data["queries"][row[0]] = json.loads(row[1])
@@ -476,11 +480,37 @@ class DBRel(AbstractDBSource):
 		queries = {name: querystr, ...}
 		'''
 		
-		def create_table(name, columns, cursor):
+		def check_table(name, schema, cursor):
 			
-			cursor.execute("CREATE TABLE %s.\"%s\" (%s);" % (self.get_schema(), name, columns))
+			cursor.execute(
+				"SELECT table_name FROM information_schema.tables WHERE table_schema = '%s';" % (schema)
+			)
+			return name in [row[0] for row in cursor.fetchall()]
 		
-		def save_class(class_name, object_nodes, obj_lookup, class_descriptors, class_order, cursor):
+		def create_table(name, columns, schema, cursor):
+			
+			if check_table(name, schema, cursor):
+				cursor.execute("DROP TABLE IF EXISTS %s.\"%s\";" % (schema, name))
+				deleted = False
+				for i in range(20):
+					time.sleep(0.5)
+					if not check_table(name, schema, cursor):
+						deleted = True
+						break
+				if not deleted:
+					raise Exception("Could not delete table \"%s\"." % (name))
+			cursor.execute("CREATE TABLE %s.\"%s\" (%s);" % (schema, name, columns))
+			cursor.connection.commit()
+			created = False
+			for i in range(20):
+				time.sleep(0.5)
+				if check_table(name, schema, cursor):
+					created = True
+					break
+			if not created:
+				raise Exception("Could not create table \"%s\"." % (name))
+		
+		def save_class(class_name, object_nodes, obj_lookup, class_descriptors, class_order, schema, cursor):
 			# object_nodes = {obj_id: data, ...}
 			# obj_lookup = {class_name: set(obj_id, ...), ...}
 			# class_descriptors = {class_name: set(descriptor_name, ...), ...}
@@ -502,7 +532,7 @@ class DBRel(AbstractDBSource):
 				columns = "%s INTEGER" % (obj_column)
 			column_names = ", ".join([("\"%s\"" % name) for name in [obj_column] + descriptors])
 			table = "@%s" % (class_name)
-			create_table(table, columns, cursor)
+			create_table(table, columns, schema, cursor)
 			data = [] # [{obj_column: obj_id, [descr_name]: json(value), ...}, ...]
 			for obj_id in sorted(obj_lookup[class_name]):
 				row = {obj_column: obj_id}
@@ -518,8 +548,8 @@ class DBRel(AbstractDBSource):
 				cursor.execute("""
 					DROP TYPE IF EXISTS item_;
 					CREATE TYPE item_ as (%s);
-					INSERT INTO \"%s\" SELECT %s FROM json_populate_recordset(null::item_, %%s);
-				""" % (columns, table, column_names), (json.dumps(data),))
+					INSERT INTO %s.\"%s\" SELECT %s FROM json_populate_recordset(null::item_, %%s);
+				""" % (columns, schema, table, column_names), (json.dumps(data),))
 			
 			return locations	
 		
@@ -527,6 +557,7 @@ class DBRel(AbstractDBSource):
 		tables = self.get_current_tables()
 		was_connected = self.is_connected()
 		cursor = self.get_cursor()
+		schema = self.get_schema()
 		
 		src_ = GRAPH_ATTRS["source"]
 		tgt_ = GRAPH_ATTRS["target"]
@@ -537,15 +568,15 @@ class DBRel(AbstractDBSource):
 		# object_nodes = {obj_id: data, ...}
 		
 		for name in tables:
-			cursor.execute("DROP TABLE \"%s\";" % (name))
+			cursor.execute("DROP TABLE IF EXISTS %s.\"%s\";" % (schema, name))
 		
 		table = "identifier"
-		create_table(table, "name TEXT", cursor)
-		cursor.execute("INSERT INTO \"%s\" VALUES ('%s');" % (table, json.dumps(identifier)))
+		create_table(table, "name TEXT", schema, cursor)
+		cursor.execute("INSERT INTO %s.\"%s\" VALUES ('%s');" % (schema, table, json.dumps(identifier)))
 		
 		table = "db_meta"
 		columns = "variable TEXT, value TEXT"
-		create_table(table, columns, cursor)
+		create_table(table, columns, schema, cursor)
 		if db_meta:
 			data = []
 			for variable in db_meta:
@@ -553,15 +584,15 @@ class DBRel(AbstractDBSource):
 			cursor.execute("""
 				DROP TYPE IF EXISTS item_;
 				CREATE TYPE item_ as (%s);
-				INSERT INTO \"%s\" SELECT variable, value FROM json_populate_recordset(null::item_, %%s);
-			""" % (columns, table), (json.dumps(data),))
+				INSERT INTO %s.\"%s\" SELECT variable, value FROM json_populate_recordset(null::item_, %%s);
+			""" % (columns, schema, table), (json.dumps(data),))
 		
 		class_names = set()
 		class_descriptors = {}  # {class_name: set(descriptor_name, ...), ...}
 		class_order = {}
 		table = "classes"
 		columns = "pg_name TEXT, name TEXT, order_ INTEGER"
-		create_table(table, columns, cursor)
+		create_table(table, columns, schema, cursor)
 		data = []
 		for row in class_nodes:
 			class_names.add(row[id_])
@@ -574,8 +605,8 @@ class DBRel(AbstractDBSource):
 		cursor.execute("""
 			DROP TYPE IF EXISTS item_;
 			CREATE TYPE item_ as (%s);
-			INSERT INTO \"%s\" SELECT pg_name, name, order_ FROM json_populate_recordset(null::item_, %%s);
-		""" % (columns, table), (json.dumps(data),))
+			INSERT INTO %s.\"%s\" SELECT pg_name, name, order_ FROM json_populate_recordset(null::item_, %%s);
+		""" % (columns, schema, table), (json.dumps(data),))
 		
 		classless_ = "classless_"
 		while classless_ in class_names:
@@ -587,8 +618,8 @@ class DBRel(AbstractDBSource):
 		cursor.execute("""
 			DROP TYPE IF EXISTS item_;
 			CREATE TYPE item_ as (%s);
-			INSERT INTO \"%s\" SELECT pg_name, name, order_ FROM json_populate_recordset(null::item_, %%s);
-		""" % (columns, table), (json.dumps(data),))
+			INSERT INTO %s.\"%s\" SELECT pg_name, name, order_ FROM json_populate_recordset(null::item_, %%s);
+		""" % (columns, schema, table), (json.dumps(data),))
 		
 		subclasses = []  # [dict(name, subclass), ...]
 		class_lookup = defaultdict(set)  # {obj_id: set(class_name, ...), ...}
@@ -606,13 +637,13 @@ class DBRel(AbstractDBSource):
 		
 		table = "subclasses"
 		columns = "name TEXT, subclass TEXT"
-		create_table(table, columns, cursor)
+		create_table(table, columns, schema, cursor)
 		if subclasses:
 			cursor.execute("""
 				DROP TYPE IF EXISTS item_;
 				CREATE TYPE item_ as (%s);
-				INSERT INTO \"%s\" SELECT name, subclass FROM json_populate_recordset(null::item_, %%s);
-			""" % (columns, table), (json.dumps(subclasses),))
+				INSERT INTO %s.\"%s\" SELECT name, subclass FROM json_populate_recordset(null::item_, %%s);
+			""" % (columns, schema, table), (json.dumps(subclasses),))
 		
 		relations = {}  # {pg_name: [dict(source, target, weight), ...], ...}
 		relation_classes = []  # [dict(pg_name, source, relation, target), ...]
@@ -643,29 +674,29 @@ class DBRel(AbstractDBSource):
 					relations[pg_name].append({"source": source, "target": target, "weight": weight})
 		columns = "source INTEGER, target INTEGER, weight FLOAT"
 		for table in relations:
-			create_table(table, columns, cursor)
+			create_table(table, columns, schema, cursor)
 			cursor.execute("""
 				DROP TYPE IF EXISTS item_;
 				CREATE TYPE item_ as (%s);
-				INSERT INTO \"%s\" SELECT source, target, weight FROM json_populate_recordset(null::item_, %%s);
-			""" % (columns, table), (json.dumps(relations[table]),))
+				INSERT INTO %s.\"%s\" SELECT source, target, weight FROM json_populate_recordset(null::item_, %%s);
+			""" % (columns, schema, table), (json.dumps(relations[table]),))
 		
 		table = "relations"
 		columns = "pg_name TEXT, source TEXT, relation TEXT, target TEXT"
-		create_table(table, columns, cursor)
+		create_table(table, columns, schema, cursor)
 		cursor.execute("""
 			DROP TYPE IF EXISTS item_;
 			CREATE TYPE item_ as (%s);
-			INSERT INTO \"%s\" SELECT pg_name, source, relation, target FROM json_populate_recordset(null::item_, %%s);
-		""" % (columns, table), (json.dumps(relation_classes),))
+			INSERT INTO %s.\"%s\" SELECT pg_name, source, relation, target FROM json_populate_recordset(null::item_, %%s);
+		""" % (columns, schema, table), (json.dumps(relation_classes),))
 		
 		locations = set()  # [(obj_id, descriptor_name, json_data), ...]
 		for class_name in class_names:
-			locations.update(save_class(class_name, object_nodes, obj_lookup, class_descriptors, class_order, cursor))
+			locations.update(save_class(class_name, object_nodes, obj_lookup, class_descriptors, class_order, schema, cursor))
 		
 		table = "locations"
 		columns = "id INTEGER, descriptor TEXT, location TEXT"
-		create_table(table, columns, cursor)
+		create_table(table, columns, schema, cursor)
 		data = []
 		for obj_id, descriptor_name, location in locations:
 			data.append({"id": obj_id, "descriptor": descriptor_name, "location": location})
@@ -673,23 +704,23 @@ class DBRel(AbstractDBSource):
 			cursor.execute("""
 				DROP TYPE IF EXISTS item_;
 				CREATE TYPE item_ as (%s);
-				INSERT INTO \"%s\" SELECT id, descriptor, location FROM json_populate_recordset(null::item_, %%s);
-			""" % (columns, table), (json.dumps(data),))
+				INSERT INTO %s.\"%s\" SELECT id, descriptor, location FROM json_populate_recordset(null::item_, %%s);
+			""" % (columns, schema, table), (json.dumps(data),))
 		
 		table = "user_tools"
 		columns = "data TEXT"
-		create_table(table, columns, cursor)
+		create_table(table, columns, schema, cursor)
 		if user_tools:
 			data = [dict(data = json.dumps(row)) for row in user_tools]
 			cursor.execute("""
 				DROP TYPE IF EXISTS item_;
 				CREATE TYPE item_ as (%s);
-				INSERT INTO \"%s\" SELECT data FROM json_populate_recordset(null::item_, %%s);
-			""" % (columns, table), (json.dumps(data),))
+				INSERT INTO %s.\"%s\" SELECT data FROM json_populate_recordset(null::item_, %%s);
+			""" % (columns, schema, table), (json.dumps(data),))
 		
 		table = "queries"
 		columns = "title TEXT, querystr TEXT"
-		create_table(table, columns, cursor)
+		create_table(table, columns, schema, cursor)
 		if queries:
 			data = []
 			for title in queries:
@@ -697,8 +728,8 @@ class DBRel(AbstractDBSource):
 			cursor.execute("""
 				DROP TYPE IF EXISTS item_;
 				CREATE TYPE item_ as (%s);
-				INSERT INTO \"%s\" SELECT title, querystr FROM json_populate_recordset(null::item_, %%s);
-			""" % (columns, table), (json.dumps(data),))
+				INSERT INTO %s.\"%s\" SELECT title, querystr FROM json_populate_recordset(null::item_, %%s);
+			""" % (columns, schema, table), (json.dumps(data),))
 		
 		cursor.connection.commit()
 		

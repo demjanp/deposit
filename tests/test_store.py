@@ -505,7 +505,7 @@ def test_datasource(store):
 		cursor.execute("SELECT tablename FROM pg_tables WHERE schemaname = '%s';" % (schema))
 		tables = [row[0] for row in cursor.fetchall()]
 		for table in tables:
-			cursor.execute("DROP TABLE \"%s\";" % (table))
+			cursor.execute("DROP TABLE %s.\"%s\";" % (schema, table))
 		conn.commit()
 		cursor.close()
 		conn.close()
