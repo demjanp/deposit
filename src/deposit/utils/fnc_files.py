@@ -286,7 +286,7 @@ def copy_url(url_src, path_dst):
 			shutil.copy2(url_to_path(url_src), path_dst)
 			return True
 		except:
-			print("COPY_URL ERROR:", sys.exc_info())
+			print("COPY_URL ERROR 1:", sys.exc_info())
 		return False
 	
 	try:
@@ -295,7 +295,7 @@ def copy_url(url_src, path_dst):
 				shutil.copyfileobj(response, f)
 		return True
 	except:
-		print("COPY_URL ERROR:", sys.exc_info())
+		print("COPY_URL ERROR 2:", sys.exc_info())
 	
 	return False
 

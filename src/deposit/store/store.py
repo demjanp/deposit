@@ -261,11 +261,13 @@ class Store(object):
 		self._added = set()
 		self._deleted = set()
 	
-	def get_updated_url(self, resource):
+	def get_updated_url(self, resource, store = None):
 		
+		if store is None:
+			store = self
 		if not resource.is_stored:
 			return resource.url
-		url_new = get_updated_local_url(resource.url, self.get_folder())
+		url_new = get_updated_local_url(resource.url, store.get_folder())
 		if url_new != resource.url:
 			resource.value = (url_new, resource.filename, resource.is_stored, resource.is_image)
 		return url_new
@@ -484,29 +486,34 @@ class Store(object):
 		
 		return None
 	
-	def add_external_descriptor(self, obj, name, value):
+	def add_external_descriptor(self, obj, name, value, store = None):
 		# localize descriptor if it is a DResource
 		
+		if store is None:
+			store = self
 		if isinstance(value, DResource):
 			is_stored = value.is_stored
+			url = self.get_updated_url(value, store = store)
 			if is_stored == True:
 				is_stored = None
 			obj.set_resource_descriptor(name, value.url, value.filename, is_stored, value.is_image)
 		else:
 			obj.set_descriptor(name, value)
 	
-	def add_object_with_descriptors(self, cls, data, locations = {}, obj = None):
+	def add_object_with_descriptors(self, cls, data, locations = {}, obj = None, store = None):
 		# cls = DClass or None
 		# data = {descriptor_name: value, ...}
 		# locations = {descriptor_name: location, ...}
 		
+		if store is None:
+			store = self
 		if obj is None:
 			obj = self.add_object()
 		if cls is not None:
 			cls.add_member(obj.id)
 		for descriptor_name in data:
 			value = data[descriptor_name]
-			self.add_external_descriptor(obj, descriptor_name, value)
+			self.add_external_descriptor(obj, descriptor_name, value, store = store)
 			if descriptor_name in locations:
 				obj.set_location(descriptor_name, locations[descriptor_name])
 		
@@ -629,7 +636,7 @@ class Store(object):
 			if True not in [(cls.name in unique) for cls in classes if cls is not None]:
 				obj_ = self.find_object_with_descriptors(classes, data, locations)
 			if obj_ is None:
-				obj_ = self.add_object_with_descriptors(classes[0], data, locations)
+				obj_ = self.add_object_with_descriptors(classes[0], data, locations, store = store)
 			for cls in classes:
 				if cls is None:
 					continue
@@ -1125,7 +1132,7 @@ class Store(object):
 			obj = obj_lookup[orig_id]
 			for descr in orig.get_descriptors():
 				value = orig.get_descriptor(descr)
-				self.add_external_descriptor(obj, descr.name, value)
+				store.add_external_descriptor(obj, descr.name, value, store = self)
 				location = orig.get_location(descr)
 				if location is not None:
 					obj.set_location(descr.name, location)
