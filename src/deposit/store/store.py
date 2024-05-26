@@ -789,13 +789,24 @@ class Store(object):
 		# classes = [class_name, ...]
 		# relations = [(class1, label, class2), ...]
 		
+		def _cls_is_objs(class_name):
+			
+			if isinstance(class_name, str):
+				return False
+			if not isinstance(class_name, tuple):
+				raise Exception("Unexpected Class name: %s" % (str(class_name)))
+			for c_ in list(class_name):
+				if not isinstance(c_, int):
+					raise Exception("Unexpected Class name: %s" % (str(class_name)))
+			return True
+		
 		def _get_class_members(class_name, leave_names = False):
 			
 			if class_name == "*":
 				return set([obj.id for obj in self.get_objects()])
 			if class_name == "!*":
 				return set([obj.id for obj in self.get_objects() if not obj.has_class()])
-			if isinstance(class_name, tuple):
+			if _cls_is_objs(class_name):
 				return set(list(class_name))
 			cls = self.get_class(class_name)
 			if cls is None:
@@ -829,7 +840,6 @@ class Store(object):
 			obj_id0, cls_lookup, rels, within_cls_rels, 
 			asterisk_rels, classes, connecting, mandatory_classes,
 		):
-			
 			'''
 			Get all paths from obj_id0 to objects from specified classes.
 			1. If classes or relations contains object specifications OBJ(1, ...)
@@ -854,6 +864,13 @@ class Store(object):
 					
 					src = path[-1]
 					clss_src = cls_lookup.get(src, None)
+					
+					# check if source is from connecting set
+					src_within_cls_rels = None
+					if clss_src is not None:
+						common = clss_src.intersection(within_cls_rels.keys())
+						if common:
+							src_within_cls_rels = within_cls_rels[common.pop()]
 					
 					# rule 1 - first stage, source
 					if (not rule1) and (clss_src is not None) and \
@@ -899,7 +916,9 @@ class Store(object):
 										if (cls in within_cls_rels) and (within_cls_rels[cls].intersection([label, "*"])):
 											rule3 = True
 											break
-								continue
+								if not (src_within_cls_rels and ((label in src_within_cls_rels) or ('*' in src_within_cls_rels)) and clss_tgt.intersection(clss_src)):
+									# within-class relation not allowed
+									continue
 						
 						# rule 1 - first stage, target
 						if clss_tgt is not None:
@@ -964,9 +983,9 @@ class Store(object):
 		mandatory_classes = set() # set(class, ...)
 		for cls1, lbl, cls2 in relations:
 			if isinstance(cls1, tuple):
-				mandatory_classes.add(cls1)
+				mandatory_classes.add(cls1[0])
 			if isinstance(cls2, tuple):
-				mandatory_classes.add(cls2)
+				mandatory_classes.add(cls2[0])
 			if lbl == "*":
 				asterisk_rels.add((cls1, cls2))
 				asterisk_rels.add((cls2, cls1))
@@ -987,9 +1006,9 @@ class Store(object):
 		collect = []
 		for cls in classes:
 			if isinstance(cls, tuple):
-				mandatory_classes.add(cls)
+				mandatory_classes.add(cls[0])
 			objs = objects0 if (cls == cls0) else _get_class_members(cls)
-			if objs:
+			if objs and not _cls_is_objs(cls):
 				collect.append(cls)
 				for obj_id in objs:
 					cls_lookup[obj_id].add(cls)
@@ -1020,7 +1039,7 @@ class Store(object):
 		for obj_id0 in objects0:
 			if (progress is not None) and (cnt % 100 == 0):
 				if progress.cancel_pressed():
-					return []
+					return set()
 				progress.update_state(value = cnt)
 			cnt += 1
 			paths_ = _get_paths(

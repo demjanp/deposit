@@ -110,6 +110,44 @@ class Query(object):
 				"QUERY ERROR in \"%s\": %s" % (self.querystr, str(exc_value))
 			)
 	
+	def _obj_func(self, *args):
+		# Function to handle OBJ(*args) in the query
+		# Accepts one or more object ids
+		# Returns a list of objects or None
+		
+		obj_ids = [self._store.get_object(obj_id) for obj_id in args]
+		obj_ids = [obj_id for obj_id in obj_ids if obj_id is not None]
+		return obj_ids
+	
+	def _has_relation(self, elements1, elements2, label, chained=False):
+		# Function to handle _RELATED(elements1, elements2, label, chained) in the query
+		# elements can be a list of Objects or a single Object ID
+		# If chained==True, look for chained relations
+		
+		def _elements_to_objects(elements):
+			objs = elements
+			if isinstance(elements, int):
+				objs = []
+				obj = self._store.get_object(elements)
+				if obj is not None:
+					objs = [obj]
+			return objs
+		
+		def _find_relation(el1, elements2, label, chained):
+			for el2 in elements2:
+				if el1.has_relation(el2, label, chained):
+					return True
+			return False
+		
+		elements1 = _elements_to_objects(elements1)
+		elements2 = _elements_to_objects(elements2)
+		if (not elements1) or (not elements2):
+			return False
+		for el1 in elements1:
+			if _find_relation(el1, elements2, label, chained):
+				return True
+		return False
+	
 	def _process(self):
 		
 		self.hash = []
@@ -133,7 +171,6 @@ class Query(object):
 			if (descriptor_name not in self.parse.descriptors) and (descriptor_name not in [None, "*"]):
 				continue
 			selects.append((class_name, descriptor_name))
-		
 		if not selects:
 			return
 		
@@ -235,6 +272,8 @@ class Query(object):
 						value = self._get_descriptor_value(obj_id, class_name, descriptor_name, class_lookup, descr_lookup, obj_if_none = True)
 						if value is not None:
 							values[name] = value
+				values["OBJ"] = self._obj_func
+				values["RELATED"] = self._has_relation
 				if not eval(self.parse.where_expr, values):
 					continue
 			

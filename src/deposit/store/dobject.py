@@ -266,11 +266,11 @@ class DObject(AbstractDElement):
 		obj = self._store.G.get_object_data(obj_id_tgt)
 		self._store.callback_changed([self, obj])
 	
-	def has_relation(self, obj_id_tgt, label):
+	def has_relation(self, obj_id_tgt, label, chained = False):
 		
 		if isinstance(obj_id_tgt, DObject):
 			obj_id_tgt = obj_id_tgt.id
-		return self._store.G.has_object_relation(self.id, obj_id_tgt, label)
+		return self._store.G.has_object_relation(self.id, obj_id_tgt, label, chained)
 	
 	def get_relations(self, obj_id_tgt = None):
 		# returns [(DObject, label), ...]

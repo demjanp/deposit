@@ -69,8 +69,12 @@ def remove_bracketed_selects(substr, classes, descriptors):
 	substr_cleaned = substr
 	names = []  # [[i, j, text, is_bracketed], ...]
 	
+	where_index = substr_cleaned.find("WHERE")
+	
 	for m in re.finditer(r"OBJ+\(.*?\)", substr_cleaned):
 		i, j = m.start(0), m.end(0)
+		if i > where_index:
+			continue
 		ids = [id_.strip() for id_ in substr_cleaned[i+4:j-1].split(",")]
 		if not False in [id_.isdigit() for id_ in ids]:
 			names.append([i, j, tuple([int(id_) for id_ in ids]), True])
@@ -273,6 +277,7 @@ def extract_expr_vars(substr, classes, descriptors, bracketed_selects):
 	# find and replace Class occurences in substr
 	transformer = SelectsToVarsTransformer2(substr, classes.union(classless), descriptors, bracketed_selects)
 	tree = transformer.visit(tree)
+	
 	expr = ast.unparse(tree)
 	vars = transformer.selects.copy()
 	
@@ -286,7 +291,7 @@ def extract_expr_vars(substr, classes, descriptors, bracketed_selects):
 
 class Parse(object):
 	
-	KEYWORDS = ["SELECT", "COUNT", "SUM", "AS", "RELATED", "WHERE", "GROUP BY"]
+	KEYWORDS = ["SELECT", "COUNT", "SUM", "AS", "WHERE", "GROUP BY"]
 
 	def __init__(self, querystr, classes, descriptors):
 		# classes = {name, ...}
@@ -314,6 +319,29 @@ class Parse(object):
 		querystr, quoted = remove_quoted(self.querystr)
 		querystr, bracketed_selects = remove_bracketed_selects(querystr, self.classes, self.descriptors)
 		querystr, bracketed_other = remove_bracketed_all(querystr)
+		
+		# convert old-style RELATED segments to WHERE RELATED() format
+		relations = []
+		i, j, k = 0, 0, 0
+		for m in re.finditer(r"(?i)\bRELATED\b", querystr):
+			i = m.start(0)
+			j = m.end(0)
+			for keyword in self.KEYWORDS:
+				k = querystr.find(keyword, j)
+				if k != -1:
+					break
+			else:
+				k = len(querystr)
+			substr = querystr[j:k].strip().strip(",").strip()
+			for chain in substr.split(","):
+				chain = chain.strip().split(".")
+				if len(chain) == 3:
+					relations.append(chain)
+		where_txt = None
+		where_found = False
+		if relations:
+			where_txt = "(%s)" % " and ".join(["RELATED(%s, %s, '%s')" % (chain[0], chain[2], chain[1]) for chain in relations])
+			querystr = querystr[:i] + querystr[k:]
 		
 		collect = []
 		for keyword in self.KEYWORDS:
@@ -366,27 +394,28 @@ class Parse(object):
 					else:
 						self.sums.append((alias, class_name, descriptor_name))
 					self.columns.append((None, alias))
-			
-			elif keyword == "RELATED":
-				for chain in substr.split(","):
-					chain = str_to_key(chain.strip())
-					if len(chain) == 3:
-						relation = []
-						for item in chain:
-							if item in bracketed_other:
-								relation.append(bracketed_other[item])
-								if isinstance(relation[-1], str):
-									relation[-1] = relation[-1].strip("[]")
-							else:
-								relation.append(item.strip("[]"))
-						self.relations.append(tuple(relation))
-			
 			elif keyword == "WHERE":
+				if where_txt:
+					substr = "%s and (%s)" % (where_txt, substr)
+				where_found = True
 				substr = replace_bracketed(substr, bracketed_other)
 				self.where_expr, self.where_vars = extract_expr_vars(substr, self.classes, self.descriptors, bracketed_selects)
 		
+		if where_txt and not where_found:
+			substr = replace_bracketed(where_txt, bracketed_other)
+			self.where_expr, self.where_vars = extract_expr_vars(substr, self.classes, self.descriptors, bracketed_selects)
+		
 		for key in quoted:
 			self.where_expr = self.where_expr.replace(key, quoted[key])
+		
+		# Find the patterns "RELATED(Class1, Class2, Relation)" in self.where_expr and add them to self.relations
+		for m in re.finditer(r"RELATED\((.*?), (.*?), '(.*?)'\)", self.where_expr):
+			class1, class2, _ = m.groups()
+			if class1 in self.where_vars:
+				class1 = self.where_vars[class1][0]
+			if class2 in self.where_vars:
+				class2 = self.where_vars[class2][0]
+			self.relations.append((class1, "*", class2))
 		
 		for class_name, _ in self.selects + self.group_by:
 			if (class_name is not None) and (class_name not in self.classes_used):

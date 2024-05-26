@@ -131,16 +131,31 @@ class DGraph(object):
 			self._GOR_labels[(src_id, tgt_id)] = {}
 		self._GOR_labels[(src_id, tgt_id)][label] = weight
 	
-	def has_object_relation(self, src_id, tgt_id, label):
+	def has_object_relation(self, src_id, tgt_id, label, chained = False):
 		
 		src_id = self._GOR_lookup[src_id]
 		tgt_id = self._GOR_lookup[tgt_id]
+		done = set()
 		
-		if not self._GOR.hasEdge(src_id, tgt_id):
+		def _has_relation(src_id, tgt_id, label, chained, done):
+			
+			if (src_id, tgt_id) in done:
+				return False
+			done.add((src_id, tgt_id))
+			if self._GOR.hasEdge(src_id, tgt_id):
+				if label == "*":
+					return True
+				if label in self._GOR_labels[(src_id, tgt_id)]:
+					return True
+			if chained:
+				for node_id in self._GOR.iterNeighbors(src_id):
+					if (label != "*") and (label not in self._GOR_labels[(src_id, node_id)]):
+						continue
+					if _has_relation(node_id, tgt_id, label, chained, done):
+						return True
 			return False
-		if label == "*":
-			return True
-		return label in self._GOR_labels[(src_id, tgt_id)]
+		
+		return _has_relation(src_id, tgt_id, label, chained, done)
 	
 	def get_object_relation_weight(self, src_id, tgt_id, label):
 		
