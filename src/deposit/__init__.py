@@ -1,4 +1,4 @@
-version_info = (1, 4, 42)
+version_info = (1, 4, 43)
 
 __version__ = '.'.join(map(str, version_info))
 __title__ = 'Deposit'

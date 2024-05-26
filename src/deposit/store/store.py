@@ -448,10 +448,11 @@ class Store(object):
 		self._queries[title] = querystr
 		self.callback_queries_changed()
 	
-	def find_object_with_descriptors(self, classes, data, locations = {}):
+	def find_object_with_descriptors(self, classes, data, locations = {}, related_data = {}):
 		# classes = [DClass, None, ...]
 		# data = {descriptor_name: value, ...}
 		# locations = {descriptor_name: location, ...}
+		# related_data = {(label, class_name, descriptor_name): value, ...}
 		#
 		# if found object has missing location, it is updated if a location is
 		# supplied via locations
@@ -474,13 +475,32 @@ class Store(object):
 				return True
 			return False
 		
+		def _check_related(obj, related_data):
+			
+			if not related_data:
+				return True
+			found_values = {}
+			for obj2, label in obj.get_relations():
+				for descriptor_name in obj2.get_descriptor_names():
+					value = obj2.get_descriptor(descriptor_name)
+					for class_name in obj2.get_class_names():
+						found_values[(label, class_name, descriptor_name)] = value
+			for key in related_data:
+				if (key not in found_values) or (related_data[key] != found_values[key]):
+					return False
+			return True
+		
 		for obj in set.union(*[_get_class_members(cls) for cls in classes]):
 			found = True
 			for descriptor_name in data:
-				if (obj.get_descriptor(descriptor_name) != data[descriptor_name]) and \
-				(_check_location(obj, descriptor_name, locations)):
+				if obj.get_descriptor(descriptor_name) != data[descriptor_name]:
 					found = False
 					break
+				if not _check_location(obj, descriptor_name, locations):
+					found = False
+					break
+			if found:
+				found = _check_related(obj, related_data)
 			if found:
 				return obj
 		
@@ -570,19 +590,67 @@ class Store(object):
 					collect[cls1].add((label, cls2))
 		relations_all = collect  # {cls1: [(label, cls2), ...], ...}
 		
+		relations_one_way = set()
+		for cls1 in relations_all:
+			for label, cls2 in relations_all[cls1]:
+				if label.startswith("~"):
+					continue
+				relations_one_way.add((cls1, label, cls2))
+		relation_tiers = []
+		done = set()
+		classes_done = set()
+		while True:
+			todo = relations_one_way.difference(done)
+			if not todo:
+				break
+			tier_relations = set()
+			tier_classes = set()
+			on_right = set([row[2] for row in todo])
+			for row in todo:
+				if row[0] not in on_right:
+					tier_classes.add(row[0])
+					for row2 in relations_one_way:
+						if row2[2] == row[0]:
+							tier_relations.add(row2)
+					done.add(row)
+			if tier_classes:
+				relation_tiers.append((tier_relations, tier_classes))
+				classes_done.update(tier_classes)
+			else:
+				break
+		
+		for cls in data:
+			if cls in classes_done:
+				continue
+			tier_relations = set()
+			tier_classes = set([cls])
+			classes_done.add(cls)
+			for row in relations_one_way:
+				if row[2] == cls:
+					tier_relations.add(row)
+			relation_tiers.append((tier_relations, tier_classes))
+		
 		n_added = 0
 		added = {}  # {cls: obj, ...}
-		for cls in data:
-			added[cls] = None
-			if cls.name in existing:
-				added[cls] = self.add_object_with_descriptors(
-					cls, data[cls], obj = existing[cls.name]
-				)
-			elif cls.name not in unique:
-				added[cls] = self.find_object_with_descriptors([cls], data[cls])
-			if added[cls] is None:
-				added[cls] = self.add_object_with_descriptors(cls, data[cls])
-				n_added += 1
+		for tier_relations, tier_classes in relation_tiers:
+			for cls in tier_classes:
+				added[cls] = None
+				if cls.name in existing:
+					added[cls] = self.add_object_with_descriptors(
+						cls, data[cls], obj = existing[cls.name]
+					)
+				elif cls.name not in unique:
+					related_data = {}  # {(label, class_name, descriptor_name): value, ...}
+					for cls1, label, cls2 in tier_relations:
+						if cls2 != cls:
+							continue
+						if cls1 in data:
+							for descriptor_name in data[cls1]:
+								related_data[("~"+label, cls1.name, descriptor_name)] = data[cls1][descriptor_name]
+					added[cls] = self.find_object_with_descriptors([cls], data[cls], related_data = related_data)
+				if added[cls] is None:
+					added[cls] = self.add_object_with_descriptors(cls, data[cls])
+					n_added += 1
 		
 		for cls1 in relations_all:
 			if cls1 not in added:
