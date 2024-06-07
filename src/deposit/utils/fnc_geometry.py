@@ -64,7 +64,7 @@ def coords_to_wkt(geom_type: str, coords: list, srid: int = None, srid_vertical:
 				crds[i] = list(crds[i])
 			if isinstance(crds[i], list):
 				_to_list(crds[i])
-	
+		
 	def _close_polygons(crds):
 		
 		if not isinstance(crds[0], list):

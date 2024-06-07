@@ -449,13 +449,43 @@ class Store(object):
 		self.callback_queries_changed()
 	
 	def find_object_with_descriptors(self, classes, data, locations = {}, related_data = {}):
-		# classes = [DClass, None, ...]
-		# data = {descriptor_name: value, ...}
-		# locations = {descriptor_name: location, ...}
-		# related_data = {(label, class_name, descriptor_name): value, ...}
-		#
-		# if found object has missing location, it is updated if a location is
-		# supplied via locations
+		'''
+		Finds an object that meets specified criteria within given classes, descriptors, 
+		locations, and related objects.
+
+		Parameters:
+		-----------
+		classes : [DClass, None, ...]
+			A list of class objects to search within. Use `None` to include all objects 
+			with any class.
+		data : {descriptor_name: value, ...}
+			A dictionary mapping descriptor names to their required values for the search.
+		locations : {descriptor_name: location, ...}, optional
+			A dictionary specifying the locations for each descriptor.
+		related_data : {(label, class_name, descriptor_name): value, ...}, optional
+			A dictionary defining the relationships to other objects that must be checked. 
+			Specifies which class, descriptor, and label are required in the related objects.
+
+		Returns:
+		--------
+		object or None
+			The first object that meets all specified criteria. Returns `None` if no such 
+			object is found.
+
+		How it Works:
+		-------------
+		1. **Class Membership**: Collects all objects that belong to the specified classes.
+		2. **Descriptor Matching**: Checks if the object has the specified descriptors and 
+		   their values match those in `data`.
+		3. **Location Verification**: Ensures the descriptors are at the given locations if specified.
+		4. **Related Objects Check**: Verifies related objects for specific descriptor values 
+		   as defined in `related_data`. An object is considered invalid only if:
+		   - A relation exists to a class with a specified label in `related_data`.
+		   - The related object has a different descriptor value than specified in `related_data`.
+		5. **Handling Missing Descriptors**: Objects missing some descriptors are still valid 
+		   as long as at least one specified descriptor is present and matches the value in `data`.
+		   Missing descriptors and locations will be added to the found object if not present.
+		'''
 		
 		def _get_class_members(cls):
 			
@@ -475,25 +505,43 @@ class Store(object):
 				return True
 			return False
 		
-		def _check_related(obj, related_data):
-			
+		def _check_related(obj, related_data, checked_objects=set()):
 			if not related_data:
 				return True
-			found_values = {}
-			for obj2, label in obj.get_relations():
-				for descriptor_name in obj2.get_descriptor_names():
-					value = obj2.get_descriptor(descriptor_name)
-					for class_name in obj2.get_class_names():
-						found_values[(label, class_name, descriptor_name)] = value
-			for key in related_data:
-				if (key not in found_values) or (related_data[key] != found_values[key]):
-					return False
+
+			if obj in checked_objects:
+				return False
+			checked_objects.add(obj)
+
+			for key, expected_value in related_data.items():
+				label, class_name, descriptor_name = key
+				related_objects = [
+					rel_obj for rel_obj, rel_label in obj.get_relations() if rel_label == label
+				]
+				for rel_obj in related_objects:
+					if class_name in rel_obj.get_class_names():
+						if descriptor_name in rel_obj.get_descriptor_names():
+							value = rel_obj.get_descriptor(descriptor_name)
+							if value != expected_value:
+								return False
+						else:
+							continue
+						nested_related_data = {
+							k: v for k, v in related_data.items() if k[1] == rel_obj.get_class_names()
+						}
+						if nested_related_data:
+							if not _check_related(rel_obj, nested_related_data, checked_objects):
+								return False
 			return True
 		
 		for obj in set.union(*[_get_class_members(cls) for cls in classes]):
 			found = True
+			to_set = set()
 			for descriptor_name in data:
-				if obj.get_descriptor(descriptor_name) != data[descriptor_name]:
+				value = obj.get_descriptor(descriptor_name)
+				if (value is None) and (data[descriptor_name] is not None):
+					to_set.add(descriptor_name)
+				elif value != data[descriptor_name]:
 					found = False
 					break
 				if not _check_location(obj, descriptor_name, locations):
@@ -502,6 +550,8 @@ class Store(object):
 			if found:
 				found = _check_related(obj, related_data)
 			if found:
+				for descriptor_name in to_set:
+					obj.set_descriptor(descriptor_name, data[descriptor_name])
 				return obj
 		
 		return None
@@ -546,27 +596,81 @@ class Store(object):
 		existing = {}, 
 		return_added = False,
 	):
-		# add multiple objects with classes at once & automatically add relations 
-		#	based on class relations or as specified in the relations attribute
-		# data = {(Class name, Descriptor name): value, ...}
-		# relations = {(Class name 1, label, Class name 2), ...}
-		# unique = {Class name, ...}; always add a new object to classes 
-		#	specified here, otherwise re-use objects with identical descriptors
-		# existing = {Class name: Object, ...}
-		#	use existing object for specified classes (i.e. just update descriptors)
-		#
-		# returns n_added or (n_added, added) if return_added == True
-		#	added = {Class name: Object, ...}
+		"""
+		Adds objects to the store with specified classes, descriptors, and relations. 
+		
+		This function can add multiple objects at once, manage their descriptors, set locations, 
+		and automatically establish relationships based on the provided data and relations.
+		
+		Parameters:
+		-----------
+		data : {(Class name, Descriptor name): value, ...}
+			A dictionary where the keys are tuples of (Class name, Descriptor name) and the values 
+			are the corresponding descriptor values to be set for the objects.
+			Example: {("Person", "Name"): "Alice", ("Person", "Age"): 30}
+		relations : set([(Class name 1, label, Class name 2), ...]), optional
+			A set of tuples defining the relationships between classes. Each tuple specifies a 
+			relationship in the form (Class name 1, Label, Class name 2).
+			Example: {("Country", "contains", "City"), ("City", "located_in", "Country")}
+		unique : set([Class name, ...]), optional
+			A set of class names where new objects should always be added, rather than reusing 
+			existing objects with identical descriptors. This ensures unique objects for these classes.
+		existing : {Class name: Object, ...}, optional
+			A dictionary mapping class names to existing objects that should be updated rather than 
+			creating new ones. 
+			Example: {"Person": existing_person_object}
+		return_added : bool, optional
+			If `True`, the function returns a tuple containing the number of added objects and a 
+			dictionary mapping class names to the added objects. Otherwise, it only returns the 
+			number of added objects.
+			Default is `False`.
+		
+		Returns:
+		--------
+		int or tuple
+			Returns the number of objects added. If `return_added` is `True`, it returns a tuple 
+			(n_added, added) where `n_added` is the number of objects added, and `added` is a 
+			dictionary mapping class names to the added objects.
+		
+		How it Works:
+		-------------
+		1. **Class and Descriptor Collection**: Parses the `data` to identify classes and descriptors 
+		   to be set on objects.
+		2. **Relationship Processing**: Establishes relationships among the objects based on the 
+		   `relations` parameter.
+		3. **Tiered Addition**: Objects are added in tiers based on their dependencies, ensuring 
+		   relationships are established in the correct order.
+		4. **Object Creation/Reuse**: New objects are created or existing ones are reused/updated 
+		   based on the `unique` and `existing` parameters.
+		5. **Descriptor and Location Assignment**: Sets the specified descriptors and their locations 
+		   on the objects. Missing descriptors and locations are added as specified in `data`.
+		6. **Return**: Optionally returns the number of added objects and the objects themselves if 
+		   `return_added` is `True`.
+		
+		Example Usage:
+		--------------
+		```python
+		data = {
+			("Person", "Name"): "Alice",
+			("Person", "Age"): 30,
+			("City", "Name"): "Wonderland"
+		}
+		relations = {
+			("Person", "lives_in", "City")
+		}
+		unique_classes = {"Person"}
+		added_objects = store.add_data_row(data, relations, unique=unique_classes, return_added=True)
+		```
+		"""
 		
 		collect = defaultdict(dict)
 		for key in data:
-			if data[key] is None:
-				continue
 			class_name, descriptor_name = key
 			if (class_name is None) or (descriptor_name is None):
 				continue
 			cls = self.add_class(class_name)
 			descr = self.add_class(descriptor_name)
+			cls.set_descriptor(descr)
 			collect[cls][descriptor_name] = data[key]
 		data = collect  # {cls: {descriptor_name: value, ...}, ...}
 		
@@ -594,6 +698,8 @@ class Store(object):
 		for cls1 in relations_all:
 			for label, cls2 in relations_all[cls1]:
 				if label.startswith("~"):
+					continue
+				if cls1 == cls2:
 					continue
 				relations_one_way.add((cls1, label, cls2))
 		relation_tiers = []
@@ -632,7 +738,7 @@ class Store(object):
 		
 		n_added = 0
 		added = {}  # {cls: obj, ...}
-		for tier_relations, tier_classes in relation_tiers:
+		for i, (tier_relations, tier_classes) in enumerate(relation_tiers):
 			for cls in tier_classes:
 				added[cls] = None
 				if cls.name in existing:
@@ -641,12 +747,21 @@ class Store(object):
 					)
 				elif cls.name not in unique:
 					related_data = {}  # {(label, class_name, descriptor_name): value, ...}
+					cls_done = set()
 					for cls1, label, cls2 in tier_relations:
 						if cls2 != cls:
 							continue
 						if cls1 in data:
 							for descriptor_name in data[cls1]:
 								related_data[("~"+label, cls1.name, descriptor_name)] = data[cls1][descriptor_name]
+								cls_done.add(cls1)
+					for tier_relations_prev, tier_classes_prev in relation_tiers[:i]:
+						for cls1, label, cls2 in tier_relations_prev:
+							if cls2 not in cls_done:
+								continue
+							if cls1 in data:
+								for descriptor_name in data[cls1]:
+									related_data[("~"+label, cls1.name, descriptor_name)] = data[cls1][descriptor_name]
 					added[cls] = self.find_object_with_descriptors([cls], data[cls], related_data = related_data)
 				if added[cls] is None:
 					added[cls] = self.add_object_with_descriptors(cls, data[cls])
@@ -663,7 +778,7 @@ class Store(object):
 		if return_added:
 			return n_added, dict([(cls.name, added[cls]) for cls in added])
 		return n_added
-	
+			
 	def import_store(self, store, unique: set = set(), progress = None) -> None:
 		# unique = {Class name, ...}; always add a new object to classes 
 		#	specified here, otherwise re-use objects with identical descriptors
