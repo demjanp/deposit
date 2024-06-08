@@ -296,10 +296,11 @@ class Parse(object):
 	def __init__(self, querystr, classes, descriptors):
 		# classes = {name, ...}
 		# descriptors = {name, ...}
-		# querystr = "SELECT [select1], [select2], COUNT([select1]) AS [alias], SUM([select1]) AS [alias], ... RELATED [relation1], [relation2], ... WHERE [conditions expression] GROUP BY [select1], [select2], ..."
+		# querystr = "SELECT [select1], [select2], COUNT([select1]) AS [alias], SUM([select1]) AS [alias], ... WHERE [conditions expression] GROUP BY [select1], [select2], ..."
 		#	select = Class or Class.Descriptor
-		#	relation = Class1.Relation.Class2
+		#		Class can be Class name or OBJ(id) to specify an Object by its id
 		#	conditions = python expression; e.g. Class.Descriptor > 3 or Class is not None
+		#		a condition can be RELATED(Class1, Class2, 'label', chained=True/False)
 		#	use [name with spaces] to escape class, descriptor, relation or alias names containing spaces or KEYWORDS
 		
 		self.querystr = querystr

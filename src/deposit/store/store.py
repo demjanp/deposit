@@ -18,6 +18,7 @@ from itertools import product
 import shutil
 import os
 
+
 class Store(object):
 	
 	def __init__(self, keep_temp = False, *args, **kwargs):
@@ -448,114 +449,111 @@ class Store(object):
 		self._queries[title] = querystr
 		self.callback_queries_changed()
 	
-	def find_object_with_descriptors(self, classes, data, locations = {}, related_data = {}):
-		'''
-		Finds an object that meets specified criteria within given classes, descriptors, 
+	def _check_related(self, obj, related_data, checked_objects=None):
+		# Helper function for find_object_with_descriptors
+		if not related_data:
+			return True
+
+		if checked_objects is None:
+			checked_objects = set()
+
+		if obj in checked_objects:
+			return False
+		
+		for (class_name_1, label, class_name_2, descriptor_name), expected_value in related_data.items():
+			related_objects = [
+				rel_obj for rel_obj, rel_label in obj.get_relations() if rel_label == label
+			]
+			for rel_obj in related_objects:
+				if class_name_2 in rel_obj.get_class_names():
+					if descriptor_name in rel_obj.get_descriptor_names():
+						value = rel_obj.get_descriptor(descriptor_name)
+						if value == expected_value:
+							# Check for nested related data specific to the found object
+							nested_related_data = {
+								k: v for k, v in related_data.items() if k[1] == class_name_2
+							}
+							if nested_related_data:
+								if self._check_related(rel_obj, nested_related_data, checked_objects.copy()):
+									return True
+							else:
+								return True
+		checked_objects.add(obj)
+		return False
+		
+	def _check_location(self, obj, descriptor_name, locations):
+		# Helper function for find_object_with_descriptors
+		if descriptor_name not in locations:
+			return True
+		location = obj.get_location(descriptor_name)
+		if location is None:
+			obj.set_location(descriptor_name, locations[descriptor_name])
+			return True
+		if location == locations[descriptor_name]:
+			return True
+		return False
+	
+	def find_object_with_descriptors(self, classes, data, locations={}, related_data={}):
+		"""
+		Finds an object that meets specified criteria within given classes, descriptors,
 		locations, and related objects.
 
 		Parameters:
 		-----------
 		classes : [DClass, None, ...]
-			A list of class objects to search within. Use `None` to include all objects 
+			A list of class objects to search within. Use `None` to include all objects
 			with any class.
 		data : {descriptor_name: value, ...}
 			A dictionary mapping descriptor names to their required values for the search.
 		locations : {descriptor_name: location, ...}, optional
 			A dictionary specifying the locations for each descriptor.
-		related_data : {(label, class_name, descriptor_name): value, ...}, optional
-			A dictionary defining the relationships to other objects that must be checked. 
+		related_data : {(class_name_1, label, class_name_2, descriptor_name): value, ...}, optional
+			A dictionary defining the relationships to other objects that must be checked.
 			Specifies which class, descriptor, and label are required in the related objects.
 
 		Returns:
 		--------
 		object or None
-			The first object that meets all specified criteria. Returns `None` if no such 
+			The first object that meets all specified criteria. Returns `None` if no such
 			object is found.
+		"""
 
-		How it Works:
-		-------------
-		1. **Class Membership**: Collects all objects that belong to the specified classes.
-		2. **Descriptor Matching**: Checks if the object has the specified descriptors and 
-		   their values match those in `data`.
-		3. **Location Verification**: Ensures the descriptors are at the given locations if specified.
-		4. **Related Objects Check**: Verifies related objects for specific descriptor values 
-		   as defined in `related_data`. An object is considered invalid only if:
-		   - A relation exists to a class with a specified label in `related_data`.
-		   - The related object has a different descriptor value than specified in `related_data`.
-		5. **Handling Missing Descriptors**: Objects missing some descriptors are still valid 
-		   as long as at least one specified descriptor is present and matches the value in `data`.
-		   Missing descriptors and locations will be added to the found object if not present.
-		'''
-		
 		def _get_class_members(cls):
-			
 			if cls is None:
 				return set([obj for obj in self.get_objects() if obj.get_classes()])
-			return cls.get_members(direct_only = True)
-		
-		def _check_location(obj, descriptor_name, locations):
-			
-			if descriptor_name not in locations:
-				return True
-			location = obj.get_location(descriptor_name)
-			if location is None:
-				obj.set_location(descriptor_name, locations[descriptor_name])
-				return True
-			if location == locations[descriptor_name]:
-				return True
-			return False
-		
-		def _check_related(obj, related_data, checked_objects=set()):
-			if not related_data:
-				return True
+			return cls.get_members(direct_only=True)
 
-			if obj in checked_objects:
-				return False
-			checked_objects.add(obj)
-
-			for key, expected_value in related_data.items():
-				label, class_name, descriptor_name = key
-				related_objects = [
-					rel_obj for rel_obj, rel_label in obj.get_relations() if rel_label == label
-				]
-				for rel_obj in related_objects:
-					if class_name in rel_obj.get_class_names():
-						if descriptor_name in rel_obj.get_descriptor_names():
-							value = rel_obj.get_descriptor(descriptor_name)
-							if value != expected_value:
-								return False
-						else:
-							continue
-						nested_related_data = {
-							k: v for k, v in related_data.items() if k[1] == rel_obj.get_class_names()
-						}
-						if nested_related_data:
-							if not _check_related(rel_obj, nested_related_data, checked_objects):
-								return False
-			return True
-		
 		for obj in set.union(*[_get_class_members(cls) for cls in classes]):
 			found = True
 			to_set = set()
+
+			# Check descriptor values
 			for descriptor_name in data:
 				value = obj.get_descriptor(descriptor_name)
-				if (value is None) and (data[descriptor_name] is not None):
+				if value is None and data[descriptor_name] is not None:
 					to_set.add(descriptor_name)
 				elif value != data[descriptor_name]:
 					found = False
 					break
-				if not _check_location(obj, descriptor_name, locations):
+
+				# Check descriptor location
+				if not self._check_location(obj, descriptor_name, locations):
 					found = False
 					break
+
 			if found:
-				found = _check_related(obj, related_data)
+				# Check related objects
+				if not self._check_related(obj, related_data):
+					found = False
+
 			if found:
+				# Set descriptors if they were missing
 				for descriptor_name in to_set:
 					obj.set_descriptor(descriptor_name, data[descriptor_name])
 				return obj
-		
+
 		return None
-	
+			
 	def add_external_descriptor(self, obj, name, value, store = None):
 		# localize descriptor if it is a DResource
 		
@@ -589,41 +587,28 @@ class Store(object):
 		
 		return obj
 	
-	def add_data_row(self, 
-		data: dict, 
-		relations: set = set(), 
-		unique: set = set(), 
-		existing = {}, 
-		return_added = False,
-	):
+	def add_data_row(self, data, relations=set(), unique=set(), existing={}, return_added=False):
 		"""
-		Adds objects to the store with specified classes, descriptors, and relations. 
-		
-		This function can add multiple objects at once, manage their descriptors, set locations, 
-		and automatically establish relationships based on the provided data and relations.
+		Adds objects to the store with specified classes, descriptors, and relations.
 		
 		Parameters:
 		-----------
 		data : {(Class name, Descriptor name): value, ...}
 			A dictionary where the keys are tuples of (Class name, Descriptor name) and the values 
 			are the corresponding descriptor values to be set for the objects.
-			Example: {("Person", "Name"): "Alice", ("Person", "Age"): 30}
 		relations : set([(Class name 1, label, Class name 2), ...]), optional
 			A set of tuples defining the relationships between classes. Each tuple specifies a 
 			relationship in the form (Class name 1, Label, Class name 2).
-			Example: {("Country", "contains", "City"), ("City", "located_in", "Country")}
 		unique : set([Class name, ...]), optional
 			A set of class names where new objects should always be added, rather than reusing 
 			existing objects with identical descriptors. This ensures unique objects for these classes.
 		existing : {Class name: Object, ...}, optional
 			A dictionary mapping class names to existing objects that should be updated rather than 
 			creating new ones. 
-			Example: {"Person": existing_person_object}
 		return_added : bool, optional
 			If `True`, the function returns a tuple containing the number of added objects and a 
 			dictionary mapping class names to the added objects. Otherwise, it only returns the 
 			number of added objects.
-			Default is `False`.
 		
 		Returns:
 		--------
@@ -631,36 +616,6 @@ class Store(object):
 			Returns the number of objects added. If `return_added` is `True`, it returns a tuple 
 			(n_added, added) where `n_added` is the number of objects added, and `added` is a 
 			dictionary mapping class names to the added objects.
-		
-		How it Works:
-		-------------
-		1. **Class and Descriptor Collection**: Parses the `data` to identify classes and descriptors 
-		   to be set on objects.
-		2. **Relationship Processing**: Establishes relationships among the objects based on the 
-		   `relations` parameter.
-		3. **Tiered Addition**: Objects are added in tiers based on their dependencies, ensuring 
-		   relationships are established in the correct order.
-		4. **Object Creation/Reuse**: New objects are created or existing ones are reused/updated 
-		   based on the `unique` and `existing` parameters.
-		5. **Descriptor and Location Assignment**: Sets the specified descriptors and their locations 
-		   on the objects. Missing descriptors and locations are added as specified in `data`.
-		6. **Return**: Optionally returns the number of added objects and the objects themselves if 
-		   `return_added` is `True`.
-		
-		Example Usage:
-		--------------
-		```python
-		data = {
-			("Person", "Name"): "Alice",
-			("Person", "Age"): 30,
-			("City", "Name"): "Wonderland"
-		}
-		relations = {
-			("Person", "lives_in", "City")
-		}
-		unique_classes = {"Person"}
-		added_objects = store.add_data_row(data, relations, unique=unique_classes, return_added=True)
-		```
 		"""
 		
 		collect = defaultdict(dict)
@@ -669,10 +624,8 @@ class Store(object):
 			if (class_name is None) or (descriptor_name is None):
 				continue
 			cls = self.add_class(class_name)
-			descr = self.add_class(descriptor_name)
-			cls.set_descriptor(descr)
 			collect[cls][descriptor_name] = data[key]
-		data = collect  # {cls: {descriptor_name: value, ...}, ...}
+		data = collect	# {cls: {descriptor_name: value, ...}, ...}
 		
 		collect = defaultdict(set)
 		for class_name1, label, class_name2 in relations:
@@ -692,7 +645,7 @@ class Store(object):
 			for cls2, label in cls1.get_relations():
 				if cls2 in data:
 					collect[cls1].add((label, cls2))
-		relations_all = collect  # {cls1: [(label, cls2), ...], ...}
+		relations_all = collect	 # {cls1: [(label, cls2), ...], ...}
 		
 		relations_one_way = set()
 		for cls1 in relations_all:
@@ -737,13 +690,13 @@ class Store(object):
 			relation_tiers.append((tier_relations, tier_classes))
 		
 		n_added = 0
-		added = {}  # {cls: obj, ...}
+		added = {}	# {cls: obj, ...}
 		for i, (tier_relations, tier_classes) in enumerate(relation_tiers):
 			for cls in tier_classes:
 				added[cls] = None
 				if cls.name in existing:
 					added[cls] = self.add_object_with_descriptors(
-						cls, data[cls], obj = existing[cls.name]
+						cls, data[cls], obj=existing[cls.name]
 					)
 				elif cls.name not in unique:
 					related_data = {}  # {(label, class_name, descriptor_name): value, ...}
@@ -753,7 +706,7 @@ class Store(object):
 							continue
 						if cls1 in data:
 							for descriptor_name in data[cls1]:
-								related_data[("~"+label, cls1.name, descriptor_name)] = data[cls1][descriptor_name]
+								related_data[("~" + label, cls1.name, descriptor_name)] = data[cls1][descriptor_name]
 								cls_done.add(cls1)
 					for tier_relations_prev, tier_classes_prev in relation_tiers[:i]:
 						for cls1, label, cls2 in tier_relations_prev:
@@ -761,8 +714,8 @@ class Store(object):
 								continue
 							if cls1 in data:
 								for descriptor_name in data[cls1]:
-									related_data[("~"+label, cls1.name, descriptor_name)] = data[cls1][descriptor_name]
-					added[cls] = self.find_object_with_descriptors([cls], data[cls], related_data = related_data)
+									related_data[("~" + label, cls1.name, descriptor_name)] = data[cls1][descriptor_name]
+					added[cls] = self.find_object_with_descriptors([cls], data[cls], related_data=related_data)
 				if added[cls] is None:
 					added[cls] = self.add_object_with_descriptors(cls, data[cls])
 					n_added += 1
@@ -778,64 +731,113 @@ class Store(object):
 		if return_added:
 			return n_added, dict([(cls.name, added[cls]) for cls in added])
 		return n_added
-			
+	
 	def import_store(self, store, unique: set = set(), progress = None) -> None:
-		# unique = {Class name, ...}; always add a new object to classes 
-		#	specified here, otherwise re-use objects with identical descriptors
-		# progress = DProgress
+		"""
+		Imports objects from another store instance recursively and tiered by dependency.
 		
-		for cls in store.get_classes(ordered = True):
+		Parameters:
+		-----------
+		store : Store
+			The store instance to import objects from.
+		unique : set, optional
+			A set of class names for which new objects should always be added rather than reusing existing ones.
+		progress : DProgress, optional
+			Progress indicator.
+		"""
+		def should_cancel():
+			if progress and progress.cancel_pressed():
+				return True
+			return False
+
+		# Step 1: Import classes and descriptors
+		for cls in store.get_classes(ordered=True):
 			self.add_class(cls.name)
 		for cls in store.get_classes():
 			cls_ = self.get_class(cls.name)
-			for descr in cls.get_descriptors(ordered = True):
+			for descr in cls.get_descriptors(ordered=True):
 				cls_.set_descriptor(descr.name)
 			for subcls in cls.get_subclasses():
 				cls_.add_subclass(subcls)
 			for cls2, label in cls.get_relations():
 				cls_.add_relation(cls2.name, label)
-		
+
+		# Step 2: Prepare for tiered import
 		objects = store.get_objects()
-		cmax = 2*len(objects)
-		cnt = 1
-		added = {}  # {orig_obj: new_obj, ...}
-		for obj in objects:
-			if progress is not None:
-				if progress.cancel_pressed():
-					return
-				progress.update_state(text = "Importing", value = cnt, maximum = cmax)
-				cnt += 1
-			data = {}
-			locations = {}
-			for descr in obj.get_descriptors():
-				data[descr.name] = obj.get_descriptor(descr)
-				location = obj.get_location(descr)
-				if location is not None:
-					locations[descr.name] = location
+		object_relations = {obj: list(obj.get_relations()) for obj in objects}
+		processed = set()  # Set to keep track of processed objects
+		to_process = list(objects)	# Process all objects, ensuring each one is visited
+		imported_objects = {}
+		processing_objects = set()	# To track objects currently being processed
+		cmax = len(objects)
+		cnt = 0
+
+		def import_object_with_relations(obj, imported_objects, processing_objects):
+			"""
+			Recursively import objects with their relations.
+			"""
+			if obj in imported_objects or obj in processing_objects:
+				return
+			
+			processing_objects.add(obj)
+
+			data = {descr.name: obj.get_descriptor(descr) for descr in obj.get_descriptors()}
+			locations = {descr.name: obj.get_location(descr) for descr in obj.get_descriptors() if obj.get_location(descr) is not None}
 			classes = [self.get_class(cls.name) for cls in obj.get_classes()]
-			if not classes:
-				classes = [None]
+
+			# Check for existing object
 			obj_ = None
-			if True not in [(cls.name in unique) for cls in classes if cls is not None]:
+			if not any(cls.name in unique for cls in classes):
 				obj_ = self.find_object_with_descriptors(classes, data, locations)
+			
+			# Add new object if not found
 			if obj_ is None:
-				obj_ = self.add_object_with_descriptors(classes[0], data, locations, store = store)
+				obj_ = self.add_object_with_descriptors(classes[0], data, locations, store=store)
+
+			# Add class membership
 			for cls in classes:
-				if cls is None:
+				if cls:
+					cls.add_member(obj_.id)
+			
+			imported_objects[obj] = obj_
+			
+			# Add relations to imported objects
+			for rel_obj, label in object_relations[obj]:
+				if label.startswith("~") or rel_obj not in imported_objects:
 					continue
-				cls.add_member(obj_.id)
-			added[obj] = obj_
+				weight = obj.get_relation_weight(rel_obj, label)
+				obj_.add_relation(imported_objects[rel_obj], label, weight=weight)
+			
+			processing_objects.remove(obj)
+
+		# Process all objects, even those with dependencies (handles circular)
+		while to_process:
+			if should_cancel():
+				return
+
+			obj = to_process.pop(0)	 # Process the first object
+			if obj in processed:
+				continue
+			import_object_with_relations(obj, imported_objects, processing_objects)
+			processed.add(obj)
+
+			cnt += 1
+			if progress:
+				progress.update_state(text="Importing", value=cnt, maximum=cmax)
 		
-		for obj in added:
-			if progress is not None:
-				if progress.cancel_pressed():
-					return
-				progress.update_state(text = "Importing", value = cnt, maximum = cmax)
-				cnt += 1
-			obj_ = added[obj]
-			for obj2, label in obj.get_relations():
-				weight = obj.get_relation_weight(obj2, label)
-				obj_.add_relation(added[obj2], label, weight = weight)
+		# Step 3: Finalize and add any remaining relations
+		for obj in imported_objects:
+			if should_cancel():
+				return
+			
+			obj_ = imported_objects[obj]
+			for rel_obj, label in object_relations[obj]:
+				if rel_obj in imported_objects and not label.startswith("~"):
+					weight = obj.get_relation_weight(rel_obj, label)
+					obj_.add_relation(imported_objects[rel_obj], label, weight=weight)
+
+		if progress:
+			progress.update_state(text="Importing Complete", value=cmax, maximum=cmax)
 	
 	
 	# ---- Read

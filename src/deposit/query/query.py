@@ -120,7 +120,7 @@ class Query(object):
 		return obj_ids
 	
 	def _has_relation(self, elements1, elements2, label, chained=False):
-		# Function to handle _RELATED(elements1, elements2, label, chained) in the query
+		# Function to handle RELATED(elements1, elements2, label, chained) in the query
 		# elements can be a list of Objects or a single Object ID
 		# If chained==True, look for chained relations
 		

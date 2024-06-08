@@ -86,108 +86,143 @@ def store_q():
 	
 	yield store
 
-def test_1(store_q):
-	
+def test_select_columns(store_q):
 	query = store_q.get_query("SELECT Area, Feature.Name")
-	
 	assert query.columns == [('Area', None), ('Feature', 'Name')]
-	assert [row for row in query] == [[(1, None), (3, 'A1.F1')], [(1, None), (4, 'A1.F2')], [(1, None), (5, 'A1.F3')], [(2, None), (6, 'A2.F4')], [(2, None), (7, 'A2.F5')]]
+	assert [
+		[(1, None), (3, 'A1.F1')],
+		[(1, None), (4, 'A1.F2')],
+		[(1, None), (5, 'A1.F3')],
+		[(2, None), (6, 'A2.F4')],
+		[(2, None), (7, 'A2.F5')],
+	] == [row for row in query]
 
-def test_2(store_q):
-	
+def test_select_all_columns(store_q):
 	query = store_q.get_query("SELECT Area.*, Feature.*, Find.*")
-	
 	assert query.columns == [('Area', 'Name'), ('Feature', 'Area'), ('Feature', 'Name'), ('Find', 'Name'), ('Find', 'Material')]
-	assert [row for row in query] == [[(1, 'A1'), (3, 2), (3, 'A1.F1'), (8, 'A1.F1.1'), (8, 'Bone')], [(1, 'A1'), (3, 2), (3, 'A1.F1'), (9, 'A1.F1.2'), (9, 'Ceramics')], [(1, 'A1'), (3, 2), (3, 'A1.F1'), (10, 'A1.F1.3'), (10, 'Ceramics')], [(1, 'A1'), (4, 3), (4, 'A1.F2'), (11, 'A1.F2.1'), (11, 'Bronze')], [(1, 'A1'), (4, 3), (4, 'A1.F2'), (12, 'A1.F2.2'), (12, None)], [(1, 'A1'), (5, None), (5, 'A1.F3'), (13, 'A1.F3.1'), (13, None)], [(2, 'A2'), (6, 4), (6, 'A2.F4'), (14, 'A2.F4.1'), (14, None)], [(2, 'A2'), (7, None), (7, 'A2.F5'), (None, None), (None, None)]]
+	assert [
+		[(1, 'A1'), (3, 2), (3, 'A1.F1'), (8, 'A1.F1.1'), (8, 'Bone')],
+		[(1, 'A1'), (3, 2), (3, 'A1.F1'), (9, 'A1.F1.2'), (9, 'Ceramics')],
+		[(1, 'A1'), (3, 2), (3, 'A1.F1'), (10, 'A1.F1.3'), (10, 'Ceramics')],
+		[(1, 'A1'), (4, 3), (4, 'A1.F2'), (11, 'A1.F2.1'), (11, 'Bronze')],
+		[(1, 'A1'), (4, 3), (4, 'A1.F2'), (12, 'A1.F2.2'), (12, None)],
+		[(1, 'A1'), (5, None), (5, 'A1.F3'), (13, 'A1.F3.1'), (13, None)],
+		[(2, 'A2'), (6, 4), (6, 'A2.F4'), (14, 'A2.F4.1'), (14, None)],
+		[(2, 'A2'), (7, None), (7, 'A2.F5'), (None, None), (None, None)],
+	] == [row for row in query]
 
-def test_3(store_q):
-	
+def test_group_by_columns_with_count(store_q):
 	query = store_q.get_query("SELECT Area.Name, Feature.Name, COUNT(Find) AS [Cnt Find] WHERE Find is not None GROUP BY Area.Name, Feature.Name")
-	
 	assert query.columns == [('Area', 'Name'), ('Feature', 'Name'), (None, 'Cnt Find')]
-	assert [row for row in query] == [[(1, 'A1'), (3, 'A1.F1'), (None, 3)], [(1, 'A1'), (4, 'A1.F2'), (None, 2)], [(1, 'A1'), (5, 'A1.F3'), (None, 1)], [(2, 'A2'), (6, 'A2.F4'), (None, 1)]]
+	assert [
+		[(1, 'A1'), (3, 'A1.F1'), (None, 3)],
+		[(1, 'A1'), (4, 'A1.F2'), (None, 2)],
+		[(1, 'A1'), (5, 'A1.F3'), (None, 1)],
+		[(2, 'A2'), (6, 'A2.F4'), (None, 1)],
+	] == [row for row in query]
 
-def test_4(store_q):
-	
+def test_group_by_with_sum(store_q):
 	query = store_q.get_query("SELECT Area.Name, SUM(Feature.Area) AS [SUM Area] GROUP BY Area.Name")
-	
 	assert query.columns == [('Area', 'Name'), (None, 'SUM Area')]
-	assert [row for row in query] == [[(1, 'A1'), (None, 5.0)], [(2, 'A2'), (None, 4.0)]]
+	assert [
+		[(1, 'A1'), (None, 5.0)],
+		[(2, 'A2'), (None, 4.0)],
+	] == [row for row in query]
 
-def test_5(store_q):
-	
+def test_select_where_condition(store_q):
 	query = store_q.get_query("SELECT Area.Name, Feature.Name, Find.Name WHERE Find is not None")
-	
 	assert query.columns == [('Area', 'Name'), ('Feature', 'Name'), ('Find', 'Name')]
-	assert [row for row in query] == [[(1, 'A1'), (3, 'A1.F1'), (8, 'A1.F1.1')], [(1, 'A1'), (3, 'A1.F1'), (9, 'A1.F1.2')], [(1, 'A1'), (3, 'A1.F1'), (10, 'A1.F1.3')], [(1, 'A1'), (4, 'A1.F2'), (11, 'A1.F2.1')], [(1, 'A1'), (4, 'A1.F2'), (12, 'A1.F2.2')], [(1, 'A1'), (5, 'A1.F3'), (13, 'A1.F3.1')], [(2, 'A2'), (6, 'A2.F4'), (14, 'A2.F4.1')]]
+	assert [
+		[(1, 'A1'), (3, 'A1.F1'), (8, 'A1.F1.1')],
+		[(1, 'A1'), (3, 'A1.F1'), (9, 'A1.F1.2')],
+		[(1, 'A1'), (3, 'A1.F1'), (10, 'A1.F1.3')],
+		[(1, 'A1'), (4, 'A1.F2'), (11, 'A1.F2.1')],
+		[(1, 'A1'), (4, 'A1.F2'), (12, 'A1.F2.2')],
+		[(1, 'A1'), (5, 'A1.F3'), (13, 'A1.F3.1')],
+		[(2, 'A2'), (6, 'A2.F4'), (14, 'A2.F4.1')],
+	] == [row for row in query]
 
-def test_6(store_q):
-	
+def test_select_with_prefix_condition(store_q):
 	query = store_q.get_query("SELECT [;Weird.Cls, SELECT].[;Weird.Descr, SELECT] WHERE [;Weird.Cls, SELECT].[;Weird.Descr, SELECT].startswith('WB')")
-	
 	assert query.columns == [(';Weird.Cls, SELECT', ';Weird.Descr, SELECT')]
-	assert [row for row in query] == [[(16, 'WB1')], [(17, 'WB2')]]
+	assert [
+		[(16, 'WB1'),],
+		[(17, 'WB2'),],
+	] == [row for row in query]
 
-def test_7(store_q):
-	
-	query = store_q.get_query("SELECT Feature.Name RELATED Feature.disturbs.Feature")
-	
+def test_related_items_with_specific_relation(store_q):
+	query = store_q.get_query("SELECT Feature.Name WHERE RELATED(Feature, Feature, 'disturbs')")
+	assert query.columns == []
+	assert [
+		[(3, "A1.F1"),],
+		[(4, 'A1.F2'),],
+		[(6, "A2.F4"),],
+		[(7, 'A2.F5'),],
+	] == [row for row in query]
+
+def test_related_items_from_specific_object(store_q):
+	query = store_q.get_query("SELECT Feature.Name WHERE RELATED(OBJ(3), Feature, 'disturbs')")
 	assert query.columns == [('Feature', 'Name')]
-	assert [row for row in query] == [[(3, 'A1.F1')], [(6, 'A2.F4')]]
+	assert [
+		[(4, 'A1.F2'),],
+	] == [row for row in query]
 
-def test_8(store_q):
-	
-	query = store_q.get_query("SELECT Feature.Name RELATED OBJ(3).disturbs.Feature")
-	
+def test_related_items_with_any_relation(store_q):
+	query = store_q.get_query("SELECT Feature.Name WHERE RELATED(OBJ(3), Feature, '*')")
 	assert query.columns == [('Feature', 'Name')]
-	assert [row for row in query] == [[(3, 'A1.F1')]]
+	assert [
+		[(4, 'A1.F2'),],
+		[(5, 'A1.F3'),],
+	] == [row for row in query]
 
-def test_9(store_q):
-	
-	query = store_q.get_query("SELECT Feature.Name RELATED OBJ(3).*.Feature")
-	
-	assert query.columns == [('Feature', 'Name')]
-	assert [row for row in query] == [[(3, 'A1.F1')]]
-
-def test_10(store_q):
-	
-	query = store_q.get_query("SELECT Find.Name, Feature.Name RELATED OBJ(3).contains.Find")
-	
+def test_select_related_items(store_q):
+	query = store_q.get_query("SELECT Find.Name, Feature.Name WHERE RELATED(OBJ(3), Find, 'contains')")
 	assert query.columns == [('Find', 'Name'), ('Feature', 'Name')]
-	assert [row for row in query] == [[(8, 'A1.F1.1'), (3, 'A1.F1')], [(9, 'A1.F1.2'), (3, 'A1.F1')], [(10, 'A1.F1.3'), (3, 'A1.F1')]]
+	assert [
+		[(8, 'A1.F1.1'), (3, 'A1.F1')],
+		[(9, 'A1.F1.2'), (3, 'A1.F1')],
+		[(10, 'A1.F1.3'), (3, 'A1.F1')],
+	] == [row for row in query]
 
-def test_11(store_q):
-	
-	query = store_q.get_query("SELECT [;Weird.Cls, SELECT].* RELATED [;Weird.Cls, SELECT].[weird rel, WHERE].[;Weird.Cls, SELECT]")
-	
-	assert query.columns == [(';Weird.Cls, SELECT', ';Weird.Descr, SELECT')]
-	assert [row for row in query] == [[(16, 'WB1')]]
+def test_select_with_custom_relation(store_q):
+	query = store_q.get_query("SELECT [;Weird.Cls, SELECT].* WHERE RELATED([;Weird.Cls, SELECT], [;Weird.Cls, SELECT], 'weird rel, WHERE')")
+	assert query.columns == []
+	assert [
+		[(17, 'WB2'),],
+	] == [row for row in query]
 
-def test_12(store_q):
-	
+def test_select_all_fields(store_q):
 	query = store_q.get_query("SELECT Find.*")
-	
 	assert query.columns == [('Find', 'Name'), ('Find', 'Material')]
-	assert [row for row in query] == [[(8, 'A1.F1.1'), (8, 'Bone')], [(9, 'A1.F1.2'), (9, 'Ceramics')], [(10, 'A1.F1.3'), (10, 'Ceramics')], [(11, 'A1.F2.1'), (11, 'Bronze')], [(12, 'A1.F2.2'), (12, None)], [(13, 'A1.F3.1'), (13, None)], [(14, 'A2.F4.1'), (14, None)]]
+	assert [
+		[(8, 'A1.F1.1'), (8, 'Bone')],
+		[(9, 'A1.F1.2'), (9, 'Ceramics')],
+		[(10, 'A1.F1.3'), (10, 'Ceramics')],
+		[(11, 'A1.F2.1'), (11, 'Bronze')],
+		[(12, 'A1.F2.2'), (12, None)],
+		[(13, 'A1.F3.1'), (13, None)],
+		[(14, 'A2.F4.1'), (14, None)],
+	] == [row for row in query]
 
-def test_13(store_q):
-	
+def test_select_all_objects(store_q):
 	query = store_q.get_query("SELECT !*")
-	
 	assert query.columns == [(None, None)]
-	assert [row for row in query] == [[(18, None)], [(19, None)]]
+	assert [
+		[(18, None),],
+		[(19, None),],
+	] == [row for row in query]
 
-def test_14(store_q):
-	
+def test_select_all_object_fields(store_q):
 	query = store_q.get_query("SELECT !*.*")
-	
 	assert query.columns == [(None, 'Name')]
-	assert [row for row in query] == [[(18, 'Classless 1')], [(19, 2)]]
+	assert [
+		[(18, 'Classless 1'),],
+		[(19, 2),],
+	] == [row for row in query]
 
-def test_15(store_q):
-	
+def test_select_filtered_by_condition(store_q):
 	query = store_q.get_query("SELECT !*.Name WHERE isinstance(!*.Name, str) and !*.Name.startswith('Class')")
-	
 	assert query.columns == [(None, 'Name')]
-	assert [row for row in query] == [[(18, 'Classless 1')]]
-
+	assert [
+		[(18, 'Classless 1'),],
+	] == [row for row in query]
