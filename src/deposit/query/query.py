@@ -319,7 +319,7 @@ class Query(object):
 					continue
 			
 			# collect descriptor values according to SELECT, COUNT, SUM
-			data = defaultdict(set)  # {key: set(value, ...), ...}; key = (class_name, descriptor_name)
+			data = defaultdict(list)  # {key: set(value, ...), ...}; key = (class_name, descriptor_name)
 			for obj_id in path:
 				self._objects.add(obj_id)
 				class_names = class_lookup[obj_id][1]
@@ -334,7 +334,7 @@ class Query(object):
 					elif class_name == "!*":
 						class_name = None
 					if descriptor_name != "*":
-						data[(class_name, descriptor_name)].add((obj_id, self._get_descriptor_value(obj_id, class_name, descriptor_name, class_lookup, descr_lookup)))
+						data[(class_name, descriptor_name)].append((obj_id, self._get_descriptor_value(obj_id, class_name, descriptor_name, class_lookup, descr_lookup)))
 						key_lookup[key].add((class_name, descriptor_name))
 					else:
 						descriptor_names = class_descr_lookup["!*" if class_name is None else class_name]
@@ -343,10 +343,10 @@ class Query(object):
 								descriptor_names.append(descriptor_name)
 						if descriptor_names:
 							for descriptor_name in descriptor_names:
-								data[(class_name, descriptor_name)].add((obj_id, self._get_descriptor_value(obj_id, class_name, descriptor_name, class_lookup, descr_lookup)))
+								data[(class_name, descriptor_name)].append((obj_id, self._get_descriptor_value(obj_id, class_name, descriptor_name, class_lookup, descr_lookup)))
 								key_lookup[key].add((class_name, descriptor_name))
 						else:
-							data[(class_name, None)].add((obj_id, None))
+							data[(class_name, None)].append((obj_id, None))
 							key_lookup[key].add((class_name, None))
 			keys_data = list(data.keys())
 			keys_collect.update(keys_data)
@@ -356,7 +356,7 @@ class Query(object):
 				if check_row in done:
 					continue
 				done.add(check_row)
-				rows.append((path[0], data_row))
+				rows.append((path[0], data_row))			
 		
 		# prune (class_name, None) from key_lookup if it already has (class_name, descriptor_name)
 		for key in key_lookup:
