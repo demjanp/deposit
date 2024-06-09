@@ -167,7 +167,7 @@ def remove_classless(substr, classes):
 	classless = set()
 	while True:
 		found = False
-		for m in re.finditer("\!\*\.", substr):
+		for m in re.finditer("!\*\.", substr):
 			i, j = m.start(0), m.end(0)
 			key = get_new_key("CL", substr, classless.union(classes))
 			classless.add(key)
@@ -287,7 +287,6 @@ def extract_expr_vars(substr, classes, descriptors, bracketed_selects):
 			vars[name] = ("!*", descr)
 	
 	return expr, vars
-
 
 class Parse(object):
 	
@@ -410,13 +409,13 @@ class Parse(object):
 			self.where_expr = self.where_expr.replace(key, quoted[key])
 		
 		# Find the patterns "RELATED(Class1, Class2, Relation)" in self.where_expr and add them to self.relations
-		for m in re.finditer(r"RELATED\((.*?), (.*?), '(.*?)'\)", self.where_expr):
-			class1, class2, _ = m.groups()
+		for m in re.finditer(r"RELATED\((.*?), (.*?), '(.*?)'(?:, .*?)?\)", self.where_expr):
+			class1, class2, label = m.groups()
 			if class1 in self.where_vars:
 				class1 = self.where_vars[class1][0]
 			if class2 in self.where_vars:
 				class2 = self.where_vars[class2][0]
-			self.relations.append((class1, "*", class2))
+			self.relations.append((class1, label, class2))
 		
 		for class_name, _ in self.selects + self.group_by:
 			if (class_name is not None) and (class_name not in self.classes_used):

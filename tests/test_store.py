@@ -445,7 +445,6 @@ def test_add_data_row():
 	
 	assert query.columns == [('Feature', 'Name'), ('Area', 'Name')]
 	assert [row for row in query] == [[(2, 'A1.F1'), (1, 'A1')], [(3, 'A1.F2'), (1, 'A1')], [(4, 'A1.F3'), (1, 'A1')], [(5, 'A1.F3'), (1, 'A1')], [(6, 'A1.F4'), (None, None)]]
-	
 
 def test_datasource(store):
 	

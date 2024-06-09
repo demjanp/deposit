@@ -53,6 +53,7 @@ from deposit.store.abstract_dtype import AbstractDType
 
 from collections import defaultdict
 from natsort import (natsorted)
+from itertools import product
 import traceback
 import sys
 
@@ -102,6 +103,9 @@ class Query(object):
 	
 	def process(self):
 		
+		self._process()  # DEBUG
+		return  # DEBUG
+		
 		try:
 			self._process()
 		except:
@@ -124,28 +128,37 @@ class Query(object):
 		# elements can be a list of Objects or a single Object ID
 		# If chained==True, look for chained relations
 		
+		def _element_to_object(element):
+			
+			if isinstance(element, int):
+				return self._store.get_object(element)
+			return element
+		
 		def _elements_to_objects(elements):
-			objs = elements
-			if isinstance(elements, int):
-				objs = []
-				obj = self._store.get_object(elements)
+			if isinstance(elements, set) or isinstance(elements, list):
+				objs = [_element_to_object(element) for element in elements]
+				objs = set([obj for obj in objs if obj is not None])
+			else:
+				objs = set()
+				obj = _element_to_object(elements)
 				if obj is not None:
-					objs = [obj]
+					objs = set([obj])
 			return objs
 		
-		def _find_relation(el1, elements2, label, chained):
-			for el2 in elements2:
-				if el1.has_relation(el2, label, chained):
-					return True
+		objects1 = _elements_to_objects(elements1)
+		objects2 = _elements_to_objects(elements2)
+		if (not objects1) or (not objects2):
 			return False
-		
-		elements1 = _elements_to_objects(elements1)
-		elements2 = _elements_to_objects(elements2)
-		if (not elements1) or (not elements2):
-			return False
-		for el1 in elements1:
-			if _find_relation(el1, elements2, label, chained):
-				return True
+		objects_all = objects1.union(objects2)
+		objects_found = set()
+		for obj1 in objects1:
+			for obj2 in objects2:
+				if obj1.has_relation(obj2, label, chained):
+					objects_found.add(obj1)
+					objects_found.add(obj2)
+					break
+		if objects_all.issubset(objects_found):
+			return True
 		return False
 	
 	def _process(self):
@@ -165,32 +178,43 @@ class Query(object):
 		)
 		
 		selects = []
+		errors = set()
 		for class_name, descriptor_name in self.parse.selects:
 			if (class_name not in self.parse.classes) and (class_name not in ["*", "!*"]) and (not isinstance(class_name, tuple)):
+				errors.add(class_name)
 				continue
 			if (descriptor_name not in self.parse.descriptors) and (descriptor_name not in [None, "*"]):
+				errors.add(descriptor_name)
 				continue
 			selects.append((class_name, descriptor_name))
+		if errors:
+			self._store.callback_error(
+				"QUERY ERROR in \"%s\": invalid Class name(s): %s" % (self.querystr, ", ".join(natsorted(list(errors))))
+			)
+			return
 		if not selects:
+			self._store.callback_error(
+				"QUERY ERROR in \"%s\": no SELECT statement found" % (self.querystr)
+			)
 			return
 		
 		self._main_class = selects[0][0]
 		
-		keys = set()  # {(class_name, descriptor_name), ...}
+		keys_all = set()  # {(class_name, descriptor_name), ...}
 		for class_name, descriptor_name in selects:
-			keys.add((class_name, descriptor_name))
+			keys_all.add((class_name, descriptor_name))
 			if class_name not in self._classes:
 				self._classes.append(class_name)
 			if descriptor_name not in self._classes:
 				self._classes.append(descriptor_name)
 		alias_lookup = {}
 		for alias, class_name, descriptor_name in self.parse.counts:
-			keys.add((class_name, descriptor_name))
+			keys_all.add((class_name, descriptor_name))
 			alias_lookup[alias] = ("count", class_name, descriptor_name)
 			if class_name not in self._classes:
 				self._classes.append(class_name)
 		for alias, class_name, descriptor_name in self.parse.sums:
-			keys.add((class_name, descriptor_name))
+			keys_all.add((class_name, descriptor_name))
 			alias_lookup[alias] = ("sum", class_name, descriptor_name)
 			if class_name not in self._classes:
 				self._classes.append(class_name)
@@ -200,7 +224,7 @@ class Query(object):
 		key_lookup = defaultdict(set)
 		
 		# get connected objects based on selects and relations
-		paths = self._store.get_class_connections(
+		paths = self._store.get_linked_objects(
 			self.parse.classes_used, 
 			self.parse.relations, 
 			progress = self._progress
@@ -271,18 +295,35 @@ class Query(object):
 							continue
 						value = self._get_descriptor_value(obj_id, class_name, descriptor_name, class_lookup, descr_lookup, obj_if_none = True)
 						if value is not None:
-							values[name] = value
+							if values[name] is not None:
+								if not isinstance(values[name], set):
+									values[name] = set([values[name]])
+								values[name].add(value)
+							else:
+								values[name] = value
 				values["OBJ"] = self._obj_func
 				values["RELATED"] = self._has_relation
-				if not eval(self.parse.where_expr, values):
+				
+				
+				res = False
+				try:
+					res = eval(self.parse.where_expr, values)
+				except:
+					_, exc_value, _ = sys.exc_info()
+					self._store.callback_error(
+						"QUERY ERROR in WHERE statement \"%s\": %s" % (self.querystr, str(exc_value))
+					)
+					return
+				
+				if not res:
 					continue
 			
 			# collect descriptor values according to SELECT, COUNT, SUM
-			data = {}  # {key: value, ...}; key = (class_name, descriptor_name)
+			data = defaultdict(set)  # {key: set(value, ...), ...}; key = (class_name, descriptor_name)
 			for obj_id in path:
 				self._objects.add(obj_id)
 				class_names = class_lookup[obj_id][1]
-				for key in keys:
+				for key in keys_all:
 					class_name, descriptor_name = key
 					if (not isinstance(class_name, tuple)) and (class_name[-1] != "*") and (class_name not in class_names):
 						continue
@@ -293,7 +334,7 @@ class Query(object):
 					elif class_name == "!*":
 						class_name = None
 					if descriptor_name != "*":
-						data[(class_name, descriptor_name)] = (obj_id, self._get_descriptor_value(obj_id, class_name, descriptor_name, class_lookup, descr_lookup))
+						data[(class_name, descriptor_name)].add((obj_id, self._get_descriptor_value(obj_id, class_name, descriptor_name, class_lookup, descr_lookup)))
 						key_lookup[key].add((class_name, descriptor_name))
 					else:
 						descriptor_names = class_descr_lookup["!*" if class_name is None else class_name]
@@ -302,18 +343,20 @@ class Query(object):
 								descriptor_names.append(descriptor_name)
 						if descriptor_names:
 							for descriptor_name in descriptor_names:
-								data[(class_name, descriptor_name)] = (obj_id, self._get_descriptor_value(obj_id, class_name, descriptor_name, class_lookup, descr_lookup))
+								data[(class_name, descriptor_name)].add((obj_id, self._get_descriptor_value(obj_id, class_name, descriptor_name, class_lookup, descr_lookup)))
 								key_lookup[key].add((class_name, descriptor_name))
 						else:
-							data[(class_name, None)] = (obj_id, None)
+							data[(class_name, None)].add((obj_id, None))
 							key_lookup[key].add((class_name, None))
-			
-			check_row = tuple(sorted([val[0] for val in data.values()]))
-			if check_row in done:
-				continue
-			done.add(check_row)
-			rows.append((path[0], data))
-			keys_collect.update(data.keys())
+			keys_data = list(data.keys())
+			keys_collect.update(keys_data)
+			for vals in product(*(data[key] for key in keys_data)):
+				data_row = dict(zip(keys_data, vals)) # {key: value, ...}; key = (class_name, descriptor_name)
+				check_row = tuple(sorted([val[0] for val in data_row.values()]))
+				if check_row in done:
+					continue
+				done.add(check_row)
+				rows.append((path[0], data_row))
 		
 		# prune (class_name, None) from key_lookup if it already has (class_name, descriptor_name)
 		for key in key_lookup:
@@ -373,11 +416,11 @@ class Query(object):
 				row_collect = list(grouped[group_key].pop())
 				obj = row_collect.pop(0)
 				for idx in idxs_counts:
-					row_collect[idx] = (None, int(row_collect[idx] is not None))
+					row_collect[idx] = (None, int(row_collect[idx][0] is not None))
 				for idx in idxs_sums:
 					val = 0
 					try:
-						val = float(row_collect[idx])
+						val = float(row_collect[idx][1])
 					except:
 						pass
 					row_collect[idx] = (None, val)
@@ -457,11 +500,15 @@ class Query(object):
 		
 		self._rows = rows
 		
-		for _, alias, class_name, descriptor_name in keys_columns:
-			if alias is None:
+		if keys_columns:
+			for _, alias, class_name, descriptor_name in keys_columns:
+				if alias is None:
+					self._columns.append((class_name, descriptor_name))
+				else:
+					self._columns.append((None, alias))
+		else:
+			for class_name, descriptor_name in self.parse.columns:
 				self._columns.append((class_name, descriptor_name))
-			else:
-				self._columns.append((None, alias))
 		
 		for idx, key in enumerate(self._columns):
 			self._column_idxs[key] = idx
