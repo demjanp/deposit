@@ -116,15 +116,6 @@ def test_invalid_query_where_statement(store_q):
 	query = store_q.get_query("SELECT Feature.Name WHERE (Feature.Name).startswith(1)")	 # Intentional error in WHERE clause
 	store_q._callback_error.clear()
 
-def test_invalid_query_missing_fields(store_q):
-	
-	def fnc_error(message):
-		assert message == """QUERY ERROR in "SELECT NonExistentField": invalid Class name(s): NonExistentField"""
-	
-	store_q.set_callback_error(fnc_error)
-	query = store_q.get_query("SELECT NonExistentField")
-	store_q._callback_error.clear()
-
 def test_empty_results(store_q):
 	query = store_q.get_query("SELECT Find.Name WHERE Find.Material == 'Gold'")
 	assert query.columns == [('Find', 'Name')]

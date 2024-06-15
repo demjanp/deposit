@@ -112,4 +112,93 @@ def test_multi_level_relationships():
 	assert city.has_relation(district, "is_in")
 
 
+def test_repeating_values():
+	
+	store = deposit.Store()
+	relations = {('Area', 'contains', 'Feature'), ('Feature', 'contains', 'Sample')}
+	data_rows = [
+		{('Area', 'Name'): 1, ('Feature', 'Name'): 1, ('Sample', 'Id'): 1},
+		{('Area', 'Name'): 1, ('Feature', 'Name'): 2, ('Sample', 'Id'): 1},
+		{('Area', 'Name'): 1, ('Feature', 'Name'): 3, ('Sample', 'Id'): 1},
+		{('Area', 'Name'): 2, ('Feature', 'Name'): 1, ('Sample', 'Id'): 1},
+		{('Area', 'Name'): 2, ('Feature', 'Name'): 1, ('Sample', 'Id'): 2},
+		{('Area', 'Name'): 2, ('Feature', 'Name'): 1, ('Sample', 'Id'): 3},
+		{('Area', 'Name'): 3, ('Feature', 'Name'): 1, ('Sample', 'Id'): 1},
+		{('Area', 'Name'): 3, ('Feature', 'Name'): 2, ('Sample', 'Id'): 1},
+	]
+	for data in data_rows:
+		store.add_data_row(data, relations)
+	
+	for data in data_rows:
+		vals = [data[('Area', 'Name')], data[('Feature', 'Name')], data[('Sample', 'Id')]]
+		value = "_".join([str(val) for val in vals])
+		data[("Sample", "Note")] = value
+		store.add_data_row(data, relations)
+	
+	query = store.get_query("SELECT Area.Name, Feature.Name, Sample.Id, Sample.Note")
+	for row in query:
+		print(row)
+		vals = [row[0][1], row[1][1], row[2][1]]
+		assert row[3][1] == "_".join([str(val) for val in vals])
 
+def test_exact_match():
+	
+	store = deposit.Store()
+	data_rows_1 = [
+		{('Sample', 'A'): 1, ('Sample', 'B'): 1, ('Sample', 'C'): 1},
+		{('Sample', 'A'): None, ('Sample', 'B'): 1, ('Sample', 'C'): 1},
+		{('Sample', 'A'): 1, ('Sample', 'B'): 1, ('Sample', 'C'): None},
+	]
+	for data in data_rows_1:
+		store.add_data_row(data, exact_match=False)
+	query = store.get_query("SELECT Sample.A, Sample.B, Sample.C")
+	assert len(query) == 1
+	for row in query:
+		assert row == [(1, 1), (1, 1), (1, 1)]
+	
+	data_rows_2 = [
+		{('Sample', 'A'): None, ('Sample', 'B'): 1, ('Sample', 'C'): None},
+		{('Sample', 'A'): 1, ('Sample', 'B'): None, ('Sample', 'C'): 1},
+		{('Sample', 'A'): None, ('Sample', 'B'): None, ('Sample', 'C'): 1},
+		{('Sample', 'A'): 1, ('Sample', 'B'): None, ('Sample', 'C'): None},
+	]
+	for data in data_rows_2:
+		store.add_data_row(data, exact_match=False)
+	query = store.get_query("SELECT Sample.A, Sample.B, Sample.C")
+	assert len(query) == 1
+	for row in query:
+		assert row == [(1, 1), (1, 1), (1, 1)]
+	
+	store.clear()
+	for data in data_rows_1:
+		store.add_data_row(data, exact_match=True)
+	for data in data_rows_2:
+		store.add_data_row(data, exact_match=True)
+	query = store.get_query("SELECT Sample.A, Sample.B, Sample.C")
+	assert [row for row in query] == [
+		[(1, 1), (1, 1), (1, 1)],
+		[(2, None), (2, 1), (2, 1)],
+		[(3, 1), (3, 1), (3, None)],
+		[(4, None), (4, 1), (4, None)],
+		[(5, 1), (5, None), (5, 1)],
+		[(6, None), (6, None), (6, 1)],
+		[(7, 1), (7, None), (7, None)],
+	]
+	
+	data_rows_3 = [
+		{('Sample', 'Id'): 3, ('Sample', 'A'): 1, ('Sample', 'B'): 1, ('Sample', 'C'): None},
+		{('Sample', 'Id'): 6, ('Sample', 'A'): None, ('Sample', 'B'): None, ('Sample', 'C'): 1},
+		{('Sample', 'Id'): 1, ('Sample', 'A'): 1, ('Sample', 'B'): 1, ('Sample', 'C'): 1},
+		{('Sample', 'Id'): 2, ('Sample', 'A'): None, ('Sample', 'B'): 1, ('Sample', 'C'): 1},
+		{('Sample', 'Id'): 5, ('Sample', 'A'): 1, ('Sample', 'B'): None, ('Sample', 'C'): 1},
+		{('Sample', 'Id'): 4, ('Sample', 'A'): None, ('Sample', 'B'): 1, ('Sample', 'C'): None},
+		{('Sample', 'Id'): 7, ('Sample', 'A'): 1, ('Sample', 'B'): None, ('Sample', 'C'): None},
+	]
+	check_rows = {}
+	for data in data_rows_3:
+		check_rows[data[('Sample', 'Id')]] = [data[('Sample', 'A')], data[('Sample', 'B')], data[('Sample', 'C')]]
+		store.add_data_row(data, exact_match=False)
+	query = store.get_query("SELECT Sample.Id, Sample.A, Sample.B, Sample.C")
+	for row in query:
+		assert check_rows[row[0][1]] == [row[1][1], row[2][1], row[3][1]]
+	

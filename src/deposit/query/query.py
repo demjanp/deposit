@@ -178,20 +178,12 @@ class Query(object):
 		)
 		
 		selects = []
-		errors = set()
 		for class_name, descriptor_name in self.parse.selects:
 			if (class_name not in self.parse.classes) and (class_name not in ["*", "!*"]) and (not isinstance(class_name, tuple)):
-				errors.add(class_name)
 				continue
 			if (descriptor_name not in self.parse.descriptors) and (descriptor_name not in [None, "*"]):
-				errors.add(descriptor_name)
 				continue
 			selects.append((class_name, descriptor_name))
-		if errors:
-			self._store.callback_error(
-				"QUERY ERROR in \"%s\": invalid Class name(s): %s" % (self.querystr, ", ".join(natsorted(list(errors))))
-			)
-			return
 		if not selects:
 			self._store.callback_error(
 				"QUERY ERROR in \"%s\": no SELECT statement found" % (self.querystr)

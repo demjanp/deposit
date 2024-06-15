@@ -204,7 +204,9 @@ def test_resource_descriptor(store):
 		("image1.jpg", "image1.jpg", True, True),
 		("image2.jpg", "image2.jpg", True, True),
 		("noext", "noext", True, False),
-		("test_pdf.pdf", "test_pdf.pdf", True, False),
+		("test_pdf_1.pdf", "test_pdf_1.pdf", True, False),
+		("test_pdf_2.pdf", "test_pdf_2.pdf", True, False),
+		("scsctt.sls", "ščščťť.šľš", True, False),
 	]
 	for name, exp in zip(sorted(pytest.res_names), expected):
 		exp_stored, exp_filename, exp_is_stored, exp_is_image = exp
@@ -396,7 +398,7 @@ def test_del_resource(store):
 	
 	local_folder = store.get_folder()
 	assert len(os.listdir(os.path.join(local_folder, "0000"))) == 0
-	assert len(os.listdir(os.path.join(local_folder, "_deleted"))) == 7
+	assert len(os.listdir(os.path.join(local_folder, "_deleted"))) == 8
 
 def test_add_data_row():
 	

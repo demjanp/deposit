@@ -237,7 +237,6 @@ class DObject(AbstractDElement):
 		# returns [name, ...]
 		
 		return [cls.name for cls in self.get_classes(ordered, superclasses)]
-		
 	
 	def has_class(self, name = None):
 		
