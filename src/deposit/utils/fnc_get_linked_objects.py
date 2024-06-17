@@ -2,6 +2,7 @@
 
 from collections import defaultdict
 from itertools import product
+import copy
 
 def get_linked_objects(store, classes, relations, progress=None):
 	# classes = [class_name, ...]
@@ -26,13 +27,13 @@ def get_linked_objects(store, classes, relations, progress=None):
 		else:
 			rels[(cls1, cls2)].add(lbl)
 			rels[(cls2, cls1)].add(store.reverse_relation(lbl))
-
+	
 	cls0 = classes[0]
 	objects0 = get_class_members(store, cls0)
 	if not objects0:
 		# no objects found in the first specified class
 		return set()
-
+	
 	cls_lookup = defaultdict(set)
 	collect = []
 	for cls in classes:
@@ -44,7 +45,7 @@ def get_linked_objects(store, classes, relations, progress=None):
 			for obj_id in objs:
 				cls_lookup[obj_id].add(cls)
 	classes = collect
-
+	
 	if (len(classes) == 1) and (classes[0] not in within_cls_rels):
 		# only one class and no within-class relations apply
 		return set([(obj_id,) for obj_id in objects0])
@@ -61,7 +62,7 @@ def get_linked_objects(store, classes, relations, progress=None):
 		connecting = connecting.difference(classes)
 		if connecting:
 			connecting = set.union(*[get_class_members(store, cls) for cls in connecting])
-
+	
 	paths = set()
 	cmax = len(objects0)
 	cnt = 1
@@ -75,7 +76,7 @@ def get_linked_objects(store, classes, relations, progress=None):
 		cnt += 1
 		paths_ = get_paths(store,
 			obj_id0, cls_lookup, rels, within_cls_rels,
-			asterisk_rels, classes, connecting, mandatory_classes,
+			asterisk_rels, classes, connecting, mandatory_classes
 		)
 		if paths_:
 			paths.update(paths_)
@@ -156,34 +157,40 @@ def get_paths(store, obj_id0, cls_lookup, rels, within_cls_rels, asterisk_rels, 
 			src = path[-1]
 			clss_src = cls_lookup.get(src, None)
 			src_within_cls_rels = get_within_class_relations(clss_src, within_cls_rels)
-
+			
 			if check_rule1(clss_src, mandatory_classes):
 				rule1 = True
-
+			
 			for tgt, label in store.G.iter_object_relations(src):
 				if skip_tgt(skip, tgt, path):
 					continue
-
+				
 				clss_tgt = cls_lookup.get(tgt, None)
 				if skip_unrelated_objects(clss_tgt, tgt, connecting):
 					continue
-
+				
 				clss = collect_class_combinations(clss_src, clss_tgt, rels, asterisk_rels)
-
+				
+				# Avoid paths with invalid within-class relations
+				if clss_tgt and found_classes.intersection(clss_tgt):
+					if (not within_cls_rels) and (not (src_within_cls_rels and (label in src_within_cls_rels or '*' in src_within_cls_rels) and clss_tgt & clss_src)):
+						continue
+				
 				# Directly add paths with valid within-class relations
+				found_classes_ = found_classes.copy()
 				if (clss_src and clss_tgt) and clss_src.intersection(clss_tgt):
 					if label in set.union(*list(within_cls_rels.get(class_name, set()) for class_name in clss_src)):
-						found_classes.update(clss_tgt)
+						found_classes_.update(clss_tgt)
 						add_valid_path(done, path + [tgt], cls_lookup)
 						continue
-
+				
 				found_asterisk, rule3 = process_rules(store, rule1, rule3, clss, clss_tgt, clss_src, within_cls_rels,
-													  rels, asterisk_rels, label, found_asterisk, src_within_cls_rels, found_classes)
-
-				if rule1 and (found_classes or clss_tgt):
-					update_found_classes(found_classes, clss_tgt)
-
-				queue.append([path + [tgt], found_asterisk.copy(), found_classes.copy(), rule1, rule3])
+													  rels, asterisk_rels, label, found_asterisk, src_within_cls_rels, found_classes_)
+				
+				if rule1 and (found_classes_ or clss_tgt):
+					update_found_classes(found_classes_, clss_tgt)
+				
+				queue.append([path + [tgt], found_asterisk.copy(), found_classes_, rule1, rule3])
 				found_next = True
 
 		if found_next:

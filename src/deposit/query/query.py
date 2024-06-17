@@ -176,7 +176,6 @@ class Query(object):
 			set([cls.name for cls in self._store.get_classes()]),
 			set(self._store.get_descriptor_names())
 		)
-		
 		selects = []
 		for class_name, descriptor_name in self.parse.selects:
 			if (class_name not in self.parse.classes) and (class_name not in ["*", "!*"]) and (not isinstance(class_name, tuple)):

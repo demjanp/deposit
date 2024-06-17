@@ -11,6 +11,9 @@ def store_q():
 	weird = store.add_class(";Weird.Cls, SELECT")
 	areas = store.add_class("Area")
 	
+	areas.add_relation(features, "contains")
+	features.add_relation(finds, "contains")
+	
 	a1 = areas.add_member()
 	a1.set_descriptor("Name", "A1")
 	a2 = areas.add_member()
@@ -239,6 +242,48 @@ def test_select_columns(store_q):
 		[(2, None), (7, 'A2.F4')],
 		[(2, None), (8, 'A2.F5')],
 		[(21, None), (22, 'A3.F1')],
+	] == [row for row in query]
+
+def test_select_3_columns_dir_1(store_q):
+	query = store_q.get_query("SELECT Find.Name, Feature.Name, Area.Name")
+	assert query.columns == [('Find', 'Name'), ('Feature', 'Name'), ('Area', 'Name')]
+	assert [
+		[(9, 'A1.F1.1'), (3, 'A1.F1'), (1, 'A1')],
+		[(10, 'A1.F1.2'), (3, 'A1.F1'), (1, 'A1')],
+		[(11, 'A1.F1.3'), (3, 'A1.F1'), (1, 'A1')],
+		[(12, 'A1.F2.1'), (4, 'A1.F2'), (1, 'A1')],
+		[(13, 'A1.F2.2'), (4, 'A1.F2'), (1, 'A1')],
+		[(14, 'A1.F3.1'), (5, 'A1.F3'), (1, 'A1')],
+		[(15, 'A2.F4.1'), (7, 'A2.F4'), (2, 'A2')],
+	] == [row for row in query]
+
+def test_select_3_columns_dir_2(store_q):
+	query = store_q.get_query("SELECT Area.Name, Feature.Name, Find.Name")
+	assert query.columns == [('Area', 'Name'), ('Feature', 'Name'), ('Find', 'Name')]
+	assert [
+		[(1, 'A1'), (3, 'A1.F1'), (9, 'A1.F1.1')],
+		[(1, 'A1'), (3, 'A1.F1'), (10, 'A1.F1.2')],
+		[(1, 'A1'), (3, 'A1.F1'), (11, 'A1.F1.3')],
+		[(1, 'A1'), (4, 'A1.F2'), (12, 'A1.F2.1')],
+		[(1, 'A1'), (4, 'A1.F2'), (13, 'A1.F2.2')],
+		[(1, 'A1'), (5, 'A1.F3'), (14, 'A1.F3.1')],
+		[(1, 'A1'), (6, 'A1.F4'), (None, None)],
+		[(2, 'A2'), (7, 'A2.F4'), (15, 'A2.F4.1')],
+		[(2, 'A2'), (8, 'A2.F5'), (None, None)],
+		[(21, 'A3'), (22, 'A3.F1'), (None, None)],
+	] == [row for row in query]
+
+def test_select_4_columns(store_q):
+	query = store_q.get_query("SELECT Find.Name, Find.Material, Feature.Name, Area.Name")
+	assert query.columns == [('Find', 'Name'), ('Find', 'Material'), ('Feature', 'Name'), ('Area', 'Name')]
+	assert [
+		[(9, 'A1.F1.1'), (9, 'Bone'), (3, 'A1.F1'), (1, 'A1')],
+		[(10, 'A1.F1.2'), (10, 'Ceramics'), (3, 'A1.F1'), (1, 'A1')],
+		[(11, 'A1.F1.3'), (11, 'Ceramics'), (3, 'A1.F1'), (1, 'A1')],
+		[(12, 'A1.F2.1'), (12, 'Bronze'), (4, 'A1.F2'), (1, 'A1')],
+		[(13, 'A1.F2.2'), (13, None), (4, 'A1.F2'), (1, 'A1')],
+		[(14, 'A1.F3.1'), (14, None), (5, 'A1.F3'), (1, 'A1')],
+		[(15, 'A2.F4.1'), (15, None), (7, 'A2.F4'), (2, 'A2')],
 	] == [row for row in query]
 
 def test_select_all_columns(store_q):
