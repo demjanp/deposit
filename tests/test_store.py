@@ -596,7 +596,7 @@ def test_datasource():
 		cursor.execute("SELECT tablename FROM pg_tables WHERE schemaname = '%s';" % (schema))
 		tables = [row[0] for row in cursor.fetchall()]
 		for table in tables:
-			cursor.execute("DROP TABLE %s.\"%s\";" % (schema, table))
+			cursor.execute("DROP TABLE %s.\"%s\" CASCADE;" % (schema, table))
 		conn.commit()
 		cursor.close()
 		conn.close()
@@ -627,6 +627,7 @@ def test_datasource():
 	fe12.set_location("Image", ("POLYGON", coords_polygon, 123))
 	
 	data0 = get_store_data(store_src)
+	
 	prepare_folder(tgt_folder)
 	store_src.save(path = os.path.join(tgt_folder, "data.json"))
 	store = deposit.Store()
@@ -640,6 +641,7 @@ def test_datasource():
 	store.load(path = os.path.join(tgt_folder, "data.pickle"))
 	data = get_store_data(store)
 	assert data == data0
+	
 	
 	connstr_db = "postgres://user:1111@127.0.0.1:5432/deposit_test?currentSchema=public"
 	connstr_rel = "postgres://user:1111@127.0.0.1:5432/deposit_test_rel?currentSchema=public"

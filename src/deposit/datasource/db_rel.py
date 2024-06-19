@@ -107,7 +107,7 @@ class DBRel(AbstractDBSource):
 		if cursor is None:
 			return False
 		for table in self.get_tables():
-			cursor.execute("DROP TABLE \"%s\";" % (table))
+			cursor.execute("DROP TABLE \"%s\" CASCADE;" % (table))
 		cursor.connection.commit()
 		self.disconnect()
 		self.set_identifier(None)
@@ -229,7 +229,7 @@ class DBRel(AbstractDBSource):
 			cursor.execute("SELECT * FROM %s.\"%s\";" % (schema, pg_relation_lookup[key],))
 			rows = cursor.fetchall()
 			for row in rows:
-				source, target, weight = row
+				_, source, target, weight = row
 				data_row = {src_: source, tgt_: target, lbl_: relation}
 				data_row_rev = {src_: target, tgt_: source, lbl_: "~" + relation}
 				if weight is not None:
@@ -487,7 +487,7 @@ class DBRel(AbstractDBSource):
 			)
 			return name in [row[0] for row in cursor.fetchall()]
 		
-		def create_table(name, columns, schema, cursor):
+		def create_table(name, columns, schema, cursor, primary=None):
 			
 			if check_table(name, schema, cursor):
 				cursor.execute("DROP TABLE IF EXISTS %s.\"%s\";" % (schema, name))
@@ -499,6 +499,8 @@ class DBRel(AbstractDBSource):
 						break
 				if not deleted:
 					raise Exception("Could not delete table \"%s\"." % (name))
+			if primary is not None:
+				columns += f", PRIMARY KEY({primary})"
 			cursor.execute("CREATE TABLE %s.\"%s\" (%s);" % (schema, name, columns))
 			cursor.connection.commit()
 			created = False
@@ -532,7 +534,7 @@ class DBRel(AbstractDBSource):
 				columns = "%s INTEGER" % (obj_column)
 			column_names = ", ".join([("\"%s\"" % name) for name in [obj_column] + descriptors])
 			table = "@%s" % (class_name)
-			create_table(table, columns, schema, cursor)
+			create_table(table, columns, schema, cursor, primary = obj_column)
 			data = [] # [{obj_column: obj_id, [descr_name]: json(value), ...}, ...]
 			for obj_id in sorted(obj_lookup[class_name]):
 				row = {obj_column: obj_id}
@@ -551,7 +553,7 @@ class DBRel(AbstractDBSource):
 					INSERT INTO %s.\"%s\" SELECT %s FROM json_populate_recordset(null::item_, %%s);
 				""" % (columns, schema, table, column_names), (json.dumps(data),))
 			
-			return locations	
+			return locations, obj_column
 		
 		identifier = self.get_identifier()
 		tables = self.get_current_tables()
@@ -592,7 +594,7 @@ class DBRel(AbstractDBSource):
 		class_order = {}
 		table = "classes"
 		columns = "pg_name TEXT, name TEXT, order_ INTEGER"
-		create_table(table, columns, schema, cursor)
+		create_table(table, columns, schema, cursor, primary = 'pg_name')
 		data = []
 		for row in class_nodes:
 			class_names.add(row[id_])
@@ -645,6 +647,13 @@ class DBRel(AbstractDBSource):
 				INSERT INTO %s.\"%s\" SELECT name, subclass FROM json_populate_recordset(null::item_, %%s);
 			""" % (columns, schema, table), (json.dumps(subclasses),))
 		
+		locations = set()  # [(obj_id, descriptor_name, json_data), ...]
+		obj_columns = {}  # {class_name: obj_column, ...}
+		for class_name in class_names:
+			locations_, obj_column = save_class(class_name, object_nodes, obj_lookup, class_descriptors, class_order, schema, cursor)
+			locations.update(locations_)
+			obj_columns[class_name] = obj_column
+		
 		relations = {}  # {pg_name: [dict(source, target, weight), ...], ...}
 		relation_classes = []  # [dict(pg_name, source, relation, target), ...]
 		for row in class_relations:
@@ -653,9 +662,9 @@ class DBRel(AbstractDBSource):
 			label = row[lbl_]
 			if label.startswith("~"):
 				continue
-			pg_name = "@%s_%s_%s" % (source, label, target)
+			pg_name = (source, label, target)
 			relations[pg_name] = []
-			relation_classes.append({"pg_name": pg_name, "source": source, "relation": label, "target": target})
+			relation_classes.append({"pg_name": "@%s_%s_%s" % pg_name, "source": source, "relation": label, "target": target})
 		for row in object_relations:
 			source = row[src_]
 			target = row[tgt_]
@@ -667,19 +676,21 @@ class DBRel(AbstractDBSource):
 			classes_tgt = class_lookup[target]
 			for source_cls in classes_src:
 				for target_cls in classes_tgt:
-					pg_name = "@%s_%s_%s" % (source_cls, label, target_cls)
+					pg_name = (source_cls, label, target_cls)
 					if pg_name not in relations:
 						relations[pg_name] = []
-						relation_classes.append({"pg_name": pg_name, "source": source_cls, "relation": label, "target": target_cls})
+						relation_classes.append({"pg_name": "@%s_%s_%s" % pg_name, "source": source_cls, "relation": label, "target": target_cls})
 					relations[pg_name].append({"source": source, "target": target, "weight": weight})
-		columns = "source INTEGER, target INTEGER, weight FLOAT"
-		for table in relations:
-			create_table(table, columns, schema, cursor)
+		for (source, label, target) in relations:
+			table = "@%s_%s_%s" % (source, label, target)
+			columns_table = f"rel_id SERIAL PRIMARY KEY, source INTEGER REFERENCES {schema}.\"@{source}\"({obj_columns[source]}), target INTEGER REFERENCES {schema}.\"@{target}\"({obj_columns[target]}), weight FLOAT"
+			columns = f"source INTEGER, target INTEGER, weight FLOAT"
+			create_table(table, columns_table, schema, cursor)
 			cursor.execute("""
 				DROP TYPE IF EXISTS item_;
 				CREATE TYPE item_ as (%s);
-				INSERT INTO %s.\"%s\" SELECT source, target, weight FROM json_populate_recordset(null::item_, %%s);
-			""" % (columns, schema, table), (json.dumps(relations[table]),))
+				INSERT INTO %s.\"%s\" (source, target, weight) SELECT source, target, weight FROM json_populate_recordset(null::item_, %%s);
+			""" % (columns, schema, table), (json.dumps(relations[(source, label, target)]),))
 		
 		table = "relations"
 		columns = "pg_name TEXT, source TEXT, relation TEXT, target TEXT"
@@ -689,10 +700,6 @@ class DBRel(AbstractDBSource):
 			CREATE TYPE item_ as (%s);
 			INSERT INTO %s.\"%s\" SELECT pg_name, source, relation, target FROM json_populate_recordset(null::item_, %%s);
 		""" % (columns, schema, table), (json.dumps(relation_classes),))
-		
-		locations = set()  # [(obj_id, descriptor_name, json_data), ...]
-		for class_name in class_names:
-			locations.update(save_class(class_name, object_nodes, obj_lookup, class_descriptors, class_order, schema, cursor))
 		
 		table = "locations"
 		columns = "id INTEGER, descriptor TEXT, location TEXT"
