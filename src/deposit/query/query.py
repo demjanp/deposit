@@ -103,9 +103,6 @@ class Query(object):
 	
 	def process(self):
 		
-		self._process()  # DEBUG
-		return  # DEBUG
-		
 		try:
 			self._process()
 		except:
