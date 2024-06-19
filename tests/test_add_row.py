@@ -111,7 +111,6 @@ def test_multi_level_relationships():
 	assert person.has_relation(city, "lives_in")
 	assert city.has_relation(district, "is_in")
 
-
 def test_repeating_values():
 	
 	store = deposit.Store()
@@ -137,11 +136,10 @@ def test_repeating_values():
 	
 	query = store.get_query("SELECT Area.Name, Feature.Name, Sample.Id, Sample.Note")
 	for row in query:
-		print(row)
 		vals = [row[0][1], row[1][1], row[2][1]]
 		assert row[3][1] == "_".join([str(val) for val in vals])
 
-def test_exact_match():
+def test_match_empty():
 	
 	store = deposit.Store()
 	data_rows_1 = [
@@ -150,7 +148,7 @@ def test_exact_match():
 		{('Sample', 'A'): 1, ('Sample', 'B'): 1, ('Sample', 'C'): None},
 	]
 	for data in data_rows_1:
-		store.add_data_row(data, exact_match=False)
+		store.add_data_row(data, match_empty=False)
 	query = store.get_query("SELECT Sample.A, Sample.B, Sample.C")
 	assert len(query) == 1
 	for row in query:
@@ -163,7 +161,7 @@ def test_exact_match():
 		{('Sample', 'A'): 1, ('Sample', 'B'): None, ('Sample', 'C'): None},
 	]
 	for data in data_rows_2:
-		store.add_data_row(data, exact_match=False)
+		store.add_data_row(data, match_empty=False)
 	query = store.get_query("SELECT Sample.A, Sample.B, Sample.C")
 	assert len(query) == 1
 	for row in query:
@@ -171,9 +169,9 @@ def test_exact_match():
 	
 	store.clear()
 	for data in data_rows_1:
-		store.add_data_row(data, exact_match=True)
+		store.add_data_row(data, match_empty=True)
 	for data in data_rows_2:
-		store.add_data_row(data, exact_match=True)
+		store.add_data_row(data, match_empty=True)
 	query = store.get_query("SELECT Sample.A, Sample.B, Sample.C")
 	assert [row for row in query] == [
 		[(1, 1), (1, 1), (1, 1)],
@@ -197,7 +195,7 @@ def test_exact_match():
 	check_rows = {}
 	for data in data_rows_3:
 		check_rows[data[('Sample', 'Id')]] = [data[('Sample', 'A')], data[('Sample', 'B')], data[('Sample', 'C')]]
-		store.add_data_row(data, exact_match=False)
+		store.add_data_row(data, match_empty=False)
 	query = store.get_query("SELECT Sample.Id, Sample.A, Sample.B, Sample.C")
 	for row in query:
 		assert check_rows[row[0][1]] == [row[1][1], row[2][1], row[3][1]]

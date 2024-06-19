@@ -217,7 +217,7 @@ def skip_tgt(skip, tgt, path):
 	return tgt in path
 
 def skip_unrelated_objects(clss_tgt, tgt, connecting):
-	return clss_tgt is None and tgt not in connecting
+	return (clss_tgt is None) and (tgt not in connecting)
 
 def collect_class_combinations(clss_src, clss_tgt, rels, asterisk_rels):
 	if clss_src and clss_tgt:

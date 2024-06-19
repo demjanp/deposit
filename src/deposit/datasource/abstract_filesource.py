@@ -197,6 +197,7 @@ class AbstractFileSource(AbstractDatasource):
 				return False
 		
 		store.set_datasource(self)
+		store.update_resource_urls()
 		
 		return True
 	

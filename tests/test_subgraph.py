@@ -32,7 +32,7 @@ def test_get_subgraph_basic(store):
 	obj2_sub = next((obj for obj in subgraph_objects if obj.get_descriptor("TestDescriptor") == "obj2"), None)
 	obj3_sub = next((obj for obj in subgraph_objects if obj.get_descriptor("TestDescriptor") == "obj3"), None)
 	obj4_sub = next((obj for obj in subgraph_objects if obj.get_descriptor("TestDescriptor") == "obj4"), None)
-
+	
 	assert obj1_sub is not None
 	assert obj2_sub is not None
 	assert obj3_sub is not None
@@ -64,7 +64,6 @@ def test_get_subgraph_including_related_objects(store):
 	assert obj1_sub is not None
 	assert obj2_sub is not None
 	assert obj3_sub is not None
-
 
 def test_get_subgraph_within_class_relations(store):
 	# Clear previous data
@@ -99,7 +98,6 @@ def test_get_subgraph_within_class_relations(store):
 	assert obj1_sub is not None
 	assert obj2_sub is None	 # This is correct based on the rules
 	assert obj3_sub is None	 # obj3 should not be included because it is only reachable through obj2
-
 
 def test_get_subgraph_empty_graph(store):
 	# Clear previous data
@@ -231,36 +229,95 @@ def test_get_subgraph_large_depth(store):
 def test_get_subgraph_multiple_classes(store):
 	# Clear previous data
 	store.clear()
-	obj1 = store.add_object()
-	obj2 = store.add_object()
-	obj3 = store.add_object()
 	
-	obj1.set_descriptor("TestDescriptor", "obj1")
-	obj2.set_descriptor("TestDescriptor", "obj2")
-	obj3.set_descriptor("TestDescriptor", "obj3")
+	finds = store.add_class("Find")
+	features = store.add_class("Feature")
+	areas = store.add_class("Area")
+	sites = store.add_class("Site")
 	
-	obj1.add_relation(obj2, "rel1")
-	obj2.add_relation(obj3, "rel2")
+	s1 = sites.add_member()
+	s1.set_descriptor("Name", "S1")
 	
-	cls1 = store.add_class("Class1")
-	cls2 = store.add_class("Class2")
+	a1 = areas.add_member()
+	a1.set_descriptor("Name", "A1")
+	a2 = areas.add_member()
+	a2.set_descriptor("Name", "A2")
 	
-	cls1.add_member(obj1.id)
-	cls1.add_member(obj2.id)
-	cls2.add_member(obj2.id)
+	fe11 = features.add_member()
+	fe11.set_descriptor("Name", "A1.F1")
+	fe12 = features.add_member()
+	fe12.set_descriptor("Name", "A1.F2")
+	fe13 = features.add_member()
+	fe13.set_descriptor("Name", "A1.F3")
+	fe14 = features.add_member()
+	fe14.set_descriptor("Name", "A1.F4")
+	fe24 = features.add_member()
+	fe24.set_descriptor("Name", "A2.F4")
+	fe25 = features.add_member()
+	fe25.set_descriptor("Name", "A2.F5")
 	
-	# Get subgraph
-	subgraph_store = store.get_subgraph([obj1])
+	f111 = finds.add_member()
+	f111.set_descriptor("Name", "A1.F1.1")
+	f112 = finds.add_member()
+	f112.set_descriptor("Name", "A1.F1.2")
+	f113 = finds.add_member()
+	f113.set_descriptor("Name", "A1.F1.3")
+	f121 = finds.add_member()
+	f121.set_descriptor("Name", "A1.F2.1")
+	f122 = finds.add_member()
+	f122.set_descriptor("Name", "A1.F2.2")
+	f131 = finds.add_member()
+	f131.set_descriptor("Name", "A1.F3.1")
+	f241 = finds.add_member()
+	f241.set_descriptor("Name", "A2.F4.1")
 	
-	subgraph_objects = list(subgraph_store.get_objects())
-	obj1_sub = next((o for o in subgraph_objects if o.get_descriptor("TestDescriptor") == "obj1"), None)
-	obj2_sub = next((o for o in subgraph_objects if o.get_descriptor("TestDescriptor") == "obj2"), None)
-	obj3_sub = next((o for o in subgraph_objects if o.get_descriptor("TestDescriptor") == "obj3"), None)
+	s1.add_relation(a1, "contains")
+	s1.add_relation(a2, "contains")
 	
-	# obj2 should be excluded due to class membership with obj1
-	assert obj1_sub is not None
-	assert obj2_sub is None
-	assert obj3_sub is None	 # obj3 should also be excluded as it's indirectly connected through obj2
+	a1.add_relation(fe11, "contains")
+	a1.add_relation(fe12, "contains")
+	a1.add_relation(fe13, "contains")
+	a1.add_relation(fe14, "contains")
+	a2.add_relation(fe24, "contains")
+	a2.add_relation(fe25, "contains")
+	
+	fe11.add_relation(f111, "contains")
+	fe11.add_relation(f112, "contains")
+	fe11.add_relation(f113, "contains")
+	fe12.add_relation(f121, "contains")
+	fe12.add_relation(f122, "contains")
+	fe13.add_relation(f131, "contains")
+	fe24.add_relation(f241, "contains")
+	
+	fe11.add_relation(fe12, "disturbs")
+	fe12.add_relation(fe14, "disturbs")
+	fe11.add_relation(fe13, "covers")
+	fe13.add_relation(fe14, "covers")
+	fe14.add_relation(fe11, "covers")
+	fe24.add_relation(fe25, "disturbs")
+	
+	f111.add_relation(f131, "similar")
+	f112.add_relation(f241, "similar")
+	
+	subgraph_store = store.get_subgraph([fe11, fe12])
+	
+	cls = subgraph_store.get_class("Feature")
+	names = sorted([obj.get_descriptor("Name") for obj in cls.get_members()])
+	assert names == ['A1.F1', 'A1.F2']
+	# A1.F3, F4 and all from A2 should be excluded as they are connected through within-class relations
+	
+	subgraph_store = store.get_subgraph([fe11, fe12, f111, f112, f121])
+	
+	cls = subgraph_store.get_class("Find")
+	names = sorted([obj.get_descriptor("Name") for obj in cls.get_members()])
+	assert names == ['A1.F1.1', 'A1.F1.2', 'A1.F2.1']
+	
+	cls = subgraph_store.get_class("Find")
+	for obj1 in cls.get_members():
+		found = set()
+		for obj2, label in obj1.get_relations():
+			found.add(label)
+		assert found == set(['~contains'])
 
 def test_get_subgraph_self_referencing_node(store):
     # Clear previous data

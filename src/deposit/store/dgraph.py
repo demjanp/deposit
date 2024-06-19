@@ -521,29 +521,29 @@ class DGraph(object):
 	
 	def objects_to_json(self, graph_attrs):
 		
-		return nx.node_link_data(self.objects_to_nx(), attrs = graph_attrs)
+		return nx.node_link_data(self.objects_to_nx(), **graph_attrs)
 	
 	def classes_to_json(self, graph_attrs):
 		
-		return nx.node_link_data(self.classes_to_nx(), attrs = graph_attrs)
+		return nx.node_link_data(self.classes_to_nx(), **graph_attrs)
 	
 	def members_to_json(self, graph_attrs):
 		
-		return nx.node_link_data(self.members_to_nx(), attrs = graph_attrs)
+		return nx.node_link_data(self.members_to_nx(), **graph_attrs)
 	
 	def objects_from_json(self, data, graph_attrs):
 		
-		G = nx.node_link_graph(data, directed = True, multigraph = True, attrs = graph_attrs)
+		G = nx.node_link_graph(data, directed = True, multigraph = True, **graph_attrs)
 		self.objects_from_nx(G)
 	
 	def classes_from_json(self, data, graph_attrs):
 		
-		G = nx.node_link_graph(data, directed = True, multigraph = True, attrs = graph_attrs)
+		G = nx.node_link_graph(data, directed = True, multigraph = True, **graph_attrs)
 		self.classes_from_nx(G)
 	
 	def members_from_json(self, data, graph_attrs):
 		
-		G = nx.node_link_graph(data, directed = True, multigraph = False, attrs = graph_attrs)
+		G = nx.node_link_graph(data, directed = True, multigraph = False, **graph_attrs)
 		self.members_from_nx(G)
 	
 	def _graph_to_pickle(self, G, names):

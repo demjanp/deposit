@@ -215,7 +215,7 @@ class DBRel(AbstractDBSource):
 		for row in rows:
 			pg_name, source, relation, target = row
 			pg_relation_lookup[(source, relation, target)] = pg_name
-			if (source == classless_) or (target == classless_):
+			if (source == target) or (source == classless_) or (target == classless_):
 				continue
 			data["class_relation_graph"][relations_].append(
 				{src_: source, tgt_: target, lbl_: relation}

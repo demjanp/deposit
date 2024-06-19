@@ -1,7 +1,6 @@
 import pytest
 from deposit import Store
 
-@pytest.fixture
 def setup_store():
     # Create a store and populate it with classes and objects
     store = Store()
@@ -44,55 +43,62 @@ def setup_store():
 
     return store, area1, feature1, feature2, find1, find2
 
-def test_basic_relationship_check(setup_store):
-    store, area1, feature1, feature2, find1, find2 = setup_store
+def test_basic_relationship_check():
+    store, area1, feature1, feature2, find1, find2 = setup_store()
 
     related_data = {("Area", "contains", "Feature", "Name"): "Feature 1"}
-    assert store._check_related(area1, related_data)
+    n_found = store._check_related(area1, related_data)
+    assert n_found == 1
 
-def test_nested_relationship_check(setup_store):
-    store, area1, feature1, feature2, find1, find2 = setup_store
+def test_nested_relationship_check():
+    store, area1, feature1, feature2, find1, find2 = setup_store()
 
     related_data = {("Feature", "contains", "Find", "Material"): "Stone"}
-    assert store._check_related(feature1, related_data)
+    n_found = store._check_related(feature1, related_data)
+    assert n_found == 1
 
-def test_missing_relationship(setup_store):
-    store, area1, feature1, feature2, find1, find2 = setup_store
+def test_missing_relationship():
+    store, area1, feature1, feature2, find1, find2 = setup_store()
 
     related_data = {("Feature", "contains", "Find", "Material"): "Gold"}
-    assert not store._check_related(feature1, related_data)
+    n_found = store._check_related(feature1, related_data)
+    assert n_found == -1
 
-def test_cyclic_relationship_handling(setup_store):
-    store, area1, feature1, feature2, find1, find2 = setup_store
+def test_cyclic_relationship_handling():
+    store, area1, feature1, feature2, find1, find2 = setup_store()
 
     # Introduce a cyclic relationship
     find1.add_relation(feature1, "contained_in")
 
     related_data = {("Feature", "contains", "Find", "Material"): "Stone"}
-    assert store._check_related(feature1, related_data)
+    n_found = store._check_related(feature1, related_data)
+    assert n_found == 1
 
-def test_empty_related_data(setup_store):
-    store, area1, feature1, feature2, find1, find2 = setup_store
+def test_empty_related_data():
+    store, area1, feature1, feature2, find1, find2 = setup_store()
 
     related_data = {}
-    assert store._check_related(area1, related_data)
-    assert store._check_related(feature1, related_data)
-    assert store._check_related(find1, related_data)
+    assert store._check_related(area1, related_data) == 0
+    assert store._check_related(feature1, related_data) == 0
+    assert store._check_related(find1, related_data) == 0
 
-def test_invalid_class_or_descriptor(setup_store):
-    store, area1, feature1, feature2, find1, find2 = setup_store
+def test_invalid_class_or_descriptor():
+    store, area1, feature1, feature2, find1, find2 = setup_store()
 
     related_data = {("Area", "contains", "Feature", "Type"): "Type C"}
-    assert not store._check_related(area1, related_data)
+    n_found = store._check_related(area1, related_data)
+    assert n_found == -1
 
     related_data = {("Area", "contains", "InvalidClass", "Name"): "Feature 1"}
-    assert not store._check_related(area1, related_data)
+    n_found = store._check_related(area1, related_data)
+    assert n_found == -1
 
-def test_complex_relationship_check(setup_store):
-    store, area1, feature1, feature2, find1, find2 = setup_store
+def test_complex_relationship_check():
+    store, area1, feature1, feature2, find1, find2 = setup_store()
 
     related_data = {
         ("Area", "contains", "Feature", "Name"): "Feature 1",
         ("Feature", "contains", "Find", "Material"): "Stone"
     }
-    assert store._check_related(area1, related_data)
+    n_found = store._check_related(area1, related_data)
+    assert n_found == 2

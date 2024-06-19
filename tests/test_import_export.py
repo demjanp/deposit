@@ -111,6 +111,10 @@ def setup():
 	finds = store.add_class("Find")
 	features = store.add_class("Feature")
 	areas = store.add_class("Area")
+	sites = store.add_class("Site")
+	
+	s1 = sites.add_member()
+	s1.set_descriptor("Name", "S1")
 	
 	a1 = areas.add_member()
 	a1.set_descriptor("Name", "A1")
@@ -152,6 +156,9 @@ def setup():
 	f131.set_descriptor("Name", "A1.F3.1")
 	f241 = finds.add_member()
 	f241.set_descriptor("Name", "A2.F4.1")
+	
+	s1.add_relation(a1, "contains")
+	s1.add_relation(a2, "contains")
 	
 	a1.add_relation(fe11, "contains")
 	a1.add_relation(fe12, "contains")
@@ -240,7 +247,6 @@ def test_import():
 	
 	tgt_store.import_store(src_store)
 	tgt_store.save(path=os.path.join(tgt_local_folder, "data.pickle"))
-	
 	assert get_structure(tgt_store) == get_structure(src_store)
 	
 	found_resources = {}
@@ -290,9 +296,15 @@ def test_export():
 	finds = ref_store.add_class("Find")
 	features = ref_store.add_class("Feature")
 	areas = ref_store.add_class("Area")
+	sites = ref_store.add_class("Site")
+	
+	s1 = sites.add_member()
+	s1.set_descriptor("Name", "S1")
 	
 	a1 = areas.add_member()
 	a1.set_descriptor("Name", "A1")
+	a2 = areas.add_member()
+	a2.set_descriptor("Name", "A2")
 	
 	fe11 = features.add_member()
 	fe11.set_descriptor("Name", "A1.F1")
@@ -316,6 +328,9 @@ def test_export():
 	f122 = finds.add_member()
 	f122.set_descriptor("Name", "A1.F2.2")
 	set_resource(f122, 7)
+	
+	s1.add_relation(a1, "contains")
+	s1.add_relation(a2, "contains")
 	
 	a1.add_relation(fe11, "contains")
 	a1.add_relation(fe12, "contains")

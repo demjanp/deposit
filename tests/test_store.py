@@ -8,6 +8,7 @@ from deposit.datasource.db_rel import DBRel
 from deposit import __version__
 from deposit.utils.fnc_files import (url_to_path)
 from deposit.utils.fnc_serialize import (value_to_str)
+from deposit.store.dresource import DResource
 
 import deposit
 
@@ -448,9 +449,98 @@ def test_add_data_row():
 	assert query.columns == [('Feature', 'Name'), ('Area', 'Name')]
 	assert [row for row in query] == [[(2, 'A1.F1'), (1, 'A1')], [(3, 'A1.F2'), (1, 'A1')], [(4, 'A1.F3'), (1, 'A1')], [(5, 'A1.F3'), (1, 'A1')], [(6, 'A1.F4'), (None, None)]]
 
-def test_datasource(store):
+def test_datasource():
+	
+	def setup_store():
+
+		store = deposit.Store()
+		
+		# Setting up classes and their members as described in the provided code
+		finds = store.add_class("Find")
+		features = store.add_class("Feature")
+		areas = store.add_class("Area")
+		sites = store.add_class("Site")
+		
+		sites.add_relation(areas, "contains")
+		areas.add_relation(features, "contains")
+		features.add_relation(finds, "contains")
+		
+		s1 = sites.add_member()
+		s1.set_descriptor("Name", "S1")
+		
+		a1 = areas.add_member()
+		a1.set_descriptor("Name", "A1")
+		a2 = areas.add_member()
+		a2.set_descriptor("Name", "A2")
+		
+		fe11 = features.add_member()
+		fe11.set_descriptor("Name", "A1.F1")
+		fe12 = features.add_member()
+		fe12.set_descriptor("Name", "A1.F2")
+		fe13 = features.add_member()
+		fe13.set_descriptor("Name", "A1.F3")
+		fe14 = features.add_member()
+		fe14.set_descriptor("Name", "A1.F4")
+		fe24 = features.add_member()
+		fe24.set_descriptor("Name", "A2.F4")
+		fe25 = features.add_member()
+		fe25.set_descriptor("Name", "A2.F5")
+		
+		f111 = finds.add_member()
+		f111.set_descriptor("Name", "A1.F1.1")
+		f112 = finds.add_member()
+		f112.set_descriptor("Name", "A1.F1.2")
+		f113 = finds.add_member()
+		f113.set_descriptor("Name", "A1.F1.3")
+		f121 = finds.add_member()
+		f121.set_descriptor("Name", "A1.F2.1")
+		f122 = finds.add_member()
+		f122.set_descriptor("Name", "A1.F2.2")
+		f131 = finds.add_member()
+		f131.set_descriptor("Name", "A1.F3.1")
+		f241 = finds.add_member()
+		f241.set_descriptor("Name", "A2.F4.1")
+		
+		s1.add_relation(a1, "contains")
+		s1.add_relation(a2, "contains")
+		
+		a1.add_relation(fe11, "contains")
+		a1.add_relation(fe12, "contains")
+		a1.add_relation(fe13, "contains")
+		a1.add_relation(fe14, "contains")
+		a2.add_relation(fe24, "contains")
+		a2.add_relation(fe25, "contains")
+		
+		fe11.add_relation(f111, "contains")
+		fe11.add_relation(f112, "contains")
+		fe11.add_relation(f113, "contains")
+		fe12.add_relation(f121, "contains")
+		fe12.add_relation(f122, "contains")
+		fe13.add_relation(f131, "contains")
+		fe24.add_relation(f241, "contains")
+		
+		fe11.add_relation(fe12, "disturbs")
+		fe12.add_relation(fe14, "disturbs")
+		fe11.add_relation(fe13, "covers")
+		fe13.add_relation(fe14, "covers")
+		fe14.add_relation(fe11, "covers")
+		fe24.add_relation(fe25, "disturbs")
+		
+		return store, fe11, fe12, fe24
+	
+	def clean_up(folder):
+		
+		if os.path.isdir(folder):
+			shutil.rmtree(folder)
 	
 	def get_store_data(store):
+		
+		def _get_value(value):
+			if isinstance(value, DResource):
+				if value.url is None:
+					return value_to_str(value)
+				return os.path.split(url_to_path(value.url))[-1]
+			return value_to_str(value)
 		
 		classes = []
 		cls_relations = []
@@ -474,8 +564,8 @@ def test_datasource(store):
 		for obj in store.get_objects():
 			objects.append([
 				obj.id,
-				natsorted([[descr.name, value_to_str(obj.get_descriptor(descr))] for descr in obj.get_descriptors()]),
-				natsorted([[descr.name, value_to_str(obj.get_location(descr))] for descr in obj.get_descriptors()]),
+				natsorted([[descr.name, _get_value(obj.get_descriptor(descr))] for descr in obj.get_descriptors()]),
+				natsorted([[descr.name, _get_value(obj.get_location(descr))] for descr in obj.get_descriptors()]),
 			])
 			for obj2, label in obj.get_relations():
 				obj_relations.append([obj.id, label, obj2.id])
@@ -511,10 +601,19 @@ def test_datasource(store):
 		cursor.close()
 		conn.close()
 	
-	pytest.obj1.set_resource_descriptor("Image", "tests//samples dir with spaces//image1.jpg")
-	pytest.obj2.set_resource_descriptor("Image", "tests//samples dir with spaces//image2.jpg")
-	pytest.obj2.set_resource_descriptor("File", "tests//samples dir with spaces//ščščťť.šľš")
-	pytest.obj3.set_resource_descriptor("File", "tests//samples dir with spaces//!@#$%^&() .xx.yy.zz")
+	src_folder = "tests//test_db_src"
+	tgt_folder = "tests//test_db_tgt"
+	
+	clean_up(src_folder)
+	clean_up(tgt_folder)
+	
+	store_src, fe11, fe12, fe24 = setup_store()
+	store_src.set_local_folder(src_folder)
+	
+	fe11.set_resource_descriptor("Image", "tests//samples dir with spaces//image1.jpg")
+	fe12.set_resource_descriptor("Image", "tests//samples dir with spaces//image2.jpg")
+	fe12.set_resource_descriptor("File", "tests//samples dir with spaces//ščščťť.šľš")
+	fe24.set_resource_descriptor("File", "tests//samples dir with spaces//!@#$%^&() .xx.yy.zz")
 	
 	coords_point = [1,2]
 	coords_polygon = [
@@ -524,21 +623,21 @@ def test_datasource(store):
 			[5,6],
 		],
 	]
-	pytest.obj1.set_location("Image", ("POINT", coords_point))
-	pytest.obj2.set_location("Image", ("POLYGON", coords_polygon, 123))
+	fe11.set_location("Image", ("POINT", coords_point))
+	fe12.set_location("Image", ("POLYGON", coords_polygon, 123))
 	
-	data0 = get_store_data(store)
-	prepare_folder(pytest.local_folder)
-	
-	store.save(path = os.path.join(pytest.local_folder, "data.json"))
-	store.clear()
-	store.load(path = os.path.join(pytest.local_folder, "data.json"))
+	data0 = get_store_data(store_src)
+	prepare_folder(tgt_folder)
+	store_src.save(path = os.path.join(tgt_folder, "data.json"))
+	store = deposit.Store()
+	store.load(path = os.path.join(tgt_folder, "data.json"))
 	data = get_store_data(store)
 	assert data == data0
 	
-	store.save(path = os.path.join(pytest.local_folder, "data.pickle"))
-	store.clear()
-	store.load(path = os.path.join(pytest.local_folder, "data.pickle"))
+	prepare_folder(tgt_folder)
+	store_src.save(path = os.path.join(tgt_folder, "data.pickle"))
+	store = deposit.Store()
+	store.load(path = os.path.join(tgt_folder, "data.pickle"))
 	data = get_store_data(store)
 	assert data == data0
 	
@@ -551,8 +650,9 @@ def test_datasource(store):
 	datasource.set_connstr(connstr_db)
 	datasource.set_identifier("test1")
 	datasource.create()
-	datasource.save(store)
-	store.clear()
+	datasource.save(store_src)
+	prepare_folder(tgt_folder)
+	store = deposit.Store()
 	store.load(connstr = connstr_db, identifier = "test1")
 	data = get_store_data(store)
 	assert data == data0
@@ -561,12 +661,15 @@ def test_datasource(store):
 	datasource.set_connstr(connstr_rel)
 	datasource.set_identifier("test1")
 	datasource.create()
-	datasource.save(store)
-	store.clear()
+	datasource.save(store_src)
+	prepare_folder(tgt_folder)
+	store = deposit.Store()
 	store.load(connstr = connstr_rel, identifier = "test1")
 	data = get_store_data(store)
 	assert data == data0
 	
 	prepare_db(connstr_db)
 	prepare_db(connstr_rel)
-	prepare_folder(pytest.local_folder)
+	clean_up(src_folder)
+	clean_up(tgt_folder)
+

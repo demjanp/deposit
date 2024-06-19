@@ -54,6 +54,7 @@ setup(
 		'natsort>=8.2.0, <9',
 		'networkit>=10.0, <11',
 		'networkx>=2.8.6, <3',
+		'numpy>=1.9.0, <2',
 		'openpyxl>=3.0.10, <4',
 		'Pillow>=9.2.0, <10',
 		'psycopg2>=2.9.3, <3',
