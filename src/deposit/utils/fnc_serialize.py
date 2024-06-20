@@ -32,9 +32,17 @@ GRAPH_ATTRS = dict(
 def try_numeric(value):
 	
 	if isinstance(value, str):
+		is_negative = False
+		if value.startswith("-"):
+			is_negative = True
+			value = value[1:]
 		if value.isdigit():
+			if is_negative:
+				return -int(value)
 			return int(value)
 		if value.replace(".","",1).isdigit():
+			if is_negative:
+				return -float(value)
 			return float(value)
 	return value
 
