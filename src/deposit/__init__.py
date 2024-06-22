@@ -1,8 +1,4 @@
-version_info = (1, 5, 4)
-
-__version__ = '.'.join(map(str, version_info))
-__title__ = 'Deposit'
-__date__ = "20.6.2024"
+from ._meta import title as __title__, date as __date__, __version__
 
 from deposit.store.store import Store
 
