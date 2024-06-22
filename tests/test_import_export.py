@@ -89,16 +89,16 @@ def get_structure(store):
 @pytest.fixture(scope='session', autouse=True)
 def setup():
 	
-	pytest.local_folder = "tests\\test db with spaces"
+	pytest.local_folder = os.path.join("tests", "test db with spaces")
 	pytest.resources = [
 		("https://picsum.photos/200", "200.jpeg", "200.jpeg", True, True),
-		("tests\\samples dir with spaces\\!@#$%^&() .xx.yy.zz", "__________.xx.yy.zz", "!@#$%^&() .xx.yy.zz", True, False),
-		("tests\\samples dir with spaces\\image1.jpg", "image1.jpg", "image1.jpg", True, True),
-		("tests\\samples dir with spaces\\image2.jpg", "image2.jpg", "image2.jpg", True, True),
-		("tests\\samples dir with spaces\\noext", "noext", "noext", True, False),
-		("tests\\samples dir with spaces\\test_pdf_1.pdf", "test_pdf_1.pdf", "test_pdf_1.pdf", True, False),
-		("tests\\samples dir with spaces\\test_pdf_2.pdf", "test_pdf_2.pdf", "test_pdf_2.pdf", True, False),
-		("tests\\samples dir with spaces\\ščščťť.šľš", "scsctt.sls", "ščščťť.šľš", True, False),
+		("tests/samples dir with spaces/!@#$%^&() .xx.yy.zz", "__________.xx.yy.zz", "!@#$%^&() .xx.yy.zz", True, False),
+		("tests/samples dir with spaces/image1.jpg", "image1.jpg", "image1.jpg", True, True),
+		("tests/samples dir with spaces/image2.jpg", "image2.jpg", "image2.jpg", True, True),
+		("tests/samples dir with spaces/noext", "noext", "noext", True, False),
+		("tests/samples dir with spaces/test_pdf_1.pdf", "test_pdf_1.pdf", "test_pdf_1.pdf", True, False),
+		("tests/samples dir with spaces/test_pdf_2.pdf", "test_pdf_2.pdf", "test_pdf_2.pdf", True, False),
+		("tests/samples dir with spaces/ščščťť.šľš", "scsctt.sls", "ščščťť.šľš", True, False),
 	]
 	pytest.names_resources = {}
 
@@ -211,7 +211,7 @@ def test_import():
 	
 	tgt_store = deposit.Store()
 	
-	tgt_local_folder = "tests\\tgt_db"
+	tgt_local_folder = "tests/tgt_db"
 	if os.path.isdir(tgt_local_folder):
 		shutil.rmtree(tgt_local_folder)
 	os.mkdir(tgt_local_folder)
@@ -277,7 +277,7 @@ def test_export():
 	src_store = deposit.Store()
 	src_store.load(path=os.path.join(pytest.local_folder, "data.pickle"))
 	
-	tgt_local_folder = "tests\\tgt_db"
+	tgt_local_folder = "tests/tgt_db"
 	if os.path.isdir(tgt_local_folder):
 		shutil.rmtree(tgt_local_folder)
 	os.mkdir(tgt_local_folder)

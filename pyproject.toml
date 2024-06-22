@@ -35,6 +35,7 @@ dependencies = [
 		'Unidecode>=1.3.4, <2',
 		'validators>=0.20.0, <2',
 		'cryptography>=38.0.1, <39',
+		'certifi>=2024.6.2',
 ]
 
 [project.urls]

@@ -6,8 +6,10 @@ from unidecode import unidecode
 import validators
 import tempfile
 import filecmp
+import certifi
 import imghdr
 import shutil
+import ssl
 import sys
 import os
 
@@ -138,20 +140,26 @@ def get_image_format(url):
 		return None
 	format = None
 	try:
-		format = imghdr.what(None, urlopen(url).read())
-	except:
-		print("GET_IMAGE_FORMAT ERROR:", sys.exc_info())
+		context = ssl.create_default_context(cafile=certifi.where())
+		with urlopen(url, context=context) as response:
+			format = imghdr.what(None, response.read())
+	except URLError as e:
+		print(f"GET_IMAGE_FORMAT URL error: {e}")
+	except Exception as e:
+		print(f"GET_IMAGE_FORMAT ERROR: {sys.exc_info()}")
 	return format
 
 
 def update_image_filename(filename, format):
 	
+	print(f"A:{filename}")  # DEBUG
 	if not format:
 		return filename
 	name, ext = os.path.splitext(filename)
 	ext = ext.strip()
 	if ext == "":
 		ext = "." + format
+	print(f"B:{name+ext}")  # DEBUG
 	return name + ext	
 
 
@@ -290,9 +298,10 @@ def copy_url(url_src, path_dst):
 		return False
 	
 	try:
-		with urlopen(url_src) as response:
+		context = ssl.create_default_context(cafile=certifi.where())
+		with urlopen(url_src, context=context) as response:
 			with open(path_dst, "wb") as f:
-				shutil.copyfileobj(response, f)
+				f.write(response.read())
 		return True
 	except:
 		print("COPY_URL ERROR 2:", sys.exc_info())

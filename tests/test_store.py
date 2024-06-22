@@ -186,11 +186,11 @@ def test_del_class_descriptor(store):
 
 def test_resource_descriptor(store):
 	
-	pytest.local_folder = "tests\\test db with spaces"
+	pytest.local_folder = os.path.join("tests", "test db with spaces")
 	if os.path.isdir(pytest.local_folder):
 		shutil.rmtree(pytest.local_folder)
 	store.set_local_folder(pytest.local_folder)
-	sample_folder = "tests\\samples dir with spaces"
+	sample_folder = os.path.join("tests", "samples dir with spaces")
 	pytest.res_names = []
 	for n, filename in enumerate(sorted(os.listdir(sample_folder))):
 		path_src = os.path.join(sample_folder, filename)
@@ -601,8 +601,8 @@ def test_datasource():
 		cursor.close()
 		conn.close()
 	
-	src_folder = "tests//test_db_src"
-	tgt_folder = "tests//test_db_tgt"
+	src_folder = os.path.join("tests","test_db_src")
+	tgt_folder = os.path.join("tests","test_db_tgt")
 	
 	clean_up(src_folder)
 	clean_up(tgt_folder)
@@ -610,10 +610,10 @@ def test_datasource():
 	store_src, fe11, fe12, fe24 = setup_store()
 	store_src.set_local_folder(src_folder)
 	
-	fe11.set_resource_descriptor("Image", "tests//samples dir with spaces//image1.jpg")
-	fe12.set_resource_descriptor("Image", "tests//samples dir with spaces//image2.jpg")
-	fe12.set_resource_descriptor("File", "tests//samples dir with spaces//ščščťť.šľš")
-	fe24.set_resource_descriptor("File", "tests//samples dir with spaces//!@#$%^&() .xx.yy.zz")
+	fe11.set_resource_descriptor("Image", os.path.join("tests","samples dir with spaces//image1.jpg"))
+	fe12.set_resource_descriptor("Image", os.path.join("tests","samples dir with spaces//image2.jpg"))
+	fe12.set_resource_descriptor("File", os.path.join("tests","samples dir with spaces//ščščťť.šľš"))
+	fe24.set_resource_descriptor("File", os.path.join("tests","samples dir with spaces//!@#$%^&() .xx.yy.zz"))
 	
 	coords_point = [1,2]
 	coords_polygon = [
