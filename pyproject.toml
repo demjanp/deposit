@@ -38,7 +38,7 @@ dependencies = [
 ]
 
 [project.urls]
-homepage = "https://github.com/demjanp/deposit-python"
+homepage = "https://github.com/demjanp/deposit"
 
 [tool.setuptools]
 packages = ["deposit"]
