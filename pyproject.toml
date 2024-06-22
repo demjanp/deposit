@@ -40,9 +40,6 @@ dependencies = [
 [project.urls]
 homepage = "https://github.com/demjanp/deposit"
 
-[tool.setuptools]
-packages = ["deposit"]
-
 [tool.setuptools_scm]
 write_to = "src/deposit/_version.py"
 
