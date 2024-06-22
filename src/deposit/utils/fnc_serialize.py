@@ -77,7 +77,7 @@ def value_to_str(value):
 
 def parse_connstr(connstr):
 	
-	values = re.match('postgres://(.*?):(.*?)@(.*?)/(.*)\?currentSchema=(.*)', connstr)
+	values = re.match(r'postgres://(.*?):(.*?)@(.*?)/(.*)\?currentSchema=(.*)', connstr)
 	if values is None:
 		return {}
 	username, password, host, dbname, schema = values.groups()

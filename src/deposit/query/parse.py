@@ -167,7 +167,7 @@ def remove_classless(substr, classes):
 	classless = set()
 	while True:
 		found = False
-		for m in re.finditer("!\*\.", substr):
+		for m in re.finditer(r"!\*\.", substr):
 			i, j = m.start(0), m.end(0)
 			key = get_new_key("CL", substr, classless.union(classes))
 			classless.add(key)
