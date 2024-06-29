@@ -129,7 +129,7 @@ def get_unique_path(filename, folder, existing_urls = None):
 	return os.path.normpath(os.path.abspath(os.path.join(folder, newname + ext)))
 
 
-def get_image_format(url):
+def get_image_format(url, timeout=10):
 	# return format (extension) of local image file or None if not recognized
 	
 	if is_local_url(url):
@@ -141,14 +141,11 @@ def get_image_format(url):
 	format = None
 	try:
 		context = ssl.create_default_context(cafile=certifi.where())
-		with urlopen(url, context=context) as response:
+		with urlopen(url, context=context, timeout=timeout) as response:
 			format = imghdr.what(None, response.read())
-	except URLError as e:
-		print(f"GET_IMAGE_FORMAT URL error: {e}")
 	except Exception as e:
 		print(f"GET_IMAGE_FORMAT ERROR: {sys.exc_info()}")
 	return format
-
 
 def update_image_filename(filename, format):
 	
@@ -272,19 +269,20 @@ def delete_stored(url, local_folder):
 	return src_filename, tgt_path
 
 
-def open_url(url):
+def open_url(url, timeout=10):
 	
 	if is_local_url(url):
 		path = url_to_path(url)
 		return open(path, "rb")
 	try:
-		return urlopen(url).read()
+		context = ssl.create_default_context(cafile=certifi.where())
+		return urlopen(url, context=context, timeout=timeout).read()
 	except:
 		print("OPEN_URL ERROR:", sys.exc_info())
 	return None
 
 
-def copy_url(url_src, path_dst):
+def copy_url(url_src, path_dst, timeout=10):
 	
 	if (not url_src) or (not path_dst):
 		return False
@@ -299,7 +297,7 @@ def copy_url(url_src, path_dst):
 	
 	try:
 		context = ssl.create_default_context(cafile=certifi.where())
-		with urlopen(url_src, context=context) as response:
+		with urlopen(url_src, context=context, timeout=timeout) as response:
 			with open(path_dst, "wb") as f:
 				f.write(response.read())
 		return True
