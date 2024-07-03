@@ -3,11 +3,11 @@ from deposit.store.dresource import DResource
 from urllib.request import pathname2url, url2pathname, urlopen
 from urllib.parse import urlparse, urljoin
 from unidecode import unidecode
+from PIL import Image
 import validators
 import tempfile
 import filecmp
 import certifi
-import imghdr
 import shutil
 import ssl
 import sys
@@ -138,13 +138,16 @@ def get_image_format(url, timeout=10):
 		if ext in IMAGE_EXTENSIONS:
 			return ext
 		return None
+
 	format = None
 	try:
 		context = ssl.create_default_context(cafile=certifi.where())
 		with urlopen(url, context=context, timeout=timeout) as response:
-			format = imghdr.what(None, response.read())
+			image = Image.open(response)
+			format = image.format.lower()
 	except Exception as e:
 		print(f"GET_IMAGE_FORMAT ERROR: {sys.exc_info()}")
+	
 	return format
 
 def update_image_filename(filename, format):
