@@ -2,7 +2,6 @@
 
 from collections import defaultdict
 from itertools import product
-import copy
 
 def get_linked_objects(store, classes, relations, progress=None):
 	# classes = [class_name, ...]
@@ -114,15 +113,15 @@ def get_class_names(store, cls):
 	if cls == "*":
 		return set([cls_.name for cls_ in store.get_classes()])
 	if cls == "!*":
-		return set(["!*"])
+		return {"!*"}
 	if isinstance(cls, tuple):
 		clss = set.union(*[set([cls_.name for cls_ in \
 			store.get_object(obj_id).get_classes()]) for \
 				obj_id in list(cls)])
 		if not clss:
-			clss = set(["!*"])
+			clss = {"!*"}
 		return clss
-	return set([cls])
+	return {cls}
 
 def get_within_class_rel(store, cls1, cls2):
 	clss1 = get_class_names(store, cls1)

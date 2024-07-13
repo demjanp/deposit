@@ -135,7 +135,7 @@ class SHP(AbstractExternalsource):
 				typ = type(data[i][col])
 				typ = shp_types[typ] if typ in shp_types else "C"
 				if (not col in types) or (
-					(typ != types[col]) and \
+					(typ != types[col]) and
 					(conv_order.index(typ) > conv_order.index(types[col]))
 				):
 					types[col] = typ

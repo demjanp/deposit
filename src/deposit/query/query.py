@@ -49,12 +49,10 @@ DResource
 '''
 
 from deposit.query.parse import Parse
-from deposit.store.abstract_dtype import AbstractDType
 
 from collections import defaultdict
 from natsort import (natsorted)
 from itertools import product
-import traceback
 import sys
 
 class Query(object):
@@ -139,7 +137,7 @@ class Query(object):
 				objs = set()
 				obj = _element_to_object(elements)
 				if obj is not None:
-					objs = set([obj])
+					objs = {obj}
 			return objs
 		
 		objects1 = _elements_to_objects(elements1)
@@ -285,7 +283,7 @@ class Query(object):
 						if value is not None:
 							if values[name] is not None:
 								if not isinstance(values[name], set):
-									values[name] = set([values[name]])
+									values[name] = {values[name]}
 								values[name].add(value)
 							else:
 								values[name] = value

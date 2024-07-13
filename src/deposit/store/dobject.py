@@ -3,8 +3,6 @@ from deposit.store.ddatetime import DDateTime
 from deposit.store.dgeometry import DGeometry
 from deposit.store.dresource import DResource
 
-from deposit.utils.fnc_geometry import (coords_to_wkt, wkt_to_coords)
-
 class DObject(AbstractDElement):
 	
 	def __init__(self, store, obj_id):

@@ -1,8 +1,6 @@
 from deposit import __version__
 from deposit.datasource.abstract_filesource import AbstractFileSource
 from deposit.store.abstract_delement import AbstractDElement
-from deposit.store.dobject import DObject
-from deposit.store.dclass import DClass
 
 from deposit.utils.fnc_serialize import (json_data_to_store, GRAPH_ATTRS)
 

@@ -179,6 +179,7 @@ def get_free_subfolder(local_folder):
 		return os.path.normpath(os.path.abspath(found_dirs[min(found_dirs.keys())]))
 	
 	n_max = max(dir_nums) + 1 if dir_nums else 0
+	n = 0
 	for n in range(n_max + 1):
 		if n not in dir_nums:
 			break

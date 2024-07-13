@@ -251,11 +251,15 @@ class Store(object):
 	def flush_added_deleted(self):
 		
 		for path in self._added:
+			if not os.path.isfile(path):
+				continue
 			filename = os.path.basename(path)
 			tgt_path = os.path.join(get_named_path("_deleted", self.get_folder()), filename)
 			shutil.move(path, tgt_path)
 		
 		for filename, path in self._deleted:
+			if not os.path.isfile(path):
+				continue
 			filename = os.path.basename(path)
 			tgt_path = get_unique_path(filename, get_free_subfolder(self.get_folder()))
 			shutil.move(path, tgt_path)
@@ -733,7 +737,7 @@ class Store(object):
 			if cls in classes_done:
 				continue
 			tier_relations = set()
-			tier_classes = set([cls])
+			tier_classes = {cls}
 			classes_done.add(cls)
 			for row in relations_one_way:
 				if row[2] == cls:
@@ -808,7 +812,7 @@ class Store(object):
 		def _get_related_data(obj, tier_relations, store):
 			# get data from ancestors of obj where (cls2, label, cls1) is in tier_relations
 			related_data = {}  # {(cls1, ~label, cls2, descriptor_name): value, ...}
-			queue = set([obj.id])
+			queue = {obj.id}
 			done = set()
 			while queue:
 				orig_id = queue.pop()
@@ -896,7 +900,7 @@ class Store(object):
 			if cls in classes_done:
 				continue
 			tier_relations = set()
-			tier_classes = set([cls.name])
+			tier_classes = {cls.name}
 			classes_done.add(cls.name)
 			for row in relations:
 				if row[2] == cls:

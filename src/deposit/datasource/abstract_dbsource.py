@@ -7,7 +7,6 @@ from deposit.utils.fnc_serialize import (
 )
 from deposit.utils.fnc_files import (sanitize_filename)
 
-from collections import defaultdict
 from natsort import natsorted
 import datetime, time
 import psycopg2

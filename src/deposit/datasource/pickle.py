@@ -2,9 +2,6 @@ from deposit import __version__
 from deposit.datasource.abstract_filesource import AbstractFileSource
 
 import pickle
-import copy
-import sys
-import os
 
 class Pickle(AbstractFileSource):
 	

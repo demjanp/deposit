@@ -31,17 +31,17 @@ def test_add_object(store):
 	pytest.obj3 = store.add_object()
 	pytest.obj4 = store.add_object()
 	
-	assert store.get_objects() == set([pytest.obj1, pytest.obj2, pytest.obj3, pytest.obj4])
+	assert store.get_objects() == {pytest.obj1, pytest.obj2, pytest.obj3, pytest.obj4}
 
 def test_delete_object(store):
 	
 	store.del_object(pytest.obj2)
 	
-	assert store.get_objects() == set([pytest.obj1, pytest.obj3, pytest.obj4])
+	assert store.get_objects() == {pytest.obj1, pytest.obj3, pytest.obj4}
 	
 	pytest.obj2 = store.add_object()
 	
-	assert store.get_objects() == set([pytest.obj1, pytest.obj2, pytest.obj3, pytest.obj4])
+	assert store.get_objects() == {pytest.obj1, pytest.obj2, pytest.obj3, pytest.obj4}
 
 def test_add_class(store):
 	
@@ -65,8 +65,8 @@ def test_add_member(store):
 	pytest.clsB.add_member(pytest.obj3)
 	pytest.clsB.add_member(pytest.obj4)
 	
-	assert pytest.clsA.get_members() == set([pytest.obj1, pytest.obj2])
-	assert pytest.clsB.get_members() == set([pytest.obj3, pytest.obj4])
+	assert pytest.clsA.get_members() == {pytest.obj1, pytest.obj2}
+	assert pytest.clsB.get_members() == {pytest.obj3, pytest.obj4}
 
 def test_add_subclass(store):
 	
@@ -77,10 +77,10 @@ def test_add_subclass(store):
 	assert pytest.clsB.get_subclasses() == [pytest.clsA]
 	assert pytest.clsA.get_superclasses() == [pytest.clsB]
 	
-	assert pytest.clsB.get_members() == set([pytest.obj1, pytest.obj2, pytest.obj3, pytest.obj4])
+	assert pytest.clsB.get_members() == {pytest.obj1, pytest.obj2, pytest.obj3, pytest.obj4}
 	pytest.clsB.del_subclass(pytest.clsA)
 	
-	assert pytest.clsB.get_members() == set([pytest.obj3, pytest.obj4])
+	assert pytest.clsB.get_members() == {pytest.obj3, pytest.obj4}
 
 def test_add_relation(store):
 	
@@ -88,16 +88,17 @@ def test_add_relation(store):
 	pytest.obj1.add_relation(pytest.obj4, "A-B")
 	pytest.obj2.add_relation(pytest.obj1, "A-A", weight = 0.123)
 	
-	assert set(pytest.obj1.get_relations()) == set([(pytest.obj2, "~A-A"), (pytest.obj3, "A-B"), (pytest.obj4, "A-B")])
-	assert set(pytest.obj1.get_relations(pytest.obj2)) == set([(pytest.obj2, "~A-A")])
+	assert set(pytest.obj1.get_relations()) == {(pytest.obj2, "~A-A"), (pytest.obj3, "A-B"), (pytest.obj4, "A-B")}
+	assert set(pytest.obj1.get_relations(pytest.obj2)) == {(pytest.obj2, "~A-A")}
 	assert pytest.obj2.get_relation_weight(pytest.obj1, "A-A") == 0.123
 
 def test_add_class_relation(store):
 	
 	pytest.clsA.add_relation(pytest.clsB, "ClsA-B")
 	
-	assert set(pytest.clsA.get_relations()) == set([(pytest.clsB, 'ClsA-B')])
-	assert set(pytest.clsA.get_object_relations()) == set([(pytest.clsA, 'A-A'), (pytest.clsA, '~A-A'), (pytest.clsB, 'A-B')])
+	assert set(pytest.clsA.get_relations()) == {(pytest.clsB, 'ClsA-B')}
+	assert set(pytest.clsA.get_object_relations()) == {(pytest.clsA, 'A-A'), (pytest.clsA, '~A-A'),
+	                                                   (pytest.clsB, 'A-B')}
 
 def test_add_descriptor(store):	
 	
@@ -113,8 +114,8 @@ def test_add_descriptor(store):
 	assert sorted(pytest.obj1.get_descriptor_names()) == ['Descr A1', 'Descr A2']
 	assert sorted(pytest.obj2.get_descriptor_names()) == ['Descr A1']
 	assert sorted(pytest.obj3.get_descriptor_names()) == ['Descr B']
-	assert set(pytest.clsA.get_object_descriptor_names()) == set(['Descr A1', 'Descr A2'])
-	assert set(pytest.clsB.get_object_descriptor_names()) == set(['Descr B'])
+	assert set(pytest.clsA.get_object_descriptor_names()) == {'Descr A1', 'Descr A2'}
+	assert set(pytest.clsB.get_object_descriptor_names()) == {'Descr B'}
 	assert sorted(store.get_descriptor_names()) == ['Descr A1', 'Descr A2', 'Descr B']
 
 def test_add_class_descriptor(store):
@@ -135,7 +136,7 @@ def test_rename_class(store):
 	clsA_ = store.get_class("Cls A_")
 	
 	assert sorted(store.get_class_names()) == ['Cls A_', 'Cls B', 'Descr A1', 'Descr A2', 'Descr B', 'Descr C_A1', 'Descr C_A2', 'Descr C_B']
-	assert clsA_.get_members() == set([pytest.obj1, pytest.obj2])
+	assert clsA_.get_members() == {pytest.obj1, pytest.obj2}
 
 def test_set_relation_weight(store):
 	
@@ -149,7 +150,7 @@ def test_del_member(store):
 	
 	pytest.clsA.del_member(pytest.obj1)
 	
-	assert pytest.clsA.get_members() == set([pytest.obj2])
+	assert pytest.clsA.get_members() == {pytest.obj2}
 	
 	pytest.clsA.add_member(pytest.obj2)
 
@@ -157,7 +158,7 @@ def test_del_relation(store):
 	
 	pytest.obj1.del_relation(pytest.obj3, "A-B")
 	
-	assert set(pytest.obj1.get_relations()) == set([(pytest.obj2, "~A-A"), (pytest.obj4, "A-B")])
+	assert set(pytest.obj1.get_relations()) == {(pytest.obj2, "~A-A"), (pytest.obj4, "A-B")}
 	
 	pytest.obj1.add_relation(pytest.obj3, "A-B")
 
@@ -410,9 +411,7 @@ def test_add_data_row():
 			("Area", "Name"): "A1",
 			("Feature", "Name"): "A1.F1",
 		},
-		relations = set([
-			("Area", "contains", "Feature"),
-		]),
+		relations ={("Area", "contains", "Feature")},
 	)
 	store.add_data_row(
 		data = {
@@ -436,7 +435,7 @@ def test_add_data_row():
 			("Area", "Name"): "A1",
 			("Feature", "Name"): "A1.F3",
 		},
-		unique = set(["Feature"])
+		unique ={"Feature"}
 	)
 	store.add_data_row(
 		data = {

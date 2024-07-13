@@ -412,7 +412,7 @@ class DBRel(AbstractDBSource):
 				for row in rows:
 					source_id, target_id = row
 					if rel not in data["objects"][source_id]["relations"]:
-						data["objects"][source_id]["relations"][rel] = dict(\
+						data["objects"][source_id]["relations"][rel] = dict(
 							objects = [],
 							weights = {},
 						)

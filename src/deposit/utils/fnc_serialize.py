@@ -16,7 +16,6 @@ import datetime
 import hashlib
 import base64
 import uuid
-import json
 import html
 import re
 import os
@@ -125,6 +124,8 @@ def legacy_data_to_store(data, store, path, progress = None):
 		store.G.add_class(name, cls)
 		store._max_order = max(store._max_order, order)
 	
+	cnt = 0
+	cmax = 0
 	if progress is not None:
 		cmax = len(data["objects"]) + len(data["classes"]) + store.G.n_objects() + store.G.n_classes()
 		cnt = 1

@@ -1,7 +1,7 @@
 import warnings
 with warnings.catch_warnings():
-	 warnings.simplefilter("ignore")
-	 import networkit as nk
+	warnings.simplefilter("ignore")
+	import networkit as nk
 import networkx as nx
 from itertools import product
 
@@ -79,7 +79,7 @@ class DGraph(object):
 		
 		node_id = self._GCM_lookup[obj_id]
 		ancestors = set()
-		queue = set([node_id])
+		queue = {node_id}
 		while queue:
 			for src in self._GCM.iterInNeighbors(queue.pop()):
 				if src not in ancestors:
@@ -256,7 +256,7 @@ class DGraph(object):
 		
 		node_id = self._GCM_lookup[name]
 		descendants = set()
-		nk.traversal.Traversal.DFSfrom(self._GCM, node_id, lambda node: descendants.add(node))
+		nk.graph.Traversal.DFSfrom(self._GCM, node_id, lambda node: descendants.add(node))
 		descendants.remove(node_id)
 		for node in descendants:
 			yield self._GCM_names[node]
@@ -273,7 +273,7 @@ class DGraph(object):
 		
 		node_id = self._GCM_lookup[child]
 		ancestors = set()
-		queue = set([node_id])
+		queue = {node_id}
 		while queue:
 			for src in self._GCM.iterInNeighbors(queue.pop()):
 				if src not in ancestors:

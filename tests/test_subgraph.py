@@ -317,29 +317,29 @@ def test_get_subgraph_multiple_classes(store):
 		found = set()
 		for obj2, label in obj1.get_relations():
 			found.add(label)
-		assert found == set(['~contains'])
+		assert found == {'~contains'}
 
 def test_get_subgraph_self_referencing_node(store):
-    # Clear previous data
-    store.clear()
-    obj = store.add_object()
-    obj.set_descriptor("TestDescriptor", "self_node")
-    obj.add_relation(obj, "self_rel")
-    
-    # Get subgraph
-    subgraph_store = store.get_subgraph([obj])
-    
-    subgraph_objects = list(subgraph_store.get_objects())
-    obj_sub = next((o for o in subgraph_objects if o.get_descriptor("TestDescriptor") == "self_node"), None)
-    
-    assert obj_sub is not None
-    assert len(subgraph_objects) == 1
-    # Convert generator to list for comparison
-    relations = list(obj_sub.get_relations())
-    expected_relations = [(obj_sub, "self_rel"), (obj_sub, "~self_rel")]
+	# Clear previous data
+	store.clear()
+	obj = store.add_object()
+	obj.set_descriptor("TestDescriptor", "self_node")
+	obj.add_relation(obj, "self_rel")
+	
+	# Get subgraph
+	subgraph_store = store.get_subgraph([obj])
+	
+	subgraph_objects = list(subgraph_store.get_objects())
+	obj_sub = next((o for o in subgraph_objects if o.get_descriptor("TestDescriptor") == "self_node"), None)
+	
+	assert obj_sub is not None
+	assert len(subgraph_objects) == 1
+	# Convert generator to list for comparison
+	relations = list(obj_sub.get_relations())
+	expected_relations = [(obj_sub, "self_rel"), (obj_sub, "~self_rel")]
 
-    # Sort the lists to avoid order issues
-    assert sorted(relations) == sorted(expected_relations)
+	# Sort the lists to avoid order issues
+	assert sorted(relations) == sorted(expected_relations)
 
 def test_get_subgraph_empty_input(store):
 	# Clear previous data
