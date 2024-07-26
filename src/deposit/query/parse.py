@@ -167,7 +167,7 @@ def remove_classless(substr, classes):
 	classless = set()
 	while True:
 		found = False
-		for m in re.finditer("!\*\.", substr):
+		for m in re.finditer(r'!\*\.', substr):
 			i, j = m.start(0), m.end(0)
 			key = get_new_key("CL", substr, classless.union(classes))
 			classless.add(key)
@@ -185,7 +185,7 @@ def remove_bracketed_all(substr):
 	bracketed = {}
 	while True:
 		found = False
-		for m in re.finditer(r"OBJ+\(.*?\)", substr):
+		for m in re.finditer(r'OBJ+\(.*?\)', substr):
 			i, j = m.start(0), m.end(0)
 			ids = [id_.strip() for id_ in substr[i+4:j-1].split(",")]
 			if not False in [id_.isdigit() for id_ in ids]:
