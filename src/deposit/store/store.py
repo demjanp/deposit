@@ -348,7 +348,7 @@ class Store(object):
 	
 	def get_resource_urls(self):
 		
-		return set(self._resources.keys())
+		return set([key for key in self._resources.keys() if key is not None])
 	
 	def store_resource(self, url: str, filename: str) -> tuple[str, bool]:
 		# if possible, store resource locally
