@@ -152,14 +152,12 @@ def get_image_format(url, timeout=10):
 
 def update_image_filename(filename, format):
 	
-	print(f"A:{filename}")  # DEBUG
 	if not format:
 		return filename
 	name, ext = os.path.splitext(filename)
 	ext = ext.strip()
 	if ext == "":
 		ext = "." + format
-	print(f"B:{name+ext}")  # DEBUG
 	return name + ext	
 
 
