@@ -47,10 +47,7 @@ def get_temp_path(subdir = "temp", appdir = "deposit"):
 	
 	tempdir = os.path.normpath(os.path.abspath(os.path.join(tempfile.gettempdir(), appdir, subdir)))
 	if not os.path.isdir(tempdir):
-		try:
-			os.makedirs(tempdir)
-		except:
-			print("Dir not created: %s" % tempdir)
+		os.makedirs(tempdir)
 	return tempdir
 
 
@@ -197,7 +194,7 @@ def get_updated_local_url(url, local_folder):
 	path = url_to_path(url)
 	if os.path.normpath(os.path.abspath(os.path.split(os.path.dirname(path))[0])) == local_folder:
 		if os.path.isfile(path):
-			return url
+			return as_url(url)
 	
 	filename = os.path.basename(path)
 	for dirname in os.listdir(local_folder):
@@ -238,11 +235,7 @@ def store_locally(url, filename, local_folder, existing_urls = None):
 	
 	filename = sanitize_filename(filename)
 	
-	try:
-		path_dst = get_unique_path(filename, get_free_subfolder(local_folder), existing_urls)
-	except:
-		print(sys.exc_info())
-		return None
+	path_dst = get_unique_path(filename, get_free_subfolder(local_folder), existing_urls)
 	
 	if not copy_url(url, path_dst):
 		return None
@@ -276,13 +269,8 @@ def open_url(url, timeout=10):
 	if is_local_url(url):
 		path = url_to_path(url)
 		return open(path, "rb")
-	try:
-		context = ssl.create_default_context(cafile=certifi.where())
-		return urlopen(url, context=context, timeout=timeout).read()
-	except:
-		print("OPEN_URL ERROR:", sys.exc_info())
-	return None
-
+	context = ssl.create_default_context(cafile=certifi.where())
+	return urlopen(url, context=context, timeout=timeout).read()
 
 def copy_url(url_src, path_dst, timeout=10):
 	
@@ -290,24 +278,14 @@ def copy_url(url_src, path_dst, timeout=10):
 		return False
 	
 	if is_local_url(url_src):
-		try:
-			shutil.copy2(url_to_path(url_src), path_dst)
-			return True
-		except:
-			print("COPY_URL ERROR 1:", sys.exc_info())
-		return False
-	
-	try:
-		context = ssl.create_default_context(cafile=certifi.where())
-		with urlopen(url_src, context=context, timeout=timeout) as response:
-			with open(path_dst, "wb") as f:
-				f.write(response.read())
+		shutil.copy2(url_to_path(url_src), path_dst)
 		return True
-	except:
-		print("COPY_URL ERROR 2:", sys.exc_info())
 	
-	return False
-
+	context = ssl.create_default_context(cafile=certifi.where())
+	with urlopen(url_src, context=context, timeout=timeout) as response:
+		with open(path_dst, "wb") as f:
+			f.write(response.read())
+	return True
 
 def copy_resources(resources, src_folder, dst_folder, progress = None):
 	# resources = {url: DResource, ...}

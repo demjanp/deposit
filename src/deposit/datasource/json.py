@@ -1,8 +1,7 @@
 from deposit import __version__
 from deposit.datasource.abstract_filesource import AbstractFileSource
 from deposit.store.abstract_delement import AbstractDElement
-
-from deposit.utils.fnc_serialize import (json_data_to_store, GRAPH_ATTRS)
+from deposit.utils.fnc_serialize import (update_local_folder, json_data_to_store, GRAPH_ATTRS)
 
 import json
 
@@ -43,8 +42,10 @@ class JSON(AbstractFileSource):
 		
 		with open(path, "r") as f:
 			data = json.load(f)
+		
 		return data
 	
-	def data_to_store(self, data, store):
+	def data_to_store(self, data, store, path):
 		
-		return json_data_to_store(data, store, self._progress)
+		update_local_folder(data)
+		return json_data_to_store(data, store, path, self._progress)

@@ -191,7 +191,7 @@ class AbstractFileSource(AbstractDatasource):
 					store.callback_error("LOAD ERROR: Invalid file format")
 					return False
 			
-			if not self.data_to_store(data, store):
+			if not self.data_to_store(data, store, path):
 				store.callback_error("LOAD ERROR: Loading data")
 				return False
 		
@@ -200,7 +200,7 @@ class AbstractFileSource(AbstractDatasource):
 		
 		return True
 	
-	def data_to_store(self, data, store):
+	def data_to_store(self, data, store, path):
 		# re-implement
 		
 		return False

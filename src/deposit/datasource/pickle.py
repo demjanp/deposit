@@ -1,5 +1,7 @@
 from deposit import __version__
 from deposit.datasource.abstract_filesource import AbstractFileSource
+from deposit.utils.fnc_serialize import update_local_folder
+from deposit.utils.fnc_files import as_url
 
 import pickle
 
@@ -45,13 +47,14 @@ class Pickle(AbstractFileSource):
 			data = pickle.load(f, fix_imports = False)
 		return data
 	
-	def data_to_store(self, data, store):
+	def data_to_store(self, data, store, path):
 		
+		update_local_folder(data)
 		store.clear()
 		store.G.objects_from_pickle(data["object_relation_graph"])
 		store.G.classes_from_pickle(data["class_relation_graph"])
 		store.G.members_from_pickle(data["class_membership_graph"])
-		store._resources = data["resources"]
+		store._resources = dict([(as_url(url), data["resources"][url]) for url in data["resources"] if url and data["resources"][url]])
 		store._local_folder = data["local_folder"]
 		store._max_order = data["max_order"]
 		store._user_tools = data["user_tools"]

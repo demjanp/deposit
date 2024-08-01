@@ -88,6 +88,12 @@ def parse_connstr(connstr):
 		schema = schema,
 	)
 
+def update_local_folder(data):
+	
+	local_folder = data.get("local_folder")
+	if local_folder and not os.path.isdir(local_folder):
+		data["local_folder"] = None
+
 def legacy_data_to_store(data, store, path, progress = None):
 	
 	def _as_key(obj_id, is_json):
@@ -102,11 +108,10 @@ def legacy_data_to_store(data, store, path, progress = None):
 	
 	store.clear()
 	
-	local_folder = None
-	if "local_folder" in data:
-		local_folder = data["local_folder"]
+	local_folder = data.get("local_folder")
+	if local_folder and os.path.isdir(local_folder):
 		store.set_local_folder(local_folder)
-	if local_folder is None:	
+	else:
 		local_folder = os.path.normpath(os.path.abspath(os.path.dirname(path)))
 	
 	is_json = False
@@ -223,7 +228,7 @@ def legacy_data_to_store(data, store, path, progress = None):
 				if url is not None:
 					value = dict(
 						dtype = "DResource",
-						value = (url, filename, is_stored, is_image), 
+						value = (as_url(url), filename, is_stored, is_image), 
 					)
 			
 			if value is not None:
@@ -280,7 +285,22 @@ def legacy_data_to_store(data, store, path, progress = None):
 	
 	return True
 
-def json_data_to_store(data, store, progress = None):
+def json_data_to_store(data, store, path, progress = None):
+	
+	def _update_url(data, local_folder):
+		
+		descriptors = data.get("descriptors", {})
+		for name in descriptors:
+			value = descriptors[name]
+			if isinstance(value, dict) and (value["dtype"] == "DResource"):
+				url, filename, is_stored, is_image = value["value"]
+				if is_stored:
+					url = get_updated_local_url(url, local_folder)
+				data["descriptors"][name]["value"] = (as_url(url), filename, is_stored, is_image)
+	
+	local_folder = data.get("local_folder")
+	if not local_folder:
+		local_folder = os.path.normpath(os.path.abspath(os.path.dirname(path)))
 	
 	n_nodes = len(data["object_relation_graph"]["nodes"]) + len(data["class_relation_graph"]["nodes"])
 	cmax = 4*n_nodes
@@ -294,6 +314,7 @@ def json_data_to_store(data, store, progress = None):
 				return True
 			progress.update_state(value = cnt, maximum = cmax)
 		cnt += 1
+		_update_url(node["data"], local_folder)
 		node["data"] = DObject(store, node["id"]).from_dict_1(node["data"])
 	for node in data["class_relation_graph"]["nodes"]:
 		if progress is not None:
