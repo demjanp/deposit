@@ -23,7 +23,7 @@ def as_url(value):
 		return value
 	if validators.url(value):
 		return value
-	value = os.path.normpath(os.path.abspath(value))
+	value = os.path.normpath(os.path.abspath(value.replace('\\', '/')))
 	if value.startswith("\\\\"):
 		return "file:" + pathname2url(value)
 	return urljoin("file:", pathname2url(value))
