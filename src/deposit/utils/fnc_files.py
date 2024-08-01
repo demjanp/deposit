@@ -18,6 +18,8 @@ MAX_FILES_PER_DIR = 5000
 
 def as_url(value):
 	
+	if value is None:
+		return value
 	value = str(value)
 	if is_local_url(value):
 		return value

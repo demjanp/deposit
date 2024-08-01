@@ -277,8 +277,9 @@ class Store(object):
 		if url_new != resource.url:
 			if resource.url in self._resources:
 				del self._resources[resource.url]
-			resource.value = (url_new, resource.filename, resource.is_stored, resource.is_image)
-			self._resources[url_new] = resource
+			if url_new is not None:
+				resource.value = (url_new, resource.filename, resource.is_stored, resource.is_image)
+				self._resources[url_new] = resource
 		return url_new
 	
 	def update_resource_urls(self):
@@ -287,7 +288,8 @@ class Store(object):
 			for descr in obj.get_descriptors():
 				value = obj.get_descriptor(descr)
 				if isinstance(value, DResource):
-					self.get_updated_url(value)
+					if self.get_updated_url(value) is None:
+						obj.del_descriptor(descr)
 	
 	def set_local_folder(self, path, progress = None):
 		
@@ -1369,6 +1371,15 @@ class Store(object):
 		datasource = self.init_datasource(datasource, kwargs)
 		self.set_callbacks_paused(True)
 		if datasource.load(self, datasource = datasource, *args, **kwargs):
+			# DEBUG
+			'''
+			for url in self._resources:
+				print()
+				print(url)
+				print(self._resources[url])
+				print(self._resources[url].value)
+			'''
+			# DEBUG
 			self.set_callbacks_paused(False)
 			self.callback_loaded()
 			return True

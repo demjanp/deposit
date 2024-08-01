@@ -54,7 +54,7 @@ class Pickle(AbstractFileSource):
 		store.G.objects_from_pickle(data["object_relation_graph"])
 		store.G.classes_from_pickle(data["class_relation_graph"])
 		store.G.members_from_pickle(data["class_membership_graph"])
-		store._resources = dict([(as_url(url), data["resources"][url]) for url in data["resources"] if url and data["resources"][url]])
+		store._resources = dict([(as_url(url), data["resources"][url]) for url in data["resources"] if (url and data["resources"][url])])
 		store._local_folder = data["local_folder"]
 		store._max_order = data["max_order"]
 		store._user_tools = data["user_tools"]
