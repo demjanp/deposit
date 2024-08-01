@@ -295,22 +295,23 @@ def copy_resources(resources, src_folder, dst_folder, progress = None):
 	cmax = len(resources)
 	cnt = 1
 	collect = {}
-	for url in resources:
+	for url_orig in resources:
 		if progress is not None:
 			if progress.cancel_pressed():
 				return None
 			progress.update_state(value = cnt, maximum = cmax)
 		cnt += 1
 		
-		url, filename, is_stored, is_image = resources[url].value
+		_, filename, is_stored, is_image = resources[url_orig].value
+		url_new = url_orig
 		if is_stored:
-			url = get_updated_local_url(url, src_folder)
-			url2 = get_updated_local_url(url, dst_folder)
+			url = get_updated_local_url(url_orig, src_folder)
+			url2 = get_updated_local_url(url_orig, dst_folder)
 			if is_same_file(url, url2):
-				url = url2
+				url_new = url2
 			else:
-				url = store_locally(url, filename, dst_folder, set(collect.keys()))
-		collect[url] = DResource((url, filename, is_stored, is_image))
+				url_new = store_locally(url, os.path.basename(url_orig), dst_folder, set(collect.keys()))
+		collect[url_orig] = DResource((url_new, filename, is_stored, is_image))
 	
 	return collect
 

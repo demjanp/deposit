@@ -1371,15 +1371,6 @@ class Store(object):
 		datasource = self.init_datasource(datasource, kwargs)
 		self.set_callbacks_paused(True)
 		if datasource.load(self, datasource = datasource, *args, **kwargs):
-			# DEBUG
-			'''
-			for url in self._resources:
-				print()
-				print(url)
-				print(self._resources[url])
-				print(self._resources[url].value)
-			'''
-			# DEBUG
 			self.set_callbacks_paused(False)
 			self.callback_loaded()
 			return True
