@@ -4,6 +4,7 @@ from deposit.utils.fnc_serialize import update_local_folder
 from deposit.utils.fnc_files import as_url
 
 import pickle
+import shutil
 
 class Pickle(AbstractFileSource):
 	
@@ -18,7 +19,8 @@ class Pickle(AbstractFileSource):
 		
 		self.update_progress(1, 10, text = "Saving data")
 		
-		with open(path, "wb") as f:
+		path_save = path + ".part"
+		with open(path_save, "wb") as f:
 			pickle.dump(dict(
 				object_relation_graph = store.G.objects_to_pickle(),
 				class_relation_graph = store.G.classes_to_pickle(),
@@ -30,6 +32,8 @@ class Pickle(AbstractFileSource):
 				queries = store._queries,
 				deposit_version = __version__,
 			), f, pickle.HIGHEST_PROTOCOL, fix_imports = False)
+		
+		shutil.move(path_save, path)
 		
 		for obj in store.G.iter_objects_data():
 			obj._store = store

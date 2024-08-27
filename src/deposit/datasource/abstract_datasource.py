@@ -4,6 +4,7 @@ class AbstractDatasource(object):
 	def __init__(self):
 		
 		self._progress = None
+		self._saved_size = None
 	
 	def to_dict(self):
 		

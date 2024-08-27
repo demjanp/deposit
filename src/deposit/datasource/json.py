@@ -3,6 +3,7 @@ from deposit.datasource.abstract_filesource import AbstractFileSource
 from deposit.store.abstract_delement import AbstractDElement
 from deposit.utils.fnc_serialize import (update_local_folder, json_data_to_store, GRAPH_ATTRS)
 
+import shutil
 import json
 
 class DJSONEncoder(json.JSONEncoder):
@@ -22,7 +23,8 @@ class JSON(AbstractFileSource):
 		
 		self.update_progress(1, 10, text = "Saving data")
 		
-		with open(path, "w") as f:
+		path_save = path + ".part"
+		with open(path_save, "w") as f:
 			json.dump(dict(
 				object_relation_graph = store.G.objects_to_json(GRAPH_ATTRS),
 				class_relation_graph = store.G.classes_to_json(GRAPH_ATTRS),
@@ -33,6 +35,8 @@ class JSON(AbstractFileSource):
 				queries = store._queries,
 				deposit_version = __version__,
 			), f, cls = DJSONEncoder)
+		
+		shutil.move(path_save, path)
 		
 		self.update_progress(10)
 		
