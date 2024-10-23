@@ -925,6 +925,8 @@ class Store(object):
 				progress.update_state(text="Importing", value=cnt, maximum=cmax)
 			cnt += 1
 			for cls in tier_classes:
+				if cls in unique:
+					continue
 				for obj_src in store.get_class(cls).get_members(direct_only=True):
 					if obj_src.id in obj_lookup:
 						continue
