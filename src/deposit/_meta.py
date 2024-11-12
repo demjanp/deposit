@@ -1,4 +1,4 @@
 from ._version import version as __version__
 
 title = 'Deposit'
-date = "23.10.2024"
+date = "12.11.2024"
