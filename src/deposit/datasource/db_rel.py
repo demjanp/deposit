@@ -490,7 +490,7 @@ class DBRel(AbstractDBSource):
 		def create_table(name, columns, schema, cursor, primary=None):
 			
 			if check_table(name, schema, cursor):
-				cursor.execute("DROP TABLE IF EXISTS %s.\"%s\";" % (schema, name))
+				cursor.execute("DROP TABLE IF EXISTS %s.\"%s\" CASCADE;" % (schema, name))
 				deleted = False
 				for i in range(20):
 					time.sleep(0.5)
@@ -570,7 +570,7 @@ class DBRel(AbstractDBSource):
 		# object_nodes = {obj_id: data, ...}
 		
 		for name in tables:
-			cursor.execute("DROP TABLE IF EXISTS %s.\"%s\";" % (schema, name))
+			cursor.execute("DROP TABLE IF EXISTS %s.\"%s\" CASCADE;" % (schema, name))
 		
 		table = "identifier"
 		create_table(table, "name TEXT", schema, cursor)
