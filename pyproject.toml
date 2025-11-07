@@ -25,7 +25,7 @@ dependencies = [
 	'certifi>=2024.6.2, <2025',
 	'cryptography>=42.0.8, <43',
 	'natsort>=8.4.0, <9',
-	'networkit==11.0',
+	'networkit==11.2',
 	'networkx>=3.3, <4',
 	'numpy==1.21.3',		# required for PyInstaller in deposit_gui
 	'openpyxl>=3.1.5, <4',
